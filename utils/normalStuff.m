@@ -1,0 +1,51 @@
+classdef normalStuff
+    methods (Static)
+
+        
+        function min = infimumOfReciprocalOfOneNorm(trajSens)
+            min = 1/norm(trajSens(:,:, 1), 1);
+
+            for i = 2:length(trajSens)
+                if (1/norm(trajSens(:, :,i), 1) < min)
+                    min = 1/norm(trajSens(:,:,i), 1);
+                end
+            end
+        end
+
+        function min = infimum(trajSens)
+            min = norm(trajSens(:,:, 1), 1);
+
+            for i = 2:length(trajSens)
+                if (norm(trajSens(:, :,i), 1) < min)
+                    min = norm(trajSens(:,:,i), 1);
+                end
+            end
+        end
+        
+        function max = supremum(trajSens)
+            max = norm(trajSens(:,:, 1), 1);
+            for i = 2:length(trajSens)
+                if (norm(trajSens(:,:, i), 1) > max)
+                    max = norm(trajSens(:,:,i), 1);
+                end
+            end
+        end
+        
+        function max = secondOrderMax(secondTrajSens)
+            max = norm(secondTrajSens(:, :, :, 1), "fro");
+            for i = 1:length(secondTrajSens)
+                if (norm(secondTrajSens(:, :, :, i), "fro") > max)
+                    max = norm(secondTrajSens(:, :, :, i), "fro");
+                end
+            end
+        end
+
+        function trajNorm = trajOneNorm(trajSens)
+            trajNorm = 0;
+            for i = 1:length(trajSens)
+                trajNorm = trajNorm + norm(trajSens(:,:,i), 1);
+            end
+        end
+
+    end
+end
