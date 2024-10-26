@@ -34,20 +34,19 @@ classdef derivatives
             end
         end
 
-        function trajSens = calculateTrajectorySensitivitiesParameters(x1, x2, xe_1, xe_2, SC)
+        function trajSens = calculateTrajectorySensitivitiesParameters(x1, x2, SC)
             trajSens = zeros(2, 2, length(x2));
-
-            dfdx_xe = derivatives.derivativef(SC, xe_1);
-            dxedp = linsolve(dfdx_xe, -1.*derivatives.derivativefdp(SC, xe_1, xe_2));
-
-            trajSens(:, :, 1) = dxedp;
             I = eye(2);
+            trajSens(:, :, 1) = 0;
             for i = 2:length(x2)
-                dfdx_plus = derivatives.derivativef(SC, x1(i));
                 dfdx = derivatives.derivativef(SC, x1(i-1));
+                dfdx_plus = derivatives.derivativef(SC, x1(i));
+                
+                dfdp = derivatives.derivativefdp(SC, x1(i-1), x2(i-1));
+                dfdp_plus = derivatives.derivativefdp(SC, x1(i), x2(i));
         
                 dxdp = trajSens(:, :, i-1);
-                trajSens(:, :, i) =  (I-(SC.T/2)*dfdx_plus)\((I + (SC.T/2)*dfdx) * dxdp);
+                trajSens(:, :, i) =  (I-(SC.T/2)*dfdx_plus)\((SC.T/2)*(dfdx*dxdp + dfdp + dfdp_plus) + dxdp);
             end
         end
         
