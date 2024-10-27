@@ -8,17 +8,16 @@ classdef derivatives
             dfdp = [0 0; 1/(SC.m*SC.l) ((SC.g*sin(x1) + SC.D*x2/SC.m - SC.u/SC.m)/(SC.l^2)) ];
         end
         
-        function d2fdx2 = secondOrderDerivative(SC, x1)
+        function d2fdx2 = derivative2fdx2(SC, x1)
             d2fdx2 = zeros(2,2,2);
             d2fdx2(2, 1, 1) = SC.g/SC.l * sin(x1);
-           
         end
 
-        function d2fdp2 = secondOrderDerivativefdp(SC, x1, x2)
-            d2fdp2 = zeros(2,2,2);
-            d2fdp2(2, 1, 2) = - 1 / (SC.m*SC.l^2);
-            d2fdp2(2, 2, 1) = - 1 / (SC.m*SC.l^2);
-            d2fdp2(2, 2, 2) = - 2 / (SC.l^3) * (SC.g*sin(x1) + SC.D/SC.m*x2-SC.u/SC.m);
+        function d2fdxdp = derivative2fdxdp(SC, x1)
+            d2fdxdp = zeros(2,2,2);
+            d2fdxdp(2, 1, 2) = SC.g/(SC.l^2)*cos(x1);
+            d2fdxdp(2, 2, 2) = SC.D/(SC.m*SC.l^2);
+
         end
         
         function trajSens = calculateTrajectorySensitivities(x1, x2, SC)
@@ -59,17 +58,17 @@ classdef derivatives
         
                 d2xdx0 = d2TrajSens(:, :, :, i-1);
         
-                d2fdx2_plus =  derivatives.secondOrderDerivative(SC, x1(i));
+                d2fdx2_plus =  derivatives.derivative2fdx2(SC, x1(i));
                 dxdx0_plus = trajSens(:,:,i);
         
-                d2fdx2 =  derivatives.secondOrderDerivative(SC, x1(i-1));
+                d2fdx2 =  derivatives.derivative2fdx2(SC, x1(i-1));
                 dxdx0 = trajSens(:,:,i-1);
         
                 dfdx =  derivatives.derivativef(SC, x1(i-1));
                 
                 a = inv(I - (SC.T/2)*dfdx_plus);
-                b = conts({d2fdx2_plus, dxdx0_plus, dxdx0_plus}, {[2 1],[3 1]}, []);
-                c = conts({d2fdx2, dxdx0, dxdx0}, {[2 1],[3 1]}, []);
+                b = conts({d2fdx2_plus, dxdx0_plus, dxdx0_plus}, {[3 1],[2 1]}, []);
+                c = conts({d2fdx2, dxdx0, dxdx0}, {[3 1],[2 1]}, []);
                 d = conts({d2xdx0, dfdx}, {[1 2]}, []); % how to know which dimension
                 
                 e = d2xdx0 + (SC.T/2)*(b+c+d);
@@ -78,46 +77,39 @@ classdef derivatives
             end
         end
 
-        function d2TrajSens = calculateSecondOrderTrajectorySensitivitiesParams(x1, x2, trajSens, xe_1, xe_2, SC)
+        function d2TrajSens = calculateSecondOrderTrajectorySensitivitiesParams(x1, x2, dxdxo_list, dxdp_list, SC)
             d2TrajSens = zeros(2, 2, 2, length(x2));
-
-            dfdxinv = inv(derivatives.derivativef(SC, xe_1));
-            d2fdx2p = derivatives.secondOrderDerivative(SC, xe_1);
-
-            dfdx_xe = derivatives.derivativef(SC, xe_1);
-            dxedp = linsolve(dfdx_xe, -1.*derivatives.derivativefdp(SC, xe_1, xe_2));
-
-            d2fdp2 = derivatives.secondOrderDerivativefdp(SC, xe_1, xe_2);
-
-            f = conts({d2fdx2p, dxedp, dxedp}, {[3 1],[2 1]}, []);
-            g = -f - d2fdp2;
-            
-            d2TrajSens(:, :, :, 1) = conts({dfdxinv, g}, {[2 1]}, []);
-
             I = eye(2);
-        
+
             for i = 2:length(x2)
+                
+                d2fdx2 = derivatives.derivative2fdx2(SC, x1(i-1));
+                dxdp = dxdp_list(:, :, i-1);
+                dxdx0 = dxdxo_list(:, :, i-1);
+                d2fdxdp = derivatives.derivative2fdxdp(SC, x1(i-1));
+                dfdx = derivatives.derivativef(SC, x1(i-1));
+                d2xdxodp = d2TrajSens(:, :, :, i-1);
+
+
+                d2fdx2_plus = derivatives.derivative2fdx2(SC, x1(i));
+                dxdp_plus = dxdp_list(:, :, i);
+                dxdx0_plus = dxdxo_list(:, :, i);
+                d2fdxdp_plus = derivatives.derivative2fdxdp(SC, x1(i));
                 dfdx_plus = derivatives.derivativef(SC, x1(i));
-        
-                d2xdx0 = d2TrajSens(:, :, :, i-1);
-        
-                d2fdx2_plus =  derivatives.secondOrderDerivative(SC, x1(i));
-                dxdx0_plus = trajSens(:,:,i);
-        
-                d2fdx2 =  derivatives.secondOrderDerivative(SC, x1(i-1));
-                dxdx0 = trajSens(:,:,i-1);
-        
-                dfdx =  derivatives.derivativef(SC, x1(i-1));
                 
                 a = inv(I - (SC.T/2)*dfdx_plus);
-                b = conts({d2fdx2_plus, dxdx0_plus, dxdx0_plus}, {[2 1],[3 1]}, []);
-                c = conts({d2fdx2, dxdx0, dxdx0}, {[2 1],[3 1]}, []);
-                d = conts({d2xdx0, dfdx}, {[1 2]}, []); % how to know which dimension
-                
-                e = d2xdx0 + (SC.T/2)*(b+c+d);
+                b = conts({d2fdx2, dxdp, dxdx0}, {[3 1],[2 1]}, []);
+                c = conts({d2fdxdp, dxdx0}, {[2 1]}, []);
+                d = conts({dfdx, d2xdxodp}, {[2 1]}, []);
 
-                d2TrajSens(:, :, :, i) = conts({a, e}, {[2 1]}, []);
+                e = conts({d2fdx2_plus, dxdp_plus, dxdx0_plus}, {[3 1],[2 1]}, []);
+                f = conts({d2fdxdp_plus, dxdx0_plus}, {[2 1]}, []);
+                g = (SC.T/2)*(b + c + d + e + f) + d2xdxodp;
+                
+                d2TrajSens(:, :, :, i) = conts({a, g}, {[2 1]}, []);
             end
+
+            
         end
         
         function trajSensTest = calculateTrajectorySensitivitiesTest(i, j, SC)
@@ -185,21 +177,34 @@ classdef derivatives
             secondTrajSensTest = splats.slapPile(trajSens1, trajSens2);
         end
 
-        function secondTrajSensTest = calculateSecondOrderTrajectorySensitivitiesTestParams(i, j, xe_1, xe_2, SC)
+        function secondTrajSensTest = calculateSecondOrderTrajectorySensitivitiesTestParams(i, j, SC)
             delta = 1e-5;
             d = derivatives;
+            sCtrl = stonkCtrllers;
+            ICx = 0;
+            ICy = 0;
 
-
-            trajSens1_plus = d.calculateTrajectorySensitivitiesTestParams(i + delta, j, xe_1, xe_2, SC);
-            trajSens1_minus = d.calculateTrajectorySensitivitiesTestParams(i - delta, j, xe_1, xe_2, SC);
+            SC.u = i+delta;
+            SC.l = j;
+            [x1_pdeltax1, x2_pdeltax1] = pendulum_trajectory(SC, ICx, ICy, @sCtrl.dummyU, @sCtrl.dummyD, false);
+            SC.u = i-delta;
+            [x1_mdeltax1, x2_mdeltax1] = pendulum_trajectory(SC, ICx, ICy, @sCtrl.dummyU, @sCtrl.dummyD, false);
+            trajSens1_plus = d.calculateTrajectorySensitivities(x1_pdeltax1, x2_pdeltax1, SC);
+            trajSens1_minus = d.calculateTrajectorySensitivities(x1_mdeltax1, x2_mdeltax1, SC);
             trajSens1 = (trajSens1_plus - trajSens1_minus)/(2*delta);
         
-            trajSens2_plus = d.calculateTrajectorySensitivitiesTestParams(i, j + delta, xe_1, xe_2, SC);
-            trajSens2_minus = d.calculateTrajectorySensitivitiesTestParams(i, j - delta, xe_1, xe_2, SC);
+            SC.u = i;
+            SC.l = j+delta;
+            [x1_pdeltax2, x2_pdeltax2] = pendulum_trajectory(SC, ICx, ICy, @sCtrl.dummyU, @sCtrl.dummyD, false);
+            SC.l = j-delta;
+            [x1_mdeltax2, x2_mdeltax2] = pendulum_trajectory(SC, ICx, ICy, @sCtrl.dummyU, @sCtrl.dummyD, false);
+            trajSens2_plus = d.calculateTrajectorySensitivities(x1_pdeltax2, x2_pdeltax2, SC);
+            trajSens2_minus = d.calculateTrajectorySensitivities(x1_mdeltax2, x2_mdeltax2, SC);
             trajSens2 = (trajSens2_plus - trajSens2_minus)/(2*delta);
         
             splats = splatting;
             secondTrajSensTest = splats.slapPile(trajSens1, trajSens2);
+
         end
 
         function [xe_1, xe_2] = calculateEqmPoint(SC)
@@ -218,13 +223,14 @@ classdef derivatives
             end
         end
 
-        function dG = calculate_dG(trajSens, dTrajSens, tp)
-            den = norm(trajSens(:,:,tp),1)^2;
-            num = zeros(1,2);
-            for i = 1:2 % number of parameters
-                num = num + transpose(sign(trajSens(:,i,tp))) * [dTrajSens(:,i,1,tp), dTrajSens(:,i,2,tp)];
+        function dG = calculate_dG(G, trajSens, d2xdxodp, tp)
+            sum = zeros(1,2);
+            for k = 1:2 
+                for l = 1:2
+                    sum = sum + sign(trajSens(k,l,tp))* d2xdxodp(:,k,l,tp);
+                end
             end
-            dG = -1 * num/den;
+            dG = -1 * G^2 * sum;
         end
         
         function dGtest = calculate_dGtest(i, j, IC, SC)

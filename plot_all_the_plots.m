@@ -16,12 +16,14 @@ function plot_all_the_plots(SC)
     z2test =        zeros([1 total*total]);
     z2param =       zeros([1 total*total]);
     z2testparam =   zeros([1 total*total]);
+    z2paramdiff =   zeros([1 total*total]);
     z2_diff =       zeros([1 total*total]);
     zdG =           zeros([1 total*total]);
     zdGtest =       zeros([1 total*total]);
     zdGdiff =       zeros([1 total*total]);
     U =             zeros([1 total*total]);
     V =             zeros([1 total*total]);
+    RoA =           zeros([1 total*total]);
 
     % classes so I can call functions
     deriv = derivatives;
@@ -33,8 +35,12 @@ function plot_all_the_plots(SC)
     index = 1; 
     for i = SC.start:SC.step:SC.stop
         for j = SC.start:SC.step:SC.stop
+            x1_0 = i;
+            x2_0 = j;
+            % SC.u = i; 
+            % SC.l = j;
             % calculate first order derivatives wrt x0
-            % [x1, x2] = pendulum_trajectory(SC, i, j, @sCtrl.dummyU, @sCtrl.dummyD, false);
+            [x1, x2] = pendulum_trajectory(SC, x1_0, x2_0, @sCtrl.dummyU, @sCtrl.dummyD, false);
             % trajSens = deriv.calculateTrajectorySensitivities(x1, x2, SC);
     
             % validate results for first derivative
@@ -51,7 +57,8 @@ function plot_all_the_plots(SC)
             % dG = deriv.calculate_dG(trajSens, secondTrajSens, tp);
             % dGtest = deriv.calculate_dGtest(i, j, initdxdxo, SC);
             
-            % z(index) = norms.infimumOfReciprocalOfOneNorm(trajSens);
+            % G = norms.infimumOfReciprocalOfOneNorm(trajSens);
+            % z(index) = G
             % ztest(index) = norms.infimumOfReciprocalOfOneNorm(trajSensTest);
             % z_diff(index) = norms.infimum(1./trajSens);
             % 
@@ -68,30 +75,35 @@ function plot_all_the_plots(SC)
 
             % calculate first order trajectory sensitivities wrt p
            
-            SC.u = i; 
-            SC.l = j;
-            
-            [x1, x2] = pendulum_trajectory(SC, 0, 0, @sCtrl.dummyU, @sCtrl.dummyD, false);
-            trajSensParam = deriv.calculateTrajectorySensitivitiesParameters(x1, x2, SC);
+            % trajSensParam = deriv.calculateTrajectorySensitivitiesParameters(x1, x2, SC);
 
             % validate results wrt p
-            trajSensTestParam = deriv.calculateTrajectorySensitivitiesTestParams(i, j, 0, 0, SC);
+            % trajSensTestParam = deriv.calculateTrajectorySensitivitiesTestParams(i, j, 0, 0, SC);
             
-            z_param(index) = norms.infimumOfReciprocalOfOneNorm(trajSensParam);
-            z_paramtest(index) = norms.infimumOfReciprocalOfOneNorm(trajSensTestParam);
-            z_paramdiff(index) = norms.supremum(trajSensParam-trajSensTestParam);
+            % z_param(index) = norms.infimumOfReciprocalOfOneNorm(trajSensParam);
+            % z_paramtest(index) = norms.infimumOfReciprocalOfOneNorm(trajSensTestParam);
+            % z_paramdiff(index) = norms.supremum(trajSensParam-trajSensTestParam);
 
-            % secondTrajSensParam = deriv.calculateSecondOrderTrajectorySensitivitiesParams(x1, x2, trajSensParam, xe_1, xe_2, SC);
-            % secondTrajSensTestParam = deriv.calculateSecondOrderTrajectorySensitivitiesTestParams(i, j, xe_1, xe_2, SC);
-            % 
+            % secondTrajSensParam = deriv.calculateSecondOrderTrajectorySensitivitiesParams(x1, x2, trajSens, trajSensParam, SC);
+            % secondTrajSensTestParam = deriv.calculateSecondOrderTrajectorySensitivitiesTestParams(i, j, SC);
+            
             % z2param(index) = norms.secondOrderMax(secondTrajSensParam);
             % z2testparam(index) = norms.secondOrderMax(secondTrajSensTestParam);
+            % z2paramdiff(index) = norms.secondOrderMax(secondTrajSensParam-secondTrajSensTestParam);
+
+            % tp = deriv.findtp(trajSens);
+            % dGp = deriv.calculate_dG(G, trajSensParam, secondTrajSensParam, tp);
             % 
-            % tp = deriv.findtp(trajSensParam);
-            % dGp = deriv.calculate_dG(trajSensParam, secondTrajSensParam, tp);
+            % zdG(index) = norm(dGp);
             % 
             % U(index) = dGp(1);
             % V(index) = dGp(2);
+
+            if abs(x1(size(x1, 2))) < pi
+                RoA(index) = 1;
+            else
+                RoA(index) = -1;
+            end
        
             x1_val(index) = i;
             x2_val(index) = j;
@@ -127,12 +139,18 @@ function plot_all_the_plots(SC)
     % hold off
     % histogram(zdGdiff/zdG);
 
-    splots.splot(14, x1_val(:, 1:index), x2_val(:, 1:index), z_param(:, 1:index), "infimum inverse trajectory sensitivity param");
-    splots.splot(15, x1_val(:, 1:index), x2_val(:, 1:index), z_paramtest(:, 1:index), "infimum inverse trajectory sensitivity test param");
-    splots.splot(16, x1_val(:, 1:index), x2_val(:, 1:index), z_paramdiff(:, 1:index), "supremum diff trajectory sensitivity param");
+    % splots.splot(14, x1_val(:, 1:index), x2_val(:, 1:index), z_param(:, 1:index), "infimum inverse trajectory sensitivity param");
+    % splots.splot(15, x1_val(:, 1:index), x2_val(:, 1:index), z_paramtest(:, 1:index), "infimum inverse trajectory sensitivity test param");
+    % splots.splot(16, x1_val(:, 1:index), x2_val(:, 1:index), z_paramdiff(:, 1:index), "supremum diff trajectory sensitivity param");
 
     % splots.splot(17, x1_val(:, 1:index), x2_val(:, 1:index), z2param(:, 1:index), "second order trajectory sensitivity param");
+    % zlim([0, 600]);
     % splots.splot(18, x1_val(:, 1:index), x2_val(:, 1:index), z2testparam(:, 1:index), "second order trajectory sensitivity test param");
-    % 
-    % splots.squiver(100, x1_val, x2_val, U, V, "u l trajectory");
+    % zlim([0, 600]);
+    % splots.splot(19, x1_val(:, 1:index), x2_val(:, 1:index), z2paramdiff(:, 1:index), "supremum diff trajectory sensitivity param");
+    % zlim([0, 30]);
+
+    splots.splot(20, x1_val(:, 1:index), x2_val(:, 1:index), RoA(:, 1:index), "RoA");
+
+    % splots.squiver(21, x1_val, x2_val, U, V, "u l trajectory");
 end

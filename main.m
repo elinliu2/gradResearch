@@ -8,8 +8,8 @@ SC.m = 2/SC.g;
 SC.D = 0.1;
 SC.u = 0;
 
-SC.start = 0.05;
-SC.stop = 5;
+SC.start = -pi;
+SC.stop = pi;
 SC.step = 0.05;
 SC.ref = 0;
 
@@ -23,7 +23,7 @@ sCtrl = stonkCtrllers;
 SC.disturbance = 0.00;
 
 plot_all_the_plots(SC);
-% [x1, x2, time, u] = pendulum_trajectory(SC, 2.158, 1.408, @stonkCtrllers.dummyU, @stonkCtrllers.dummyD, true);
+% [x1, x2, time, u] = pendulum_trajectory(SC, 1.70841, 2.15841, @stonkCtrllers.dummyU, @stonkCtrllers.dummyD, true);
 % splotting.StatePlot(x1, x2, time, 1, "State Progression");
 % splotting.uplup(time, u, 2, "u over time");
 % [x1, x2, time, u] = pendulum_trajectory(SC, 2.158, 1.408, @proposedCtrllers.idkWhatImDoingv2, @stonkCtrllers.dummyD, true);
