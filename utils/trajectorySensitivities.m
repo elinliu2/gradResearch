@@ -1,32 +1,12 @@
-classdef derivatives 
-    methods (Static)
-        function dfdx = derivativef(SC, x1)
-            dfdx = [0 1; -(SC.g/SC.l)*cos(x1) -SC.D/(SC.m*SC.l)];
-        end
-
-        function dfdp = derivativefdp(SC, x1, x2)
-            dfdp = [0 0; 1/(SC.m*SC.l) ((SC.g*sin(x1) + SC.D*x2/SC.m - SC.u/SC.m)/(SC.l^2)) ];
-        end
-        
-        function d2fdx2 = derivative2fdx2(SC, x1)
-            d2fdx2 = zeros(2,2,2);
-            d2fdx2(2, 1, 1) = SC.g/SC.l * sin(x1);
-        end
-
-        function d2fdxdp = derivative2fdxdp(SC, x1)
-            d2fdxdp = zeros(2,2,2);
-            d2fdxdp(2, 1, 2) = SC.g/(SC.l^2)*cos(x1);
-            d2fdxdp(2, 2, 2) = SC.D/(SC.m*SC.l^2);
-
-        end
-        
+classdef trajectorySensitivities
+    methods(Static)
         function trajSens = calculateTrajectorySensitivities(x1, x2, SC)
             trajSens = zeros(2, 2, length(x2));
             trajSens(:, :, 1) = eye(2);
             I = eye(2);
             for i = 2:length(x2)
-                dfdx_plus = derivatives.derivativef(SC, x1(i));
-                dfdx = derivatives.derivativef(SC, x1(i-1));
+                dfdx_plus = SC.df(SC, x1(i));
+                dfdx = SC.df(SC, x1(i-1));
         
                 dxdxo = trajSens(:, :, i-1);
                 trajSens(:, :, i) =  (I-(SC.T/2)*dfdx_plus)\((I + (SC.T/2)*dfdx) * dxdxo);
@@ -38,11 +18,11 @@ classdef derivatives
             I = eye(2);
             trajSens(:, :, 1) = 0;
             for i = 2:length(x2)
-                dfdx = derivatives.derivativef(SC, x1(i-1));
-                dfdx_plus = derivatives.derivativef(SC, x1(i));
+                dfdx = SC.df(SC, x1(i-1));
+                dfdx_plus = SC.df(SC, x1(i));
                 
-                dfdp = derivatives.derivativefdp(SC, x1(i-1), x2(i-1));
-                dfdp_plus = derivatives.derivativefdp(SC, x1(i), x2(i));
+                dfdp = SC.dfdp(SC, x1(i-1), x2(i-1));
+                dfdp_plus = SC.dfdp(SC, x1(i), x2(i));
         
                 dxdp = trajSens(:, :, i-1);
                 trajSens(:, :, i) =  (I-(SC.T/2)*dfdx_plus)\((SC.T/2)*(dfdx*dxdp + dfdp + dfdp_plus) + dxdp);
@@ -54,17 +34,17 @@ classdef derivatives
             I = eye(2);
         
             for i = 2:length(x2)
-                dfdx_plus = derivatives.derivativef(SC, x1(i));
+                dfdx_plus = SC.df(SC, x1(i));
         
                 d2xdx0 = d2TrajSens(:, :, :, i-1);
         
-                d2fdx2_plus =  derivatives.derivative2fdx2(SC, x1(i));
+                d2fdx2_plus =  SC.d2fdx2(SC, x1(i));
                 dxdx0_plus = trajSens(:,:,i);
         
-                d2fdx2 =  derivatives.derivative2fdx2(SC, x1(i-1));
+                d2fdx2 =  SC.d2fdx2(SC, x1(i-1));
                 dxdx0 = trajSens(:,:,i-1);
         
-                dfdx =  derivatives.derivativef(SC, x1(i-1));
+                dfdx =  SC.df(SC, x1(i-1));
                 
                 a = inv(I - (SC.T/2)*dfdx_plus);
                 b = conts({d2fdx2_plus, dxdx0_plus, dxdx0_plus}, {[3 1],[2 1]}, []);
@@ -83,19 +63,19 @@ classdef derivatives
 
             for i = 2:length(x2)
                 
-                d2fdx2 = derivatives.derivative2fdx2(SC, x1(i-1));
+                d2fdx2 = SC.d2fdx2(SC, x1(i-1));
                 dxdp = dxdp_list(:, :, i-1);
                 dxdx0 = dxdxo_list(:, :, i-1);
-                d2fdxdp = derivatives.derivative2fdxdp(SC, x1(i-1));
-                dfdx = derivatives.derivativef(SC, x1(i-1));
+                d2fdxdp = SC.d2fdxdp(SC, x1(i-1));
+                dfdx = SC.df(SC, x1(i-1));
                 d2xdxodp = d2TrajSens(:, :, :, i-1);
 
 
-                d2fdx2_plus = derivatives.derivative2fdx2(SC, x1(i));
+                d2fdx2_plus = SC.d2fdx2(SC, x1(i));
                 dxdp_plus = dxdp_list(:, :, i);
                 dxdx0_plus = dxdxo_list(:, :, i);
-                d2fdxdp_plus = derivatives.derivative2fdxdp(SC, x1(i));
-                dfdx_plus = derivatives.derivativef(SC, x1(i));
+                d2fdxdp_plus = SC.d2fdxdp(SC, x1(i));
+                dfdx_plus = SC.df(SC, x1(i));
                 
                 a = inv(I - (SC.T/2)*dfdx_plus);
                 b = conts({d2fdx2, dxdp, dxdx0}, {[3 1],[2 1]}, []);
@@ -206,12 +186,6 @@ classdef derivatives
             secondTrajSensTest = splats.slapPile(trajSens1, trajSens2);
 
         end
-
-        function [xe_1, xe_2] = calculateEqmPoint(SC)
-            xe_1 = asin(SC.u/(SC.g*SC.m));
-            xe_2 = 0;
-        end
-
         function tp = findtp(trajSens)
             min = 1/norm(trajSens(:,:,1), 1);
             tp = 1;

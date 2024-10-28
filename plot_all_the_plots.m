@@ -25,7 +25,7 @@ function plot_all_the_plots(SC)
     L =             zeros([1 total*total]);
 
     % classes so I can call functions
-    deriv = derivatives;
+    tjs = trajectorySensitivities;
     norms = normalStuff;
     splots = splotting;    
     sCtrl = stonkCtrllers;
@@ -41,7 +41,7 @@ function plot_all_the_plots(SC)
 
             % % calculate first order derivatives wrt x0
             [x1, x2] = pendulum_trajectory(SC, x1_0, x2_0, @sCtrl.dummyU, @sCtrl.dummyD, false);
-            trajSens = deriv.calculateTrajectorySensitivities(x1, x2, SC);
+            trajSens = tjs.calculateTrajectorySensitivities(x1, x2, SC);
             % trajSensTest = deriv.calculateTrajectorySensitivitiesTest(i, j, SC);
     
             % % calculate second derivative wrt x0
@@ -51,16 +51,16 @@ function plot_all_the_plots(SC)
             G = norms.infimumOfReciprocalOfOneNorm(trajSens);
             
             % % calculate first order trajectory sensitivities wrt p
-            trajSensParam = deriv.calculateTrajectorySensitivitiesParameters(x1, x2, SC);
+            trajSensParam = tjs.calculateTrajectorySensitivitiesParameters(x1, x2, SC);
             % trajSensTestParam = deriv.calculateTrajectorySensitivitiesTestParams(i, j, 0, 0, SC);
           
             % % calculate second derivative wrt p
-            secondTrajSensParam = deriv.calculateSecondOrderTrajectorySensitivitiesParams(x1, x2, trajSens, trajSensParam, SC);
+            secondTrajSensParam = tjs.calculateSecondOrderTrajectorySensitivitiesParams(x1, x2, trajSens, trajSensParam, SC);
             % secondTrajSensTestParam = deriv.calculateSecondOrderTrajectorySensitivitiesTestParams(i, j, SC);
             
-            tp = deriv.findtp(trajSens);
+            tp = tjs.findtp(trajSens);
 
-            dGp = deriv.calculate_dG(G, trajSens, secondTrajSensParam, tp);
+            dGp = tjs.calculate_dG(G, trajSens, secondTrajSensParam, tp);
 
             % z(index) = G;
             % ztest(index) = norms.infimumOfReciprocalOfOneNorm(trajSensTest);

@@ -16,11 +16,13 @@ SC.ref = 0;
 SC.u = 0;
 SC.disturbance = 0;
 
-deriv = derivatives;
+tjs = trajectorySensitivities;
 norms = normalStuff;
 sCtrl = stonkCtrllers;
 
 SC.disturbance = 0.00;
+
+SC = derivatives_x1x2ulmodel.assignDerivatives(SC);
 
 plot_all_the_plots(SC);
 % [x1, x2, time, u] = pendulum_trajectory(SC, 1.70841, 2.15841, @stonkCtrllers.dummyU, @stonkCtrllers.dummyD, true);
