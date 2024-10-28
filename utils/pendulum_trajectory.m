@@ -1,11 +1,14 @@
-function [x1, x2, time, uPlot] = pendulum_trajectory(SC, x1_o, x2_o, u, d, plot)
+function [x1, x2, ei, e, ed, time, uPlot] = pendulum_trajectory(SC, x1_o, x2_o, u, d, plot)
     % setup arrays 
     t_final = SC.t_final;
     size = t_final/SC.T;
     x1 = zeros([1 size]);
     x2 = zeros([1 size]);
     time = zeros([1 size]);
+    ei = zeros([1 size]);
     e = zeros([1 size]);
+    ed = zeros([1 size]);
+
     uPlot = zeros([1 size]);
     
     % initial conditions
@@ -27,6 +30,8 @@ function [x1, x2, time, uPlot] = pendulum_trajectory(SC, x1_o, x2_o, u, d, plot)
     
     for i = 2:t_final/SC.T
         e(i) = SC.ref - x1(i-1);
+        ei(i) = ei(i-1) + e(i);
+        ed(i) = (e(i)-e(i-1))/SC.T;
         SC.u = u(x1(i-1), x2(i-1), e(i), (e(i)-e(i-1))/SC.T, sum(e), SC);
 
         x1_guess = 0;
@@ -41,7 +46,7 @@ function [x1, x2, time, uPlot] = pendulum_trajectory(SC, x1_o, x2_o, u, d, plot)
                 break;
             end
         end
-        x1(i) = x1_guess + d(SC) ;
+        x1(i) = x1_guess + d(SC);
         x2(i) = x2_guess;
         time(i) = i*SC.T; 
         uPlot(i) = SC.u;

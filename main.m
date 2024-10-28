@@ -8,8 +8,8 @@ SC.m = 2/SC.g;
 SC.D = 0.1;
 SC.u = 0;
 
-SC.start = -pi;
-SC.stop = pi;
+SC.start = 1;
+SC.stop = 3;
 SC.step = 0.05;
 SC.ref = 0;
 

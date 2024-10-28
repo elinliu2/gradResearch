@@ -195,6 +195,10 @@ classdef proposedCtrllers
                 end
             end
         end
+
+        function u = ParameterizedPIDCtrl(~, ~, e, ed, ei, SC)
+            u = SC.p * e + SC.i * ei + SC.d * ed;
+        end
     end
 end
 

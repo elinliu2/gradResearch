@@ -232,26 +232,5 @@ classdef derivatives
             end
             dG = -1 * G^2 * sum;
         end
-        
-        function dGtest = calculate_dGtest(i, j, IC, SC)
-            delta = 1e-5;
-            d = derivatives;
-            n = normalStuff;
-            sCtrl = stonkCtrllers;
-            [x1_pdeltax1, x2_pdeltax1] = pendulum_trajectory(SC, i + delta, j, @sCtrl.dummyU, @sCtrl.dummyD, false);
-            [x1_mdeltax1, x2_mdeltax1] = pendulum_trajectory(SC, i - delta, j, @sCtrl.dummyU, @sCtrl.dummyD, false);
-            trajSens1_plus = d.calculateTrajectorySensitivities(x1_pdeltax1, x2_pdeltax1, IC, SC);
-            trajSens1_minus = d.calculateTrajectorySensitivities(x1_mdeltax1, x2_mdeltax1, IC, SC);
-            trajSens1 = (n.infimum(1./trajSens1_plus) - n.infimum(1./trajSens1_minus))/(2*delta);
-        
-            [x1_pdeltax2, x2_pdeltax2] = pendulum_trajectory(SC, i, j + delta, @sCtrl.dummyU, @sCtrl.dummyD, false);
-            [x1_mdeltax2, x2_mdeltax2] = pendulum_trajectory(SC, i, j - delta, @sCtrl.dummyU, @sCtrl.dummyD, false);
-            trajSens2_plus = d.calculateTrajectorySensitivities(x1_pdeltax2, x2_pdeltax2, IC, SC);
-            trajSens2_minus = d.calculateTrajectorySensitivities(x1_mdeltax2, x2_mdeltax2, IC, SC);
-            trajSens2 = (n.infimum(1./trajSens2_plus) - n.infimum(1./trajSens2_minus))/(2*delta);
-        
-            dGtest(1) = trajSens1;
-            dGtest(2) = trajSens2;
-        end
     end
 end
