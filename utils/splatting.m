@@ -15,5 +15,14 @@ classdef splatting
                 secondTrajSens(:, :, :, i) = temp;
             end
         end
+
+        function [x1, x2] = extractX1andX2FromState(state)
+            x1 = zeros([1 length(state)]);
+            x2 = zeros([1 length(state)]);
+            for i = 1:length(state)
+                x1(i) = state(i).x1;
+                x2(i) = state(i).x2;
+            end
+        end
     end
 end

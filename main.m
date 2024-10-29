@@ -8,9 +8,9 @@ SC.m = 2/SC.g;
 SC.D = 0.1;
 SC.u = 0;
 
-SC.start = 1;
-SC.stop = 3;
-SC.step = 0.05;
+SC.start = -pi;
+SC.stop = pi;
+SC.step = 0.1;
 SC.ref = 0;
 
 SC.u = 0;

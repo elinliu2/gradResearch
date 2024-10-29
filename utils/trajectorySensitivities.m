@@ -1,50 +1,50 @@
 classdef trajectorySensitivities
     methods(Static)
-        function trajSens = calculateTrajectorySensitivities(x1, x2, SC)
-            trajSens = zeros(2, 2, length(x2));
+        function trajSens = calculateTrajectorySensitivities(state, SC)
+            trajSens = zeros(2, 2, length(state));
             trajSens(:, :, 1) = eye(2);
             I = eye(2);
-            for i = 2:length(x2)
-                dfdx_plus = SC.df(SC, x1(i));
-                dfdx = SC.df(SC, x1(i-1));
+            for i = 2:length(state)
+                dfdx_plus = SC.df(SC, state(i));
+                dfdx = SC.df(SC, state(i-1));
         
                 dxdxo = trajSens(:, :, i-1);
                 trajSens(:, :, i) =  (I-(SC.T/2)*dfdx_plus)\((I + (SC.T/2)*dfdx) * dxdxo);
             end
         end
 
-        function trajSens = calculateTrajectorySensitivitiesParameters(x1, x2, SC)
-            trajSens = zeros(2, 2, length(x2));
+        function trajSens = calculateTrajectorySensitivitiesParameters(state, SC)
+            trajSens = zeros(2, 2, length(state));
             I = eye(2);
             trajSens(:, :, 1) = 0;
-            for i = 2:length(x2)
-                dfdx = SC.df(SC, x1(i-1));
-                dfdx_plus = SC.df(SC, x1(i));
+            for i = 2:length(state)
+                dfdx = SC.df(SC, state(i-1));
+                dfdx_plus = SC.df(SC, state(i));
                 
-                dfdp = SC.dfdp(SC, x1(i-1), x2(i-1));
-                dfdp_plus = SC.dfdp(SC, x1(i), x2(i));
+                dfdp = SC.dfdp(SC, state(i-1));
+                dfdp_plus = SC.dfdp(SC, state(i));
         
                 dxdp = trajSens(:, :, i-1);
                 trajSens(:, :, i) =  (I-(SC.T/2)*dfdx_plus)\((SC.T/2)*(dfdx*dxdp + dfdp + dfdp_plus) + dxdp);
             end
         end
         
-        function d2TrajSens = calculateSecondOrderTrajectorySensitivities(x1, x2, trajSens, SC)
-            d2TrajSens = zeros(2, 2, 2, length(x2));
+        function d2TrajSens = calculateSecondOrderTrajectorySensitivities(state, trajSens, SC)
+            d2TrajSens = zeros(2, 2, 2, length(state));
             I = eye(2);
         
-            for i = 2:length(x2)
-                dfdx_plus = SC.df(SC, x1(i));
+            for i = 2:length(state)
+                dfdx_plus = SC.df(SC, state(i));
         
                 d2xdx0 = d2TrajSens(:, :, :, i-1);
         
-                d2fdx2_plus =  SC.d2fdx2(SC, x1(i));
+                d2fdx2_plus =  SC.d2fdx2(SC, state(i));
                 dxdx0_plus = trajSens(:,:,i);
         
-                d2fdx2 =  SC.d2fdx2(SC, x1(i-1));
+                d2fdx2 =  SC.d2fdx2(SC, state(i-1));
                 dxdx0 = trajSens(:,:,i-1);
         
-                dfdx =  SC.df(SC, x1(i-1));
+                dfdx =  SC.df(SC, state(i-1));
                 
                 a = inv(I - (SC.T/2)*dfdx_plus);
                 b = conts({d2fdx2_plus, dxdx0_plus, dxdx0_plus}, {[3 1],[2 1]}, []);
@@ -57,25 +57,25 @@ classdef trajectorySensitivities
             end
         end
 
-        function d2TrajSens = calculateSecondOrderTrajectorySensitivitiesParams(x1, x2, dxdxo_list, dxdp_list, SC)
-            d2TrajSens = zeros(2, 2, 2, length(x2));
+        function d2TrajSens = calculateSecondOrderTrajectorySensitivitiesParams(state, dxdxo_list, dxdp_list, SC)
+            d2TrajSens = zeros(2, 2, 2, length(state));
             I = eye(2);
 
-            for i = 2:length(x2)
+            for i = 2:length(state)
                 
-                d2fdx2 = SC.d2fdx2(SC, x1(i-1));
+                d2fdx2 = SC.d2fdx2(SC, state(i-1));
                 dxdp = dxdp_list(:, :, i-1);
                 dxdx0 = dxdxo_list(:, :, i-1);
-                d2fdxdp = SC.d2fdxdp(SC, x1(i-1));
-                dfdx = SC.df(SC, x1(i-1));
+                d2fdxdp = SC.d2fdxdp(SC, state(i-1));
+                dfdx = SC.df(SC, state(i-1));
                 d2xdxodp = d2TrajSens(:, :, :, i-1);
 
 
-                d2fdx2_plus = SC.d2fdx2(SC, x1(i));
+                d2fdx2_plus = SC.d2fdx2(SC, state(i));
                 dxdp_plus = dxdp_list(:, :, i);
                 dxdx0_plus = dxdxo_list(:, :, i);
-                d2fdxdp_plus = SC.d2fdxdp(SC, x1(i));
-                dfdx_plus = SC.df(SC, x1(i));
+                d2fdxdp_plus = SC.d2fdxdp(SC, state(i));
+                dfdx_plus = SC.df(SC, state(i));
                 
                 a = inv(I - (SC.T/2)*dfdx_plus);
                 b = conts({d2fdx2, dxdp, dxdx0}, {[3 1],[2 1]}, []);
@@ -95,12 +95,16 @@ classdef trajectorySensitivities
         function trajSensTest = calculateTrajectorySensitivitiesTest(i, j, SC)
             delta = 1e-5;
             sCtrl = stonkCtrllers;
-            [x1_dx1_plus, x2_dx1_plus] = pendulum_trajectory(SC, i + delta, j, @sCtrl.dummyU, @sCtrl.dummyD, false);
-            [x1_dx1_minus, x2_dx1_minus]  = pendulum_trajectory(SC, i - delta, j, @sCtrl.dummyU, @sCtrl.dummyD, false);
-        
-            [x1_dx2_plus, x2_dx2_plus] = pendulum_trajectory(SC, i, j + delta, @sCtrl.dummyU, @sCtrl.dummyD, false);
-            [x1_dx2_minus, x2_dx2_minus]  = pendulum_trajectory(SC, i, j - delta, @sCtrl.dummyU, @sCtrl.dummyD, false);
-        
+            [state_dx1_plus] = pendulum_trajectory(SC, i + delta, j, @sCtrl.dummyU, @sCtrl.dummyD, false);
+            [x1_dx1_plus, x2_dx1_plus] = splatting.extractX1andX2FromState(state_dx1_plus);
+            [state_dx1_minus]  = pendulum_trajectory(SC, i - delta, j, @sCtrl.dummyU, @sCtrl.dummyD, false);
+            [x1_dx1_minus, x2_dx1_minus] = splatting.extractX1andX2FromState(state_dx1_minus);
+
+            [state_dx2_plus] = pendulum_trajectory(SC, i, j + delta, @sCtrl.dummyU, @sCtrl.dummyD, false);
+            [x1_dx2_plus, x2_dx2_plus] = splatting.extractX1andX2FromState(state_dx2_plus);
+            [state_dx2_minus]  = pendulum_trajectory(SC, i, j - delta, @sCtrl.dummyU, @sCtrl.dummyD, false);
+            [x1_dx2_minus, x2_dx2_minus] = splatting.extractX1andX2FromState(state_dx2_minus);
+
             dx1dx1 = (x1_dx1_plus-x1_dx1_minus)/(2*delta);
             dx2dx1 = (x2_dx1_plus-x2_dx1_minus)/(2*delta);
         
@@ -139,18 +143,20 @@ classdef trajectorySensitivities
         
         function secondTrajSensTest = calculateSecondOrderTrajectorySensitivitiesTest(i, j, SC)
             delta = 1e-5;
-            d = derivatives;
+            tjs = trajectorySensitivities;
             sCtrl = stonkCtrllers;
-            [x1_pdeltax1, x2_pdeltax1] = pendulum_trajectory(SC, i + delta, j, @sCtrl.dummyU, @sCtrl.dummyD, false);
-            [x1_mdeltax1, x2_mdeltax1] = pendulum_trajectory(SC, i - delta, j, @sCtrl.dummyU, @sCtrl.dummyD, false);
-            trajSens1_plus = d.calculateTrajectorySensitivities(x1_pdeltax1, x2_pdeltax1, SC);
-            trajSens1_minus = d.calculateTrajectorySensitivities(x1_mdeltax1, x2_mdeltax1, SC);
+            [state_dx1_plus] = pendulum_trajectory(SC, i + delta, j, @sCtrl.dummyU, @sCtrl.dummyD, false);
+            [state_dx1_minus]  = pendulum_trajectory(SC, i - delta, j, @sCtrl.dummyU, @sCtrl.dummyD, false);
+
+            trajSens1_plus = tjs.calculateTrajectorySensitivities(state_dx1_plus, SC);
+            trajSens1_minus = tjs.calculateTrajectorySensitivities(state_dx1_minus, SC);
             trajSens1 = (trajSens1_plus - trajSens1_minus)/(2*delta);
         
-            [x1_pdeltax2, x2_pdeltax2] = pendulum_trajectory(SC, i, j + delta, @sCtrl.dummyU, @sCtrl.dummyD, false);
-            [x1_mdeltax2, x2_mdeltax2] = pendulum_trajectory(SC, i, j - delta, @sCtrl.dummyU, @sCtrl.dummyD, false);
-            trajSens2_plus = d.calculateTrajectorySensitivities(x1_pdeltax2, x2_pdeltax2, SC);
-            trajSens2_minus = d.calculateTrajectorySensitivities(x1_mdeltax2, x2_mdeltax2, SC);
+            [state_dx2_plus] = pendulum_trajectory(SC, i, j + delta, @sCtrl.dummyU, @sCtrl.dummyD, false);
+            [state_dx2_minus]  = pendulum_trajectory(SC, i, j - delta, @sCtrl.dummyU, @sCtrl.dummyD, false);
+            
+            trajSens2_plus = tjs.calculateTrajectorySensitivities(state_dx2_plus, SC);
+            trajSens2_minus = tjs.calculateTrajectorySensitivities(state_dx2_minus, SC);
             trajSens2 = (trajSens2_plus - trajSens2_minus)/(2*delta);
         
             splats = splatting;
