@@ -30,6 +30,10 @@ classdef derivatives_x1x2ulmodel
             SC.dfdp = @derivatives_x1x2ulmodel.dfdp;
             SC.d2fdx2 = @derivatives_x1x2ulmodel.d2fdx2;
             SC.d2fdxdp = @derivatives_x1x2ulmodel.d2fdxdp;
+            SC.numStates = 2;
+            SC.initialdxdxo = eye(SC.numStates);
+            SC.numParams = 2;
+            SC.controller = @stonkCtrllers.dummyU;
         end
     end
 end

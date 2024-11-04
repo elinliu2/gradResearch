@@ -1,6 +1,6 @@
 classdef stonkCtrllers
     methods (Static)
-        function u = dummyU(~, ~, ~, ~, ~, SC)
+        function [u, SC] = dummyU(~, ~, ~, ~, ~, SC)
             u = SC.u;
         end
         

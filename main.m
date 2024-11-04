@@ -8,9 +8,9 @@ SC.m = 2/SC.g;
 SC.D = 0.1;
 SC.u = 0;
 
-SC.start = -pi;
-SC.stop = pi;
-SC.step = 0.1;
+SC.start = 0.1;
+SC.stop = 0.1;
+SC.step = 0.2;
 SC.ref = 0;
 
 SC.u = 0;
@@ -22,12 +22,17 @@ sCtrl = stonkCtrllers;
 
 SC.disturbance = 0.00;
 
-SC = derivatives_x1x2ulmodel.assignDerivatives(SC);
+SC.pid_i = 0.05;
+SC.pid_p = 2;
+SC.pid_d = 2;
+
+SC = derivatives_pidmodel.assignDerivatives(SC);
 
 plot_all_the_plots(SC);
-% [x1, x2, time, u] = pendulum_trajectory(SC, 1.70841, 2.15841, @stonkCtrllers.dummyU, @stonkCtrllers.dummyD, true);
+% [state, time, u, SC] = pendulum_trajectory(SC, 1, 1, @proposedCtrllers.ChangingPIDCtrl, @stonkCtrllers.dummyD, true);
+% [x1, x2] = splatting.extractX1andX2FromState(state);
 % splotting.StatePlot(x1, x2, time, 1, "State Progression");
-% splotting.uplup(time, u, 2, "u over time");
+% splotting.uplup(time, u, 2, "u over time", "u");
 % [x1, x2, time, u] = pendulum_trajectory(SC, 2.158, 1.408, @proposedCtrllers.idkWhatImDoingv2, @stonkCtrllers.dummyD, true);
 % splotting.StatePlot(x1, x2, time, 3, "idkWhatImDoingv2 controller");
 % splotting.uplup(time, x1, 4, "x1 over time", "x1");

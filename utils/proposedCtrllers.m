@@ -1,31 +1,33 @@
 classdef proposedCtrllers
     methods (Static)
-        function u = controller(x1_o, x2_o, e, ed, ei, SC)
+        function [u, SC] = controller(x1_o, x2_o, e, ed, ei, SC)
 
-            deriv = derivatives;
+            tjs = trajectorySensitivities;
             norms = normalStuff;
             sCtrl = stonkCtrllers;
         
             [x1, x2] = pendulum_trajectory(SC, x1_o, x2_o, @sCtrl.dummyU, @sCtrl.dummyD, false);
-            trajSens = deriv.calculateTrajectorySensitivities(x1, x2, SC);
+            trajSens = tjs.calculateTrajectorySensitivities(x1, x2, SC);
             Gx = norms.infimumOfReciprocalOfOneNorm(trajSens);
             
-            trajSensTestParam = deriv.calculateTrajectorySensitivitiesTestParams(SC.u, SC.l, x1_o, x2_o, SC);
+            trajSensTestParam = tjs.calculateTrajectorySensitivitiesTestParams(SC.u, SC.l, x1_o, x2_o, SC);
         
-            secondTrajSensParam = deriv.calculateSecondOrderTrajectorySensitivitiesTestParams(SC.u, SC.l, x1_o, x2_o, SC);
+            secondTrajSensParam = tjs.calculateSecondOrderTrajectorySensitivitiesTestParams(SC.u, SC.l, x1_o, x2_o, SC);
            
-            tp = deriv.findtp(trajSensTestParam);
-            dGp = deriv.calculate_dG(trajSensTestParam, secondTrajSensParam, tp);
+            tp = tjs.findtp(trajSensTestParam);
+            dGp = tjs.calculate_dG(trajSensTestParam, secondTrajSensParam, tp);
         
             
             % if G = 0 we want to heavily weigh the stabilizing controller 
             sf = 1;
             u = (sf/(Gx + sf)) * stabilityController(Gx, dGp)  ...
                 + (1 - sf/(Gx + sf)) * PIDCtrl(x1_o, x2_o, e, ed, ei, SC);
+
+            SC.u = u;
         
         end
         
-        function u = idkWhatImDoing(x1_o, x2_o, ~, ~, ~, SC)
+        function [u, SC] = idkWhatImDoing(x1_o, x2_o, ~, ~, ~, SC)
             deriv = derivatives;
             norms = normalStuff;
             sCtrl = stonkCtrllers;
@@ -67,9 +69,10 @@ classdef proposedCtrllers
             else 
                 u = 0;
             end
+            SC.u = u;
         end
         
-        function u = idkWhatImDoingv2(x1_o, x2_o, ~, ~, ~, SC)
+        function [u, SC] = idkWhatImDoingv2(x1_o, x2_o, ~, ~, ~, SC)
             deriv = derivatives;
             norms = normalStuff;
             sCtrl = stonkCtrllers;
@@ -106,11 +109,10 @@ classdef proposedCtrllers
                 u=0;
             end
             
-        
+            SC.u = u;
         end
         
-        
-        function u = stabilityController(Gx, dGdp)
+        function [u] = stabilityController(Gx, dGdp)
            if dGdp(1) < 0 
                 u = -1/Gx;
             else 
@@ -118,11 +120,12 @@ classdef proposedCtrllers
            end
         end
         
-        function u = PIDCtrl(~, ~, e, ed, ei, ~)
+        function [u, SC] = PIDCtrl(~, ~, e, ei, ed, SC)
             p = 2;
             i = 0.05;
             d = 2;
             u = p * e + i * ei + d * ed;
+            SC.u = u;
         end
         
         function u = findMaxU(x1_o, x2_o, SC, u1, u2, Gx1, Gx2)
@@ -196,8 +199,29 @@ classdef proposedCtrllers
             end
         end
 
-        function u = ParameterizedPIDCtrl(~, ~, e, ed, ei, SC)
-            u = SC.p * e + SC.i * ei + SC.d * ed;
+        function [u, SC] = ParameterizedPIDCtrl(~, ~, e, ei, ed, SC)
+            u = SC.pid_p * e + SC.pid_i * ei + SC.pid_d * ed;
+            SC.u = u;
+        end
+
+        function [u, SC] = ChangingPIDCtrl(x1_0, x2_0, e, ei, ed, SC)
+            tjs = trajectorySensitivities;
+            norms = normalStuff;
+            [stateProgression, ~, ~, ~] = pendulum_trajectory(SC, x1_0, x2_0, SC.controller, @stonkCtrllers.dummyD, false);
+            trajSens = tjs.calculateTrajectorySensitivities(stateProgression, SC);
+            G = norms.infimumOfReciprocalOfOneNorm(trajSens);
+            trajSensParam = tjs.calculateTrajectorySensitivitiesParameters(stateProgression, SC);
+            secondTrajSensParam = tjs.calculateSecondOrderTrajectorySensitivitiesParams(stateProgression, trajSens, trajSensParam, SC);
+           
+            tp = tjs.findtp(trajSens);
+            dGp = tjs.calculate_dG(G, trajSens, secondTrajSensParam, tp, SC);
+
+            scale = 0.1;
+            SC.pid_p = max(SC.pid_p + sign(dGp(1))*scale, 0);
+            SC.pid_i = max(SC.pid_i + sign(dGp(2))*scale, 0);
+            SC.pid_d = max(SC.pid_d + sign(dGp(3))*scale, 0);
+
+            u = SC.pid_p * e + SC.pid_i * ei + SC.pid_d * ed;
         end
     end
 end

@@ -1,4 +1,4 @@
-function [stateProgression, time, uPlot] = pendulum_trajectory(SC, x1_o, x2_o, u, d, plot)
+function [stateProgression, time, uPlot, SC] = pendulum_trajectory(SC, initialState, u, d, plot)
     % setup arrays 
     t_final = SC.t_final;
     size = t_final/SC.T;
@@ -12,17 +12,15 @@ function [stateProgression, time, uPlot] = pendulum_trajectory(SC, x1_o, x2_o, u
     uPlot = zeros([1 size]);
     
     % initial conditions
-    x1(1) = x1_o;
-    x2(1) = x2_o;
+    x1(1) = initialState.x1;
+    x2(1) = initialState.x2;
+    ei(1) = initialState.ei;
+    e(1) = initialState.e;
+    ed(1) = initialState.e;
+
     tolerance = 1e-5;
 
-    state.x1 = x1(1);
-    state.x2 = x2(1);
-    state.e = e(1);
-    state.ei = ei(1);
-    state.ed = ed(1);
-
-    stateProgression =  repmat(state, 1, size );
+    stateProgression =  repmat(initialState, 1, size );
 
     
     % initialize plot
@@ -38,7 +36,13 @@ function [stateProgression, time, uPlot] = pendulum_trajectory(SC, x1_o, x2_o, u
     end 
     
     for i = 2:t_final/SC.T
-        SC.u = u(x1(i-1), x2(i-1), e(i), (e(i)-e(i-1))/SC.T, sum(e), SC);
+        e(i) = SC.ref - x1(i-1);
+        ei(i) = ei(i-1) + e(i);
+        ed(i) = (e(i)-e(i-1))/SC.T;
+        
+
+        [uVal, SC] = u(x1(i-1), x2(i-1), e(i), ei(i), ed(i), SC);
+        SC.u = uVal;
 
         x1_guess = 0;
         x2_guess = 0;
@@ -54,10 +58,6 @@ function [stateProgression, time, uPlot] = pendulum_trajectory(SC, x1_o, x2_o, u
         end
         x1(i) = x1_guess + d(SC);
         x2(i) = x2_guess;
-        
-        e(i) = SC.ref - x1(i-1);
-        ei(i) = ei(i-1) + e(i);
-        ed(i) = (e(i)-e(i-1))/SC.T;
 
         state.x1 = x1(i);
         state.x2 = x2(i);

@@ -1,9 +1,10 @@
 classdef trajectorySensitivities
     methods(Static)
         function trajSens = calculateTrajectorySensitivities(state, SC)
-            trajSens = zeros(2, 2, length(state));
-            trajSens(:, :, 1) = eye(2);
-            I = eye(2);
+            n = SC.numStates;
+            trajSens = zeros(n, n, length(state));
+            trajSens(:, :, 1) = SC.initialdxdxo;
+            I = eye(n);
             for i = 2:length(state)
                 dfdx_plus = SC.df(SC, state(i));
                 dfdx = SC.df(SC, state(i-1));
@@ -14,8 +15,10 @@ classdef trajectorySensitivities
         end
 
         function trajSens = calculateTrajectorySensitivitiesParameters(state, SC)
-            trajSens = zeros(2, 2, length(state));
-            I = eye(2);
+            n = SC.numStates;
+            m = SC.numParams;
+            trajSens = zeros(n, m, length(state));
+            I = eye(n);
             trajSens(:, :, 1) = 0;
             for i = 2:length(state)
                 dfdx = SC.df(SC, state(i-1));
@@ -30,8 +33,9 @@ classdef trajectorySensitivities
         end
         
         function d2TrajSens = calculateSecondOrderTrajectorySensitivities(state, trajSens, SC)
-            d2TrajSens = zeros(2, 2, 2, length(state));
-            I = eye(2);
+            n = SC.numStates;
+            d2TrajSens = zeros(n, n, n, length(state));
+            I = eye(n);
         
             for i = 2:length(state)
                 dfdx_plus = SC.df(SC, state(i));
@@ -58,8 +62,10 @@ classdef trajectorySensitivities
         end
 
         function d2TrajSens = calculateSecondOrderTrajectorySensitivitiesParams(state, dxdxo_list, dxdp_list, SC)
-            d2TrajSens = zeros(2, 2, 2, length(state));
-            I = eye(2);
+            n = SC.numStates;
+            m = SC.numParams;
+            d2TrajSens = zeros(n, n, m, length(state));
+            I = eye(n);
 
             for i = 2:length(state)
                 
@@ -92,105 +98,97 @@ classdef trajectorySensitivities
             
         end
         
-        function trajSensTest = calculateTrajectorySensitivitiesTest(i, j, SC)
+        function trajSensTest = calculateTrajectorySensitivitiesTest(initialState, SC, numSteps)
             delta = 1e-5;
             sCtrl = stonkCtrllers;
-            [state_dx1_plus] = pendulum_trajectory(SC, i + delta, j, @sCtrl.dummyU, @sCtrl.dummyD, false);
-            [x1_dx1_plus, x2_dx1_plus] = splatting.extractX1andX2FromState(state_dx1_plus);
-            [state_dx1_minus]  = pendulum_trajectory(SC, i - delta, j, @sCtrl.dummyU, @sCtrl.dummyD, false);
-            [x1_dx1_minus, x2_dx1_minus] = splatting.extractX1andX2FromState(state_dx1_minus);
+            trajSensTest = zeros(SC.numStates, SC.numStates, numSteps);
 
-            [state_dx2_plus] = pendulum_trajectory(SC, i, j + delta, @sCtrl.dummyU, @sCtrl.dummyD, false);
-            [x1_dx2_plus, x2_dx2_plus] = splatting.extractX1andX2FromState(state_dx2_plus);
-            [state_dx2_minus]  = pendulum_trajectory(SC, i, j - delta, @sCtrl.dummyU, @sCtrl.dummyD, false);
-            [x1_dx2_minus, x2_dx2_minus] = splatting.extractX1andX2FromState(state_dx2_minus);
+            fns = fieldnames(initialState);
 
-            dx1dx1 = (x1_dx1_plus-x1_dx1_minus)/(2*delta);
-            dx2dx1 = (x2_dx1_plus-x2_dx1_minus)/(2*delta);
-        
-            dx1dx2 = (x1_dx2_plus-x1_dx2_minus)/(2*delta);
-            dx2dx2 = (x2_dx2_plus-x2_dx2_minus)/(2*delta);
-            
-            splats = splatting;
-            trajSensTest = splats.slapPack(dx1dx1, dx1dx2, dx2dx1, dx2dx2);
+            for index = 1:2
+                state = initialState;
+                state.(fns{index}) = initialState.(fns{index}) + delta;
+                state.e = SC.ref - state.x1;
+                [state_index_plus] = pendulum_trajectory(SC, state, @sCtrl.dummyU, @sCtrl.dummyD, false);
+
+                state.(fns{index}) = initialState.(fns{index}) - delta;
+                state.e = SC.ref - state.x1;
+                [state_index_minus]  = pendulum_trajectory(SC, state, @sCtrl.dummyU, @sCtrl.dummyD, false);
+    
+                for i = 1:numSteps
+                    for j = 1:SC.numStates
+                        dxdstate = (state_index_plus(i).(fns{j})-state_index_minus(i).(fns{j}))/(2*delta);
+                        trajSensTest(j, index, i) = dxdstate;
+                    end
+                end
+            end            
         end
 
-        function trajSensTest = calculateTrajectorySensitivitiesTestParams(i, j, xe_1, xe_2, SC)
+        function trajSensTestParams = calculateTrajectorySensitivitiesTestParams(state, SC, numSteps)
             delta = 1e-5;
-            sCtrl = stonkCtrllers;
-            
-            SC.u = i + delta;
-            SC.l = j;
-            [x1_du_plus, x2_du_plus] = pendulum_trajectory(SC, xe_1, xe_2, @sCtrl.dummyU, @sCtrl.dummyD, false);
-            SC.u = i - delta;
-            [x1_du_minus, x2_du_minus]  = pendulum_trajectory(SC, xe_1, xe_2, @sCtrl.dummyU, @sCtrl.dummyD, false);
-        
-            SC.u = i;
-            SC.l = j + delta;
-            [x1_dl_plus, x2_dl_plus] = pendulum_trajectory(SC, xe_1, xe_2, @sCtrl.dummyU, @sCtrl.dummyD, false);
-            SC.l = j - delta;
-            [x1_dl_minus, x2_dl_minus]  = pendulum_trajectory(SC, xe_1, xe_2, @sCtrl.dummyU, @sCtrl.dummyD, false);
-        
-            dx1du = (x1_du_plus-x1_du_minus)/(2*delta);
-            dx2du = (x2_du_plus-x2_du_minus)/(2*delta);
-        
-            dx1dl = (x1_dl_plus-x1_dl_minus)/(2*delta);
-            dx2dl = (x2_dl_plus-x2_dl_minus)/(2*delta);
-            
-            splats = splatting;
-            trajSensTest = splats.slapPack(dx1du, dx1dl, dx2du, dx2dl);
+            oldSC = SC;
+            trajSensTestParams = zeros(SC.numStates, SC.numParams, numSteps);
+            for index = 1:SC.numParams
+                SC = SC.nudgeParams(SC, delta, index);
+                [state_index_plus] = pendulum_trajectory(SC, state, SC.controller, @stonkCtrllers.dummyD, false);
+                SC = oldSC;
+                SC = SC.nudgeParams(SC, -1*delta, index);
+                [state_index_minus] = pendulum_trajectory(SC, state, SC.controller, @stonkCtrllers.dummyD, false);
+                SC = oldSC;
+
+                fns = fieldnames(state_index_plus(1));
+                for i = 1:numSteps
+                    for j = 1:SC.numStates
+                        dxdstate = (state_index_plus(i).(fns{j})-state_index_minus(i).(fns{j}))/(2*delta);
+                        trajSensTestParams(j, index, i) = dxdstate;
+                    end
+                end
+            end
         end
         
-        function secondTrajSensTest = calculateSecondOrderTrajectorySensitivitiesTest(i, j, SC)
+        function secondTrajSensTest = calculateSecondOrderTrajectorySensitivitiesTest(initialState, SC, numSteps)
             delta = 1e-5;
             tjs = trajectorySensitivities;
             sCtrl = stonkCtrllers;
-            [state_dx1_plus] = pendulum_trajectory(SC, i + delta, j, @sCtrl.dummyU, @sCtrl.dummyD, false);
-            [state_dx1_minus]  = pendulum_trajectory(SC, i - delta, j, @sCtrl.dummyU, @sCtrl.dummyD, false);
 
-            trajSens1_plus = tjs.calculateTrajectorySensitivities(state_dx1_plus, SC);
-            trajSens1_minus = tjs.calculateTrajectorySensitivities(state_dx1_minus, SC);
-            trajSens1 = (trajSens1_plus - trajSens1_minus)/(2*delta);
-        
-            [state_dx2_plus] = pendulum_trajectory(SC, i, j + delta, @sCtrl.dummyU, @sCtrl.dummyD, false);
-            [state_dx2_minus]  = pendulum_trajectory(SC, i, j - delta, @sCtrl.dummyU, @sCtrl.dummyD, false);
+            secondTrajSensTest = zeros(SC.numStates, SC.numStates, SC.numStates, numSteps);
+
+            fns = fieldnames(initialState);
+
+            for index = 1:SC.numParams
+                state = initialState;
+                state.(fns{index}) = initialState.(fns{index}) + delta;
+                [state_index_plus] = pendulum_trajectory(SC, state, @sCtrl.dummyU, @sCtrl.dummyD, false);
+                trajSens_plus = tjs.calculateTrajectorySensitivities(state_index_plus, SC);
             
-            trajSens2_plus = tjs.calculateTrajectorySensitivities(state_dx2_plus, SC);
-            trajSens2_minus = tjs.calculateTrajectorySensitivities(state_dx2_minus, SC);
-            trajSens2 = (trajSens2_plus - trajSens2_minus)/(2*delta);
-        
-            splats = splatting;
-            secondTrajSensTest = splats.slapPile(trajSens1, trajSens2);
+                state.(fns{index}) = initialState.(fns{index}) - delta;
+                [state_index_minus]  = pendulum_trajectory(SC, state, @sCtrl.dummyU, @sCtrl.dummyD, false);
+                trajSens_minus = tjs.calculateTrajectorySensitivities(state_index_minus, SC);
+                
+                trajSens1 = (trajSens_plus - trajSens_minus)/(2*delta);
+                secondTrajSensTest(:, :, index, :) = trajSens1;
+            end 
         end
 
-        function secondTrajSensTest = calculateSecondOrderTrajectorySensitivitiesTestParams(i, j, SC)
+        function secondTrajSensTest = calculateSecondOrderTrajectorySensitivitiesTestParams(state, SC, numSteps)
             delta = 1e-5;
-            d = derivatives;
-            sCtrl = stonkCtrllers;
-            ICx = 0;
-            ICy = 0;
+            secondTrajSensTest = zeros(SC.numStates, SC.numStates, SC.numParams, numSteps);
+            oldSC = SC;
+            tjs = trajectorySensitivities;
+            for index = 1:SC.numParams
+                SC = SC.nudgeParams(SC, delta, index);
+                [state_index_plus] = pendulum_trajectory(SC, state, SC.controller, @stonkCtrllers.dummyD, false);
+                SC = oldSC;
+                SC = SC.nudgeParams(SC, -1*delta, index);
+                [state_index_minus] = pendulum_trajectory(SC, state, SC.controller, @stonkCtrllers.dummyD, false);
+                SC = oldSC;
 
-            SC.u = i+delta;
-            SC.l = j;
-            [x1_pdeltax1, x2_pdeltax1] = pendulum_trajectory(SC, ICx, ICy, @sCtrl.dummyU, @sCtrl.dummyD, false);
-            SC.u = i-delta;
-            [x1_mdeltax1, x2_mdeltax1] = pendulum_trajectory(SC, ICx, ICy, @sCtrl.dummyU, @sCtrl.dummyD, false);
-            trajSens1_plus = d.calculateTrajectorySensitivities(x1_pdeltax1, x2_pdeltax1, SC);
-            trajSens1_minus = d.calculateTrajectorySensitivities(x1_mdeltax1, x2_mdeltax1, SC);
-            trajSens1 = (trajSens1_plus - trajSens1_minus)/(2*delta);
-        
-            SC.u = i;
-            SC.l = j+delta;
-            [x1_pdeltax2, x2_pdeltax2] = pendulum_trajectory(SC, ICx, ICy, @sCtrl.dummyU, @sCtrl.dummyD, false);
-            SC.l = j-delta;
-            [x1_mdeltax2, x2_mdeltax2] = pendulum_trajectory(SC, ICx, ICy, @sCtrl.dummyU, @sCtrl.dummyD, false);
-            trajSens2_plus = d.calculateTrajectorySensitivities(x1_pdeltax2, x2_pdeltax2, SC);
-            trajSens2_minus = d.calculateTrajectorySensitivities(x1_mdeltax2, x2_mdeltax2, SC);
-            trajSens2 = (trajSens2_plus - trajSens2_minus)/(2*delta);
-        
-            splats = splatting;
-            secondTrajSensTest = splats.slapPile(trajSens1, trajSens2);
+                trajSens_plus = tjs.calculateTrajectorySensitivities(state_index_plus, SC);
+                trajSens_minus = tjs.calculateTrajectorySensitivities(state_index_minus, SC);
+                trajSens = (trajSens_plus - trajSens_minus)/(2*delta);
 
+                secondTrajSensTest(:, :, index, :) = trajSens;
+            end
         end
         function tp = findtp(trajSens)
             min = 1/norm(trajSens(:,:,1), 1);
@@ -203,11 +201,14 @@ classdef trajectorySensitivities
             end
         end
 
-        function dG = calculate_dG(G, trajSens, d2xdxodp, tp)
-            sum = zeros(1,2);
-            for k = 1:2 
-                for l = 1:2
-                    sum = sum + sign(trajSens(k,l,tp))* d2xdxodp(:,k,l,tp);
+        function dG = calculate_dG(G, trajSens, d2xdxodp, tp, SC)
+            sum = zeros(1,SC.numParams);
+            for k = 1:SC.numStates
+                for l = 1:SC.numStates
+                    temp = sign(trajSens(k,l,tp)) * d2xdxodp(k,l,:,tp);
+                    for i = 1:SC.numParams
+                        sum(i) = sum(i) + temp(:,:,i);
+                    end
                 end
             end
             dG = -1 * G^2 * sum;
