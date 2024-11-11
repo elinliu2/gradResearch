@@ -1,4 +1,4 @@
-function [stateProgression, time, uPlot, SC] = pendulum_trajectory(SC, initialState, u, d, plot)
+function [stateProgression, time, uPlot, SC] = pendulum_trajectory(SC, initialState, u, d, shouldPlot)
     % setup arrays 
     t_final = SC.t_final;
     size = t_final/SC.T;
@@ -16,7 +16,7 @@ function [stateProgression, time, uPlot, SC] = pendulum_trajectory(SC, initialSt
     x2(1) = initialState.x2;
     ei(1) = initialState.ei;
     e(1) = initialState.e;
-    ed(1) = initialState.e;
+    ed(1) = initialState.ed;
 
     tolerance = 1e-5;
 
@@ -24,7 +24,7 @@ function [stateProgression, time, uPlot, SC] = pendulum_trajectory(SC, initialSt
 
     
     % initialize plot
-    if (plot)
+    if (shouldPlot)
         figure(100)
         hold on
         sim = scatter(0, 0, 20, [0.5 0 0.5], "filled");
@@ -36,12 +36,7 @@ function [stateProgression, time, uPlot, SC] = pendulum_trajectory(SC, initialSt
     end 
     
     for i = 2:t_final/SC.T
-        e(i) = SC.ref - x1(i-1);
-        ei(i) = ei(i-1) + e(i);
-        ed(i) = (e(i)-e(i-1))/SC.T;
-        
-
-        [uVal, SC] = u(x1(i-1), x2(i-1), e(i), ei(i), ed(i), SC);
+        [uVal, SC] = u(x1(i-1), x2(i-1), e(i-1), ei(i-1), ed(i-1), SC);
         SC.u = uVal;
 
         x1_guess = 0;
@@ -59,6 +54,11 @@ function [stateProgression, time, uPlot, SC] = pendulum_trajectory(SC, initialSt
         x1(i) = x1_guess + d(SC);
         x2(i) = x2_guess;
 
+        e(i) = SC.ref - x1(i);
+        ei(i) = ei(i-1) + e(i);
+        % ed(i) = (e(i)-e(i-1))/SC.T;
+        ed(i) = -x2(i);
+        
         state.x1 = x1(i);
         state.x2 = x2(i);
         state.e = e(i);
@@ -68,7 +68,7 @@ function [stateProgression, time, uPlot, SC] = pendulum_trajectory(SC, initialSt
 
         time(i) = i*SC.T; 
         uPlot(i) = SC.u;
-        if (plot)
+        if (shouldPlot)
             % update plot 
             sim.XData = SC.l*sin(x1(i));
             sim.YData = -SC.l*cos(x1(i));

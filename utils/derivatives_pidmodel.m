@@ -1,16 +1,14 @@
 classdef derivatives_pidmodel
     methods (Static)
         function dfdx = df(SC, state)
-            dfdx = [0 1 0 0 0; 
-                -(SC.g/SC.l)*cos(state.x1) -SC.D/(SC.m*SC.l) SC.pid_i/(SC.m*SC.l) SC.pid_p/(SC.m*SC.l) SC.pid_d/(SC.m*SC.l);
-                0 0 0 1 0;
-                0 0 0 0 1;
-                (SC.g/SC.l)*cos(state.x1) SC.D/(SC.m*SC.l) -SC.pid_i/(SC.m*SC.l) -SC.pid_p/(SC.m*SC.l) -SC.pid_d/(SC.m*SC.l)];
+            dfdx = [0 1 0; 
+                   (-(SC.g/SC.l)*cos(state.x1)-SC.pid_p/(SC.m*SC.l)) (-(SC.D+SC.pid_d)/(SC.m*SC.l)) (SC.pid_i/(SC.m*SC.l));
+                   -1 0 0];
         end
 
         function dfdp = dfdp(SC, state)
-            dfdp = zeros(5, 3);
-            dfdp(2, :) = [state.ei/(SC.m*SC.l) state.e/(SC.m*SC.l) state.ed/(SC.m*SC.l)];
+            dfdp = zeros(3, 3);
+            dfdp(2, :) = [-state.x1/(SC.m*SC.l) state.ei/(SC.m*SC.l) -state.x2/(SC.m*SC.l)];
         end
         
         function d2fdx2 = d2fdx2(SC, state)
@@ -40,17 +38,13 @@ classdef derivatives_pidmodel
             SC.dfdp = @derivatives_pidmodel.dfdp;
             SC.d2fdx2 = @derivatives_pidmodel.d2fdx2;
             SC.d2fdxdp = @derivatives_pidmodel.d2fdxdp;
-            SC.numStates = 5;
-           
+            SC.numStates = 3;
             SC.numParams = 3;
+
             SC.controller = @proposedCtrllers.ParameterizedPIDCtrl;
             SC.nudgeParams = @derivatives_pidmodel.nudgeParams;
 
-            SC.initialdxdxo = [ 1 0 0 0 0 ; 
-                                0 1 0 0 0 ;
-                                0 0 0 0 0 ;
-                                -1 0 0 0 0;
-                                0 0 0 0 0];
+            SC.initialdxdxo = [1 0 -1; 0 1 0; -1 0 1];
         end
     end
 end

@@ -41,9 +41,9 @@ function plot_all_the_plots(SC)
 
             initialState.x1 = x1_0;
             initialState.x2 = x2_0;
-            initialState.ei = 0;
-            initialState.e = SC.ref - x1_0;
-            initialState.ed = 0;
+            initialState.ei = SC.ref-x1_0;
+            initialState.e = SC.ref-x1_0;
+            initialState.ed = -x2_0;
 
             % calculate first order derivatives wrt x0
             [stateProgression, ~, ~, ~] = pendulum_trajectory(SC, initialState, SC.controller, @sCtrl.dummyD, false);
@@ -69,7 +69,7 @@ function plot_all_the_plots(SC)
 
             z(index) = G;
             ztest(index) = norms.infimumOfReciprocalOfOneNorm(trajSensTest);
-            z_diff(index) = norms.supremum(trajSens-trajSensTest);
+            % z_diff(index) = norms.supremum(trajSens-trajSensTest);
 
             % z2(index) = norms.secondOrderMax(secondTrajSens);
             % z2test(index) = norms.secondOrderMax(secondTrajSensTest);
@@ -102,7 +102,7 @@ function plot_all_the_plots(SC)
     index = index-1;
     splots.splot(1, x1_val(:, 1:index), x2_val(:, 1:index), z(:, 1:index), "infimum inverse trajectory sensitivity");
     splots.splot(2, x1_val(:, 1:index), x2_val(:, 1:index), ztest(:, 1:index), "infimum inverse trajectory sensitivity test");
-    splots.splot(3, x1_val(:, 1:index), x2_val(:, 1:index), z_diff(:, 1:index), "max diff");
+    % splots.splot(3, x1_val(:, 1:index), x2_val(:, 1:index), z_diff(:, 1:index), "max diff");
     % disp("max z diff: " + max(z_diff));
 
     % splots.splot(4, x1_val(:, 1:index), x2_val(:, 1:index), z2(:, 1:index), "second order trajectory sensitivity");
@@ -122,5 +122,5 @@ function plot_all_the_plots(SC)
     % splots.splot(13, x1_val(:, 1:index), x2_val(:, 1:index), zdG(:, 1:index), "dG");
     % splots.squiver(14, x1_val(:, 1:index), x2_val(:, 1:index), U(:, 1:index), L(:, 1:index), "u l dG");
 
-    % splots.splot(15, x1_val(:, 1:index), x2_val(:, 1:index), RoA(:, 1:index), "RoA");
+    splots.splot(15, x1_val(:, 1:index), x2_val(:, 1:index), RoA(:, 1:index), "RoA");
 end
