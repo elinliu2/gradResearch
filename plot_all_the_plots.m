@@ -22,8 +22,13 @@ function plot_all_the_plots(SC)
     z2param_diff =  zeros([1 total*total]);
 
     zdG =           zeros([1 total*total]);
+    zdGTest =       zeros([1 total*total]);
     U =             zeros([1 total*total]);
     L =             zeros([1 total*total]);
+
+    Utest =             zeros([1 total*total]);
+    Ltest =             zeros([1 total*total]);
+
     RoA =           zeros([1 total*total]);
 
     % classes so I can call functions
@@ -41,7 +46,7 @@ function plot_all_the_plots(SC)
 
             initialState.x1 = x1_0;
             initialState.x2 = x2_0;
-            initialState.ei = SC.ref-x1_0;
+            initialState.ei = 0;
             initialState.e = SC.ref-x1_0;
             initialState.ed = -x2_0;
 
@@ -49,43 +54,44 @@ function plot_all_the_plots(SC)
             [stateProgression, ~, ~, ~] = pendulum_trajectory(SC, initialState, SC.controller, @sCtrl.dummyD, false);
             trajSens = tjs.calculateTrajectorySensitivities(stateProgression, SC);
             trajSensTest = tjs.calculateTrajectorySensitivitiesTest(initialState, SC, length(stateProgression));
-            G = norms.infimumOfReciprocalOfOneNorm(trajSens);
+            G = norms.infimumOfReciprocalOfElementOneNorm(trajSens);
 
             % % calculate second derivative wrt x0
             % secondTrajSens = tjs.calculateSecondOrderTrajectorySensitivities(stateProgression, trajSens, SC);
             % secondTrajSensTest = tjs.calculateSecondOrderTrajectorySensitivitiesTest(initialState, SC, length(stateProgression));
-            % 
-            % % calculate first order trajectory sensitivities wrt p
-            % trajSensParam = tjs.calculateTrajectorySensitivitiesParameters(stateProgression, SC);
-            % trajSensTestParam = tjs.calculateTrajectorySensitivitiesTestParams(initialState, SC, length(stateProgression));
-            % 
-            % % calculate second derivative wrt p
-            % secondTrajSensParam = tjs.calculateSecondOrderTrajectorySensitivitiesParams(stateProgression, trajSens, trajSensParam, SC);
-            % secondTrajSensTestParam = tjs.calculateSecondOrderTrajectorySensitivitiesTestParams(initialState, SC, length(stateProgression));
-            % 
-            % tp = tjs.findtp(trajSens);
-            % 
-            % dGp = tjs.calculate_dG(G, trajSens, secondTrajSensParam, tp, SC);
+            
+            % calculate first order trajectory sensitivities wrt p
+            trajSensParam = tjs.calculateTrajectorySensitivitiesParameters(stateProgression, SC);
+            trajSensTestParam = tjs.calculateTrajectorySensitivitiesTestParams(initialState, SC, length(stateProgression));
+            
+            % calculate second derivative wrt p
+            secondTrajSensParam = tjs.calculateSecondOrderTrajectorySensitivitiesParams(stateProgression, trajSens, trajSensParam, SC);
+            secondTrajSensTestParam = tjs.calculateSecondOrderTrajectorySensitivitiesTestParams(initialState, SC, length(stateProgression));
+
+            tp = tjs.findtp(trajSens);
+
+            dGp = tjs.calculate_dG(G, trajSens, secondTrajSensParam, tp, SC);
+            dGpTest = tjs.calculate_dGTest(initialState, SC);
 
             z(index) = G;
-            ztest(index) = norms.infimumOfReciprocalOfOneNorm(trajSensTest);
-            % z_diff(index) = norms.supremum(trajSens-trajSensTest);
+            ztest(index) = norms.infimumOfReciprocalOfElementOneNorm(trajSensTest);
+            z_diff(index) = norms.supremum(trajSens-trajSensTest);
+           
+            zparam(index) = norms.supremum(trajSensParam);
+            zparamtest(index) = norms.supremum(trajSensTestParam);
+            zparam_diff(index) = norms.supremum(trajSensParam-trajSensTestParam);
+            
+            z2param(index) = norms.secondOrderMax(secondTrajSensParam);
+            z2paramtest(index) = norms.secondOrderMax(secondTrajSensTestParam);
+            z2param_diff(index) = norms.secondOrderMax(secondTrajSensParam-secondTrajSensTestParam);
 
-            % z2(index) = norms.secondOrderMax(secondTrajSens);
-            % z2test(index) = norms.secondOrderMax(secondTrajSensTest);
-            % z2_diff(index) = norms.secondOrderMax(secondTrajSens-secondTrajSensTest);
-            % 
-            % zparam(index) = norms.supremum(trajSensParam);
-            % zparamtest(index) = norms.supremum(trajSensTestParam);
-            % zparam_diff(index) = norms.supremum(trajSensParam-trajSensTestParam);
-            % 
-            % z2param(index) = norms.secondOrderMax(secondTrajSensParam);
-            % z2paramtest(index) = norms.secondOrderMax(secondTrajSensTestParam);
-            % z2param_diff(index) = norms.secondOrderMax(secondTrajSensParam-secondTrajSensTestParam);
+            zdG(index) = norm(dGp);
+            zdGTest(index) = norm(dGpTest);
+            U(index) = dGp(1)/zdG(index);
+            L(index) = dGp(2)/zdG(index);
 
-            % zdG(index) = norm(dGp);
-            % U(index) = dGp(1);
-            % L(index) = dGp(2);
+            Utest(index) = dGpTest(1)/zdGTest(index);
+            Ltest(index) = dGpTest(2)/zdGTest(index);
             
             x1_val(index) = i;
             x2_val(index) = j;
@@ -103,24 +109,29 @@ function plot_all_the_plots(SC)
     splots.splot(1, x1_val(:, 1:index), x2_val(:, 1:index), z(:, 1:index), "infimum inverse trajectory sensitivity");
     splots.splot(2, x1_val(:, 1:index), x2_val(:, 1:index), ztest(:, 1:index), "infimum inverse trajectory sensitivity test");
     % splots.splot(3, x1_val(:, 1:index), x2_val(:, 1:index), z_diff(:, 1:index), "max diff");
-    % disp("max z diff: " + max(z_diff));
+    disp("max z diff: " + max(z_diff));
 
     % splots.splot(4, x1_val(:, 1:index), x2_val(:, 1:index), z2(:, 1:index), "second order trajectory sensitivity");
     % splots.splot(5, x1_val(:, 1:index), x2_val(:, 1:index), z2test(:, 1:index), "second order trajectory sensitivity test");
     % splots.splot(6, x1_val(:, 1:index), x2_val(:, 1:index), z2_diff(:, 1:index), "max diff second order trajectory sensitivity");
-    % % disp("max z2 diff: " + max(z2_diff));
-    % 
-    % splots.splot(7, x1_val(:, 1:index), x2_val(:, 1:index), zparam(:, 1:index), "supremum trajectory sensitivity param");
-    % splots.splot(8, x1_val(:, 1:index), x2_val(:, 1:index), zparamtest(:, 1:index), "supremum trajectory sensitivity test param");
+    % disp("max z2 diff: " + max(z2_diff));
+    
+    splots.splot(7, x1_val(:, 1:index), x2_val(:, 1:index), zparam(:, 1:index), "supremum trajectory sensitivity param");
+    splots.splot(8, x1_val(:, 1:index), x2_val(:, 1:index), zparamtest(:, 1:index), "supremum trajectory sensitivity test param");
     % splots.splot(9, x1_val(:, 1:index), x2_val(:, 1:index), zparam_diff(:, 1:index), "supremum diff trajectory sensitivity param");
-    % 
-    % splots.splot(10, x1_val(:, 1:index), x2_val(:, 1:index), z2param(:, 1:index), "second order trajectory sensitivity param");
-    % splots.splot(11, x1_val(:, 1:index), x2_val(:, 1:index), z2paramtest(:, 1:index), "second order trajectory sensitivity test param");
+    disp("max zparam diff: " + max(zparam_diff));
+
+    splots.splot(10, x1_val(:, 1:index), x2_val(:, 1:index), z2param(:, 1:index), "second order trajectory sensitivity param");
+    splots.splot(11, x1_val(:, 1:index), x2_val(:, 1:index), z2paramtest(:, 1:index), "second order trajectory sensitivity test param");
     % splots.splot(12, x1_val(:, 1:index), x2_val(:, 1:index), z2param_diff(:, 1:index), "supremum diff trajectory sensitivity param");
-    % zlim([0, 30]);
+    disp("max z2param diff: " + max(z2param_diff));
+    
 
-    % splots.splot(13, x1_val(:, 1:index), x2_val(:, 1:index), zdG(:, 1:index), "dG");
-    % splots.squiver(14, x1_val(:, 1:index), x2_val(:, 1:index), U(:, 1:index), L(:, 1:index), "u l dG");
+    splots.splot(13, x1_val(:, 1:index), x2_val(:, 1:index), zdG(:, 1:index), "dG");
+    splots.splot(14, x1_val(:, 1:index), x2_val(:, 1:index), zdGTest(:, 1:index), "dGtest");
 
-    splots.splot(15, x1_val(:, 1:index), x2_val(:, 1:index), RoA(:, 1:index), "RoA");
+    splots.squiver(15, x1_val(:, 1:index), x2_val(:, 1:index), U(:, 1:index), L(:, 1:index), "dG direction");
+    splots.squiver(17, x1_val(:, 1:index), x2_val(:, 1:index), Utest(:, 1:index), Ltest(:, 1:index), "dG direction test");
+
+    splots.splot(17, x1_val(:, 1:index), x2_val(:, 1:index), RoA(:, 1:index), "RoA");
 end

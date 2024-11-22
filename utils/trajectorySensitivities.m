@@ -68,7 +68,6 @@ classdef trajectorySensitivities
             I = eye(n);
 
             for i = 2:length(state)
-                
                 d2fdx2 = SC.d2fdx2(SC, state(i-1));
                 dxdp = dxdp_list(:, :, i-1);
                 dxdx0 = dxdxo_list(:, :, i-1);
@@ -175,16 +174,17 @@ classdef trajectorySensitivities
             for index = 1:SC.numParams
                 SC = SC.nudgeParams(SC, delta, index);
                 [state_index_plus] = pendulum_trajectory(SC, state, SC.controller, @stonkCtrllers.dummyD, false);
+                trajSens_plus = tjs.calculateTrajectorySensitivities(state_index_plus, SC);
                 SC = oldSC;
+
                 SC = SC.nudgeParams(SC, -1*delta, index);
                 [state_index_minus] = pendulum_trajectory(SC, state, SC.controller, @stonkCtrllers.dummyD, false);
+                trajSens_minus = tjs.calculateTrajectorySensitivities(state_index_minus, SC);
                 SC = oldSC;
 
-                trajSens_plus = tjs.calculateTrajectorySensitivities(state_index_plus, SC);
-                trajSens_minus = tjs.calculateTrajectorySensitivities(state_index_minus, SC);
-                trajSens = (trajSens_plus - trajSens_minus)/(2*delta);
+                dtrajSens = (trajSens_plus - trajSens_minus)/(2*delta);
 
-                secondTrajSensTest(:, :, index, :) = trajSens;
+                secondTrajSensTest(:, :, index, :) = dtrajSens;
             end
         end
         function tp = findtp(trajSens)
@@ -202,13 +202,34 @@ classdef trajectorySensitivities
             sum = zeros(1,SC.numParams);
             for k = 1:SC.numStates
                 for l = 1:SC.numStates
-                    temp = sign(trajSens(k,l,tp)) * d2xdxodp(k,l,:,tp);
                     for i = 1:SC.numParams
-                        sum(i) = sum(i) + temp(:,:,i);
+                        sum(i) = sum(i) + sign(trajSens(k,l,tp)) * d2xdxodp(k,l,i,tp);
                     end
                 end
             end
             dG = -1 * G^2 * sum;
+        end
+
+        function dGTest = calculate_dGTest(state, SC)
+            delta = 1e-5;
+            oldSC = SC;
+            tjs = trajectorySensitivities;
+            dGTest = zeros(1, SC.numParams);
+            for index = 1:SC.numParams
+                SC = SC.nudgeParams(SC, delta, index);
+                [state_index_plus] = pendulum_trajectory(SC, state, SC.controller, @stonkCtrllers.dummyD, false);
+                trajSens_plus = tjs.calculateTrajectorySensitivities(state_index_plus, SC);
+                Gplus = normalStuff.infimumOfReciprocalOfElementOneNorm(trajSens_plus);
+                SC = oldSC;
+
+                SC = SC.nudgeParams(SC, -1*delta, index);
+                [state_index_minus] = pendulum_trajectory(SC, state, SC.controller, @stonkCtrllers.dummyD, false);
+                trajSens_minus = tjs.calculateTrajectorySensitivities(state_index_minus, SC);
+                Gminus = normalStuff.infimumOfReciprocalOfElementOneNorm(trajSens_minus);
+                SC = oldSC;
+
+                dGTest(index) = (Gplus-Gminus)/(2*delta);
+            end
         end
     end
 end

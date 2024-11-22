@@ -51,7 +51,7 @@ function [stateProgression, time, uPlot, SC] = pendulum_trajectory(SC, initialSt
                 break;
             end
         end
-        x1(i) = x1_guess + d(SC);
+        x1(i) = x1_guess + d(SC, i*SC.T);
         x2(i) = x2_guess;
 
         e(i) = SC.ref - x1(i);

@@ -199,29 +199,41 @@ classdef proposedCtrllers
             end
         end
 
-        function [u, SC] = ParameterizedPIDCtrl(~, ~, e, ei, ed, SC)
+        function [u, SC] = ParameterizedPIDCtrl(x1_0, x2_0, e, ei, ed, SC)
             u = SC.pid_p * e + SC.pid_i * ei + SC.pid_d * ed;
+            u = min(max(u, 30), -30);
             SC.u = u;
         end
 
         function [u, SC] = ChangingPIDCtrl(x1_0, x2_0, e, ei, ed, SC)
+
             tjs = trajectorySensitivities;
             norms = normalStuff;
-            [stateProgression, ~, ~, ~] = pendulum_trajectory(SC, x1_0, x2_0, SC.controller, @stonkCtrllers.dummyD, false);
+
+            initialState.x1 = x1_0;
+            initialState.x2 = x2_0;
+            initialState.ei = 0;
+            initialState.e = SC.ref-x1_0;
+            initialState.ed = -x2_0;
+
+            [stateProgression] = pendulum_trajectory(SC, initialState, @proposedCtrllers.ParameterizedPIDCtrl, @stonkCtrllers.dummyD, false);
             trajSens = tjs.calculateTrajectorySensitivities(stateProgression, SC);
-            G = norms.infimumOfReciprocalOfOneNorm(trajSens);
+            G = norms.infimumOfReciprocalOfElementOneNorm(trajSens);
             trajSensParam = tjs.calculateTrajectorySensitivitiesParameters(stateProgression, SC);
             secondTrajSensParam = tjs.calculateSecondOrderTrajectorySensitivitiesParams(stateProgression, trajSens, trajSensParam, SC);
            
             tp = tjs.findtp(trajSens);
             dGp = tjs.calculate_dG(G, trajSens, secondTrajSensParam, tp, SC);
 
-            scale = 0.1;
-            SC.pid_p = max(SC.pid_p + sign(dGp(1))*scale, 0);
-            SC.pid_i = max(SC.pid_i + sign(dGp(2))*scale, 0);
-            SC.pid_d = max(SC.pid_d + sign(dGp(3))*scale, 0);
+            scale = 1/G;
+            SC.pid_p = SC.pid_p + dGp(1)/norm(dGp)*scale;
+            SC.pid_d = SC.pid_d + dGp(2)/norm(dGp)*scale;
 
             u = SC.pid_p * e + SC.pid_i * ei + SC.pid_d * ed;
+            
+            u = min(max(u, 30), -30);
+
+            SC.G(length(SC.G)+1) = G;
         end
     end
 end

@@ -1,7 +1,7 @@
 addpath('./utils')  
 % Sim Constants
 SC.T = 1e-2;
-SC.t_final = 30;
+SC.t_final = 20;
 SC.g = 9.8;
 SC.l = SC.g/2;
 SC.m = 2/SC.g;
@@ -13,30 +13,37 @@ SC.step = 0.25;
 SC.ref = 0;
 
 SC.u = 0;
-SC.disturbance = 0;
+SC.disturbance = 0.5;
 
 tjs = trajectorySensitivities;
 norms = normalStuff;
 sCtrl = stonkCtrllers;
 
 SC.pid_i = 0;
-SC.pid_p = 2;
-SC.pid_d = 0;
+SC.pid_p = 0.2;
+SC.pid_d = 0.2;
 
-SC = derivatives_pctrlmodel.assignDerivatives(SC);
+SC = derivatives_pdctrlmodel.assignDerivatives(SC);
 
-plot_all_the_plots(SC);
+% plot_all_the_plots(SC);
 
-% initialState.x1 = -2*pi;
-% initialState.x2 = 2*pi;
-% initialState.e = 0;
-% initialState.ei = 0;
-% initialState.ed = 0;
-% 
-% [stateProgression, time, ~, ~] = pendulum_trajectory(SC, initialState,SC.controller, @stonkCtrllers.dummyD, false);
-% [x1, x2] = splatting.extractX1andX2FromState(stateProgression);
-% splotting.StatePlot(x1, x2, time, 1, "State Progression");
-% splotting.uplup(time, x1, 2, "x1 over time", "x1");
+SC.controller = @proposedCtrllers.ChangingPIDCtrl;
+
+initialState.x1 = -0.483185;
+initialState.x2 = 3.51681;
+initialState.e = 0.483185;
+initialState.ei = 0;
+initialState.ed = -3.51681;
+
+SC.G = 0;
+
+[stateProgression, time, u, SC] = pendulum_trajectory(SC, initialState,SC.controller, @stonkCtrllers.dummyD, false);
+[x1, x2] = splatting.extractX1andX2FromState(stateProgression);
+splotting.StatePlot(x1, x2, time, 1, "State Progression");
+splotting.uplup(time, x1, 2, "x1 over time", "x1");
+splotting.uplup(time, x2, 3, "x2 over time", "x2");
+splotting.uplup(time, u, 4, "u over time", "u");
+splotting.uplup(time, SC.G, 5, "G over time", "G");
 
 % SC.u = 0.5; 
 % 
