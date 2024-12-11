@@ -199,10 +199,8 @@ classdef proposedCtrllers
             end
         end
 
-        function [u, SC] = ParameterizedPIDCtrl(x1_0, x2_0, e, ei, ed, SC)
-            u = SC.pid_p * e + SC.pid_i * ei + SC.pid_d * ed;
-            u = min(max(u, 30), -30);
-            SC.u = u;
+        function [u, SC] = ParameterizedPIDCtrl(x1, x2, SC)
+            u = SC.pid_p * -1*x1 + SC.pid_d * -1*x2;
         end
 
         function [u, SC] = ChangingPIDCtrl(x1_0, x2_0, e, ei, ed, SC)

@@ -6,8 +6,8 @@ classdef trajectorySensitivities
             trajSens(:, :, 1) = SC.initialdxdxo;
             I = eye(n);
             for i = 2:length(state)
-                dfdx_plus = SC.df(SC, state(i));
-                dfdx = SC.df(SC, state(i-1));
+                dfdx_plus = SC.df(SC, state(i, :));
+                dfdx = SC.df(SC, state(i-1, :));
         
                 dxdxo = trajSens(:, :, i-1);
                 trajSens(:, :, i) =  (I-(SC.T/2)*dfdx_plus)\((I + (SC.T/2)*dfdx) * dxdxo);
@@ -21,11 +21,11 @@ classdef trajectorySensitivities
             I = eye(n);
             trajSens(:, :, 1) = 0;
             for i = 2:length(state)
-                dfdx = SC.df(SC, state(i-1));
-                dfdx_plus = SC.df(SC, state(i));
+                dfdx = SC.df(SC, state(i-1, :));
+                dfdx_plus = SC.df(SC, state(i, :));
                 
-                dfdp = SC.dfdp(SC, state(i-1));
-                dfdp_plus = SC.dfdp(SC, state(i));
+                dfdp = SC.dfdp(SC, state(i-1, :));
+                dfdp_plus = SC.dfdp(SC, state(i, :));
         
                 dxdp = trajSens(:, :, i-1);
                 trajSens(:, :, i) =  (I-(SC.T/2)*dfdx_plus)\((SC.T/2)*(dfdx*dxdp + dfdp + dfdp_plus) + dxdp);
@@ -38,17 +38,17 @@ classdef trajectorySensitivities
             I = eye(n);
         
             for i = 2:length(state)
-                dfdx_plus = SC.df(SC, state(i));
+                dfdx_plus = SC.df(SC, state(i, :));
         
                 d2xdx0 = d2TrajSens(:, :, :, i-1);
         
-                d2fdx2_plus =  SC.d2fdx2(SC, state(i));
+                d2fdx2_plus =  SC.d2fdx2(SC, state(i, :));
                 dxdx0_plus = trajSens(:,:,i);
         
-                d2fdx2 =  SC.d2fdx2(SC, state(i-1));
+                d2fdx2 =  SC.d2fdx2(SC, state(i-1, :));
                 dxdx0 = trajSens(:,:,i-1);
         
-                dfdx =  SC.df(SC, state(i-1));
+                dfdx =  SC.df(SC, state(i-1, :));
                 
                 a = inv(I - (SC.T/2)*dfdx_plus);
                 b = conts({d2fdx2_plus, dxdx0_plus, dxdx0_plus}, {[3 1],[2 1]}, []);
@@ -68,19 +68,19 @@ classdef trajectorySensitivities
             I = eye(n);
 
             for i = 2:length(state)
-                d2fdx2 = SC.d2fdx2(SC, state(i-1));
+                d2fdx2 = SC.d2fdx2(SC, state(i-1, :));
                 dxdp = dxdp_list(:, :, i-1);
                 dxdx0 = dxdxo_list(:, :, i-1);
-                d2fdxdp = SC.d2fdxdp(SC, state(i-1));
-                dfdx = SC.df(SC, state(i-1));
+                d2fdxdp = SC.d2fdxdp(SC, state(i-1, :));
+                dfdx = SC.df(SC, state(i-1, :));
                 d2xdxodp = d2TrajSens(:, :, :, i-1);
 
 
-                d2fdx2_plus = SC.d2fdx2(SC, state(i));
+                d2fdx2_plus = SC.d2fdx2(SC, state(i, :));
                 dxdp_plus = dxdp_list(:, :, i);
                 dxdx0_plus = dxdxo_list(:, :, i);
-                d2fdxdp_plus = SC.d2fdxdp(SC, state(i));
-                dfdx_plus = SC.df(SC, state(i));
+                d2fdxdp_plus = SC.d2fdxdp(SC, state(i, :));
+                dfdx_plus = SC.df(SC, state(i, :));
                 
                 a = inv(I - (SC.T/2)*dfdx_plus);
                 b = conts({d2fdx2, dxdp, dxdx0}, {[3 1],[2 1]}, []);
@@ -102,18 +102,16 @@ classdef trajectorySensitivities
             sCtrl = stonkCtrllers;
             trajSensTest = zeros(SC.numStates, SC.numStates, numSteps);
 
-            fns = fieldnames(initialState);
-
             for index = 1:SC.numStates
                 state = initialState;
-                state.(fns{index}) = initialState.(fns{index}) + delta;
-                [state_index_plus] = pendulum_trajectory(SC, state, SC.controller, @sCtrl.dummyD, false);
-                state.(fns{index}) = initialState.(fns{index}) - delta;
-                [state_index_minus]  = pendulum_trajectory(SC, state, SC.controller, @sCtrl.dummyD, false);
+                state(index) = initialState(index) + delta;
+                [~, state_index_plus] = pendulum_trajectory_v2(SC, state, SC.controller, @sCtrl.dummyD, false);
+                state(index) = initialState(index) - delta;
+                [~, state_index_minus]  = pendulum_trajectory_v2(SC, state, SC.controller, @sCtrl.dummyD, false);
     
                 for i = 1:numSteps
                     for j = 1:SC.numStates
-                        dxdstate = (state_index_plus(i).(fns{j})-state_index_minus(i).(fns{j}))/(2*delta);
+                        dxdstate = (state_index_plus(i,j)-state_index_minus(i,j))/(2*delta);
                         trajSensTest(j, index, i) = dxdstate;
                     end
                 end
@@ -126,16 +124,15 @@ classdef trajectorySensitivities
             trajSensTestParams = zeros(SC.numStates, SC.numParams, numSteps);
             for index = 1:SC.numParams
                 SC = SC.nudgeParams(SC, delta, index);
-                [state_index_plus] = pendulum_trajectory(SC, state, SC.controller, @stonkCtrllers.dummyD, false);
+                [~, state_index_plus] = pendulum_trajectory_v2(SC, state, SC.controller, @stonkCtrllers.dummyD, false);
                 SC = oldSC;
                 SC = SC.nudgeParams(SC, -1*delta, index);
-                [state_index_minus] = pendulum_trajectory(SC, state, SC.controller, @stonkCtrllers.dummyD, false);
+                [~, state_index_minus] = pendulum_trajectory_v2(SC, state, SC.controller, @stonkCtrllers.dummyD, false);
                 SC = oldSC;
 
-                fns = fieldnames(state_index_plus(1));
                 for i = 1:numSteps
                     for j = 1:SC.numStates
-                        dxdstate = (state_index_plus(i).(fns{j})-state_index_minus(i).(fns{j}))/(2*delta);
+                        dxdstate = (state_index_plus(i, j)-state_index_minus(i, j))/(2*delta);
                         trajSensTestParams(j, index, i) = dxdstate;
                     end
                 end
@@ -154,11 +151,11 @@ classdef trajectorySensitivities
             for index = 1:SC.numParams
                 state = initialState;
                 state.(fns{index}) = initialState.(fns{index}) + delta;
-                [state_index_plus] = pendulum_trajectory(SC, state, SC.controller, @sCtrl.dummyD, false);
+                [~, state_index_plus] = pendulum_trajectory_v2(SC, state, SC.controller, @sCtrl.dummyD, false);
                 trajSens_plus = tjs.calculateTrajectorySensitivities(state_index_plus, SC);
             
                 state.(fns{index}) = initialState.(fns{index}) - delta;
-                [state_index_minus]  = pendulum_trajectory(SC, state, SC.controller, @sCtrl.dummyD, false);
+                [~, state_index_minus]  = pendulum_trajectory_v2(SC, state, SC.controller, @sCtrl.dummyD, false);
                 trajSens_minus = tjs.calculateTrajectorySensitivities(state_index_minus, SC);
                 
                 trajSens1 = (trajSens_plus - trajSens_minus)/(2*delta);
@@ -173,12 +170,12 @@ classdef trajectorySensitivities
             tjs = trajectorySensitivities;
             for index = 1:SC.numParams
                 SC = SC.nudgeParams(SC, delta, index);
-                [state_index_plus] = pendulum_trajectory(SC, state, SC.controller, @stonkCtrllers.dummyD, false);
+                [~, state_index_plus] = pendulum_trajectory_v2(SC, state, SC.controller, @stonkCtrllers.dummyD, false);
                 trajSens_plus = tjs.calculateTrajectorySensitivities(state_index_plus, SC);
                 SC = oldSC;
 
                 SC = SC.nudgeParams(SC, -1*delta, index);
-                [state_index_minus] = pendulum_trajectory(SC, state, SC.controller, @stonkCtrllers.dummyD, false);
+                [~, state_index_minus] = pendulum_trajectory_v2(SC, state, SC.controller, @stonkCtrllers.dummyD, false);
                 trajSens_minus = tjs.calculateTrajectorySensitivities(state_index_minus, SC);
                 SC = oldSC;
 
@@ -217,13 +214,13 @@ classdef trajectorySensitivities
             dGTest = zeros(1, SC.numParams);
             for index = 1:SC.numParams
                 SC = SC.nudgeParams(SC, delta, index);
-                [state_index_plus] = pendulum_trajectory(SC, state, SC.controller, @stonkCtrllers.dummyD, false);
+                [~, state_index_plus] = pendulum_trajectory_v2(SC, state, SC.controller, @stonkCtrllers.dummyD, false);
                 trajSens_plus = tjs.calculateTrajectorySensitivities(state_index_plus, SC);
                 Gplus = normalStuff.infimumOfReciprocalOfElementOneNorm(trajSens_plus);
                 SC = oldSC;
 
                 SC = SC.nudgeParams(SC, -1*delta, index);
-                [state_index_minus] = pendulum_trajectory(SC, state, SC.controller, @stonkCtrllers.dummyD, false);
+                [~, state_index_minus] = pendulum_trajectory_v2(SC, state, SC.controller, @stonkCtrllers.dummyD, false);
                 trajSens_minus = tjs.calculateTrajectorySensitivities(state_index_minus, SC);
                 Gminus = normalStuff.infimumOfReciprocalOfElementOneNorm(trajSens_minus);
                 SC = oldSC;

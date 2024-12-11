@@ -1,15 +1,15 @@
 addpath('./utils')  
 % Sim Constants
 SC.T = 1e-2;
-SC.t_final = 20;
+SC.t_final = 60;
 SC.g = 9.8;
 SC.l = SC.g/2;
 SC.m = 2/SC.g;
 SC.D = 0.1;
 
-SC.start = -2*pi;
-SC.stop = 2*pi;
-SC.step = 0.25;
+SC.start = -pi;
+SC.stop = pi;
+SC.step = 0.1;
 SC.ref = 0;
 
 SC.u = 0;
@@ -24,50 +24,47 @@ SC.pid_p = 0.2;
 SC.pid_d = 0.2;
 
 SC = derivatives_pdctrlmodel.assignDerivatives(SC);
+SC.controller = @proposedCtrllers.ParameterizedPIDCtrl;
 
 % plot_all_the_plots(SC);
 
-SC.controller = @proposedCtrllers.ChangingPIDCtrl;
+% initialState = [0.5, 0.5];
+% [time, stateProgression, SC] = pendulum_trajectory_v2(SC, initialState, SC.controller, @stonkCtrllers.dummyD, false);
+% splotting.StatePlot(stateProgression(:,1), stateProgression(:,2), time, 1, "State Progression");
+% splotting.uplup(time, stateProgression(:,1), 2, "x1 over time", "x1");
+% splotting.uplup(time, stateProgression(:,2), 3, "x2 over time", "x2");
 
-initialState.x1 = -0.483185;
-initialState.x2 = 3.51681;
-initialState.e = 0.483185;
-initialState.ei = 0;
-initialState.ed = -3.51681;
 
-SC.G = 0;
+old_pid_p = 0;
+old_pid_d = 0; 
+initialState = [-2, -0.5];
 
-[stateProgression, time, u, SC] = pendulum_trajectory(SC, initialState,SC.controller, @stonkCtrllers.dummyD, false);
-[x1, x2] = splatting.extractX1andX2FromState(stateProgression);
-splotting.StatePlot(x1, x2, time, 1, "State Progression");
-splotting.uplup(time, x1, 2, "x1 over time", "x1");
-splotting.uplup(time, x2, 3, "x2 over time", "x2");
-splotting.uplup(time, u, 4, "u over time", "u");
-splotting.uplup(time, SC.G, 5, "G over time", "G");
+pid_p_tracker = SC.pid_p*ones(1, 15);
+pid_d_tracker = SC.pid_d*ones(1, 15);
+G_tracker = zeros(1, 15);
+for counter=1:15
+    pid_p_tracker(counter) = SC.pid_p;
+    pid_d_tracker(counter) = SC.pid_d;
 
-% SC.u = 0.5; 
-% 
-% [stateProgression, ~, ~, ~] = pendulum_trajectory(SC, initialState, @stonkCtrllers.dummyU, @stonkCtrllers.dummyD, false);
-% trajSens2 = tjs.calculateTrajectorySensitivities(stateProgression, SC);
+    old_pid_p = SC.pid_p;
+    old_pid_d = SC.pid_d; 
+    [~, stateProgression, ~] = pendulum_trajectory_v2(SC, initialState, @proposedCtrllers.ParameterizedPIDCtrl, @sCtrl.dummyD, false);
+    trajSens = tjs.calculateTrajectorySensitivities(stateProgression, SC);
+    G = norms.infimumOfReciprocalOfElementOneNorm(trajSens);
+    trajSensParam = tjs.calculateTrajectorySensitivitiesParameters(stateProgression, SC);
+    secondTrajSensParam = tjs.calculateSecondOrderTrajectorySensitivitiesParams(stateProgression, trajSens, trajSensParam, SC);
 
-% [x1, x2] = splatting.extractX1andX2FromState(state);
-% splotting.StatePlot(x1, x2, time, 1, "State Progression");
-% splotting.uplup(time, u, 2, "u over time", "u");
-% [x1, x2, time, u] = pendulum_trajectory(SC, 2.158, 1.408, @proposedCtrllers.idkWhatImDoingv2, @stonkCtrllers.dummyD, true);
-% splotting.StatePlot(x1, x2, time, 3, "idkWhatImDoingv2 controller");
-% splotting.uplup(time, x1, 4, "x1 over time", "x1");
-% splotting.uplup(time, x2, 5, "x2 over time", "x2");
-% splotting.uplup(time, u, 6, "u over time", "u");
+    tp = tjs.findtp(trajSens);
+    dGp = tjs.calculate_dG(G, trajSens, secondTrajSensParam, tp, SC);
 
-% Gx = zeros(size(time,2));
-% for i = 1:size(time,2)
-%     SC.u = 0;
-% 
-%     % Gx
-%     [x1gx, x2gx] = pendulum_trajectory(SC, x1(i), x2(i), @sCtrl.dummyU, @sCtrl.dummyD, false);
-%     trajSens = deriv.calculateTrajectorySensitivities(x1gx, x2gx, SC);
-%     Gx(i) = norms.infimumOfReciprocalOfOneNorm(trajSens);
-% end
-% 
-% splotting.uplup(time, Gx, 7, "Gx over time", "Gx");
+    scale = 0.1;
+    normdGp = sqrt(dGp(1)^2 + dGp(2)^2);
+    SC.pid_p = SC.pid_p + dGp(1)/normdGp*scale;
+    SC.pid_d = SC.pid_d + dGp(2)/normdGp*scale;
+    G_tracker(counter) = G;
+end
+
+splotting.uplup(1:counter, pid_p_tracker(1:counter), 2, "pid_p over iteration", "pid_p");
+splotting.uplup(1:counter, pid_d_tracker(1:counter), 3, "pid_d over iteration", "pid_d");
+splotting.uplup(1:counter, G_tracker(1:counter), 4, "G over iteration", "G");
 

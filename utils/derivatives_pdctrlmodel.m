@@ -1,17 +1,18 @@
 classdef derivatives_pdctrlmodel
     methods (Static)
         function dfdx = df(SC, state)
-            x1 = state.x1;
+            x1 = state(1);
             dfdx = [0 1; -(SC.g/SC.l)*cos(x1)-SC.pid_p/(SC.m*SC.l) -(SC.D+SC.pid_d)/(SC.m*SC.l)];
         end
         function dfdp = dfdp(SC, state)
-            x1 = state.x1;
-            x2 = state.x2;
+            x1 = state(1);
+            x2 = state(2);
             dfdp = [0 0; -x1/(SC.m*SC.l) -x2/(SC.m*SC.l)];
         end
         function d2fdx2 = d2fdx2(SC, state)
+            x1 = state(1);
             d2fdx2 = zeros(2,2,2);
-            d2fdx2(2, 1, 1) = SC.g/SC.l*sin(state.x1);
+            d2fdx2(2, 1, 1) = SC.g/SC.l*sin(x1);
         end
         function d2fdxdp = d2fdxdp(SC, ~)
             d2fdxdp = zeros(2,2,2);
