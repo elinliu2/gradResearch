@@ -5,7 +5,11 @@ classdef stonkCtrllers
         end
         
         function d = dummyD(SC, time)
-            d = SC.disturbance;
+            if (time < 5)
+                d = SC.disturbance;
+            else 
+                d = 0;
+            end
         end
     end
 end

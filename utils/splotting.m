@@ -8,6 +8,7 @@ classdef splotting
             xlabel("x1");
             ylabel("x2");
             zlabel(title);
+           
             
             hold off
         end
@@ -31,6 +32,8 @@ classdef splotting
             title(plotTitle);
             xlabel("x1");
             ylabel("x2");
+            % xlim([-8 8]);
+            % ylim([-8 8]);
         end
 
         function uplup(time, u, figNum, plotTitle, ylab)
