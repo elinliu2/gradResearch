@@ -1,4 +1,4 @@
-classdef normalStuff
+classdef norms
     methods (Static)
 
         function min = infimumOfReciprocalOfOneNorm(trajSens)
@@ -12,11 +12,11 @@ classdef normalStuff
         end
 
         function min = infimumOfReciprocalOfElementOneNorm(trajSens)
-            min = 1/normalStuff.elementOneNorm(trajSens(:,:, 1));
+            min = 1/norms.elementOneNorm(trajSens(:,:, 1));
 
             for i = 2:length(trajSens)
-                if (1/normalStuff.elementOneNorm(trajSens(:, :,i)) < min)
-                    min = 1/normalStuff.elementOneNorm(trajSens(:,:,i));
+                if (1/norms.elementOneNorm(trajSens(:, :,i)) < min)
+                    min = 1/norms.elementOneNorm(trajSens(:,:,i));
                 end
             end
         end

@@ -1,5 +1,64 @@
-classdef proposedCtrllers
+classdef pendulumControllers
     methods (Static)
+
+        function [u, SC] = dummyU(~, ~, ~, ~, ~, SC)
+            u = SC.u;
+        end
+        
+        function d = dummyD(disturbance, time)
+            if (time < 5)
+                d = disturbance;
+            else 
+                d = 0;
+            end
+        end
+
+        function [u, model] = ParameterizedPDCtrl(x1, x2, model)
+            u = model.kp * -1*x1 + model.kd * -1*x2;
+        end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+        function [u, SC] = StockPIDCtrl(~, ~, e, ei, ed, SC)
+            p = 2;
+            i = 0.05;
+            d = 2;
+            u = p * e + i * ei + d * ed;
+            SC.u = u;
+        end
+
+        function [u, SC] = ChangingPIDCtrl(x1_0, x2_0, e, ei, ed, SC)
+
+            tjs = trajectorySensitivities;
+            norms = normalStuff;
+
+            initialState.x1 = x1_0;
+            initialState.x2 = x2_0;
+            initialState.ei = 0;
+            initialState.e = SC.ref-x1_0;
+            initialState.ed = -x2_0;
+
+            [stateProgression] = pendulum_trajectory(SC, initialState, @pendulumControllers.ParameterizedPIDCtrl, @stonkCtrllers.dummyD, false);
+            trajSens = tjs.calculateTrajectorySensitivities(stateProgression, SC);
+            G = norms.infimumOfReciprocalOfElementOneNorm(trajSens);
+            trajSensParam = tjs.calculateTrajectorySensitivitiesParameters(stateProgression, SC);
+            secondTrajSensParam = tjs.calculateSecondOrderTrajectorySensitivitiesParams(stateProgression, trajSens, trajSensParam, SC);
+           
+            tp = tjs.findtp(trajSens);
+            dGp = tjs.calculate_dG(G, trajSens, secondTrajSensParam, tp, SC);
+
+            scale = 1/G;
+            SC.pid_p = SC.pid_p + dGp(1)/norm(dGp)*scale;
+            SC.pid_d = SC.pid_d + dGp(2)/norm(dGp)*scale;
+
+            u = SC.pid_p * e + SC.pid_i * ei + SC.pid_d * ed;
+            
+            u = min(max(u, 30), -30);
+
+            SC.G(length(SC.G)+1) = G;
+        end
+
+
         function [u, SC] = controller(x1_o, x2_o, e, ed, ei, SC)
 
             tjs = trajectorySensitivities;
@@ -103,7 +162,7 @@ classdef proposedCtrllers
                 trajSens = deriv.calculateTrajectorySensitivities(x1, x2, SC); 
                 Gx2 = norms.infimumOfReciprocalOfOneNorm(trajSens);
                 
-                u = proposedCtrllers.findMaxU(x1_o, x2_o, SC, 0, 1, Gx1, Gx2);
+                u = pendulumControllers.findMaxU(x1_o, x2_o, SC, 0, 1, Gx1, Gx2);
                 
             else
                 u=0;
@@ -119,15 +178,7 @@ classdef proposedCtrllers
                 u = 1/Gx;
            end
         end
-        
-        function [u, SC] = PIDCtrl(~, ~, e, ei, ed, SC)
-            p = 2;
-            i = 0.05;
-            d = 2;
-            u = p * e + i * ei + d * ed;
-            SC.u = u;
-        end
-        
+
         function u = findMaxU(x1_o, x2_o, SC, u1, u2, Gx1, Gx2)
             deriv = derivatives;
             norms = normalStuff;
@@ -158,10 +209,10 @@ classdef proposedCtrllers
             
             if Gx3 > Gx2 && Gx3 > Gx1
                 % Keep going in the direction we were going
-                u = proposedCtrllers.findMaxU(x1_o, x2_o, SC, uold, u3, Gxold, Gx3);
+                u = pendulumControllers.findMaxU(x1_o, x2_o, SC, uold, u3, Gxold, Gx3);
             else 
                 % binary search in the range we were just in
-                u = proposedCtrllers.binarySearchMax(x1_o, x2_o, SC, uold, u3, Gxold, Gx3);
+                u = pendulumControllers.binarySearchMax(x1_o, x2_o, SC, uold, u3, Gxold, Gx3);
             end
         
         end
@@ -192,46 +243,11 @@ classdef proposedCtrllers
                 Gx3 = norms.infimumOfReciprocalOfOneNorm(trajSens);
         
                 if (Gx1>Gx2)
-                    u = proposedCtrllers.binarySearchMax(x1_o, x2_o, SC, u1, (u1+u2)/2, Gx1, Gx3); 
+                    u = pendulumControllers.binarySearchMax(x1_o, x2_o, SC, u1, (u1+u2)/2, Gx1, Gx3); 
                 else
-                    u = proposedCtrllers.binarySearchMax(x1_o, x2_o, SC, u2, (u1+u2)/2, Gx2, Gx3); 
+                    u = pendulumControllers.binarySearchMax(x1_o, x2_o, SC, u2, (u1+u2)/2, Gx2, Gx3); 
                 end
             end
-        end
-
-        function [u, SC] = ParameterizedPIDCtrl(x1, x2, SC)
-            u = SC.pid_p * -1*x1 + SC.pid_d * -1*x2;
-        end
-
-        function [u, SC] = ChangingPIDCtrl(x1_0, x2_0, e, ei, ed, SC)
-
-            tjs = trajectorySensitivities;
-            norms = normalStuff;
-
-            initialState.x1 = x1_0;
-            initialState.x2 = x2_0;
-            initialState.ei = 0;
-            initialState.e = SC.ref-x1_0;
-            initialState.ed = -x2_0;
-
-            [stateProgression] = pendulum_trajectory(SC, initialState, @proposedCtrllers.ParameterizedPIDCtrl, @stonkCtrllers.dummyD, false);
-            trajSens = tjs.calculateTrajectorySensitivities(stateProgression, SC);
-            G = norms.infimumOfReciprocalOfElementOneNorm(trajSens);
-            trajSensParam = tjs.calculateTrajectorySensitivitiesParameters(stateProgression, SC);
-            secondTrajSensParam = tjs.calculateSecondOrderTrajectorySensitivitiesParams(stateProgression, trajSens, trajSensParam, SC);
-           
-            tp = tjs.findtp(trajSens);
-            dGp = tjs.calculate_dG(G, trajSens, secondTrajSensParam, tp, SC);
-
-            scale = 1/G;
-            SC.pid_p = SC.pid_p + dGp(1)/norm(dGp)*scale;
-            SC.pid_d = SC.pid_d + dGp(2)/norm(dGp)*scale;
-
-            u = SC.pid_p * e + SC.pid_i * ei + SC.pid_d * ed;
-            
-            u = min(max(u, 30), -30);
-
-            SC.G(length(SC.G)+1) = G;
         end
     end
 end

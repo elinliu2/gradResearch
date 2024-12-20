@@ -4,12 +4,9 @@ classdef splotting
             figure(figNum)
             scatter3(x1, x2, func, 10, func/max(func), "filled");
             hold on
-            
             xlabel("x1");
             ylabel("x2");
             zlabel(title);
-           
-            
             hold off
         end
         
