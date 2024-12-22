@@ -1,8 +1,8 @@
-classdef pendulumControllers
+classdef PendulumControllers
     methods (Static)
 
-        function [u, SC] = dummyU(~, ~, ~, ~, ~, SC)
-            u = SC.u;
+        function [u, model] = dummyU(~, ~, model)
+            u = model.u;
         end
         
         function d = dummyD(disturbance, time)

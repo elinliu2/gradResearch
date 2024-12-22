@@ -11,7 +11,7 @@ classdef PendulumModel
         kp;
         kd;
 
-        df;
+        dfdx;
         dfdp;
         d2fdx2;
         d2fdxdp;
@@ -39,7 +39,7 @@ classdef PendulumModel
             obj.kp = kp;
             obj.kd = kd;
     
-            obj.df = @derivatives_pdctrlmodel.df;
+            obj.dfdx = @derivatives_pdctrlmodel.dfdx;
             obj.dfdp = @derivatives_pdctrlmodel.dfdp;
             obj.d2fdx2 = @derivatives_pdctrlmodel.d2fdx2;
             obj.d2fdxdp = @derivatives_pdctrlmodel.d2fdxdp;
@@ -49,8 +49,8 @@ classdef PendulumModel
             obj.numParams = 2;
             obj.initialdxdxo = eye(2);
     
-            obj.controller = @pendulumControllers.ParameterizedPDCtrl;
-            obj.disturbanceSignal = @pendulumControllers.dummyD;
+            obj.controller = @PendulumControllers.ParameterizedPDCtrl;
+            obj.disturbanceSignal = @PendulumControllers.dummyD;
         end
 
         function [time, stateProgression, model] = trajectory(model, SC, initialState, shouldPlot)

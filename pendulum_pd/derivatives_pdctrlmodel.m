@@ -1,6 +1,6 @@
 classdef derivatives_pdctrlmodel
     methods (Static)
-        function dfdx = df(model, state)
+        function dfdx = dfdx(model, state)
             x1 = state(1);
             dfdx = [0 1; -(model.g/model.l)*cos(x1)-model.kp/(model.m*model.l) -(model.D+model.kd)/(model.m*model.l)];
         end

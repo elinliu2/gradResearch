@@ -6,8 +6,8 @@ classdef trajectorySensitivities
             trajSens(:, :, 1) = model.initialdxdxo;
             I = eye(n);
             for i = 2:length(stateProgression)
-                dfdx_plus = model.df(model, stateProgression(i, :));
-                dfdx = model.df(model, stateProgression(i-1, :));
+                dfdx_plus = model.dfdx(model, stateProgression(i, :));
+                dfdx = model.dfdx(model, stateProgression(i-1, :));
         
                 dxdxo = trajSens(:, :, i-1);
                 trajSens(:, :, i) =  (I-(SC.T/2)*dfdx_plus)\((I + (SC.T/2)*dfdx) * dxdxo);
@@ -21,8 +21,8 @@ classdef trajectorySensitivities
             I = eye(n);
             trajSens(:, :, 1) = 0;
             for i = 2:length(stateProgression)
-                dfdx = model.df(model, stateProgression(i-1, :));
-                dfdx_plus = model.df(model, stateProgression(i, :));
+                dfdx = model.dfdx(model, stateProgression(i-1, :));
+                dfdx_plus = model.dfdx(model, stateProgression(i, :));
                 
                 dfdp = model.dfdp(model, stateProgression(i-1, :));
                 dfdp_plus = model.dfdp(model, stateProgression(i, :));
@@ -43,7 +43,7 @@ classdef trajectorySensitivities
                 dxdp = dxdp_list(:, :, i-1);
                 dxdx0 = dxdxo_list(:, :, i-1);
                 d2fdxdp = model.d2fdxdp(model, stateProgression(i-1, :));
-                dfdx = model.df(model, stateProgression(i-1, :));
+                dfdx = model.dfdx(model, stateProgression(i-1, :));
                 d2xdxodp = d2TrajSens(:, :, :, i-1);
 
 
@@ -51,7 +51,7 @@ classdef trajectorySensitivities
                 dxdp_plus = dxdp_list(:, :, i);
                 dxdx0_plus = dxdxo_list(:, :, i);
                 d2fdxdp_plus = model.d2fdxdp(model, stateProgression(i, :));
-                dfdx_plus = model.df(model, stateProgression(i, :));
+                dfdx_plus = model.dfdx(model, stateProgression(i, :));
                 
                 a = inv(I - (SC.T/2)*dfdx_plus);
                 b = conts({d2fdx2, dxdp, dxdx0}, {[3 1],[2 1]}, []);
