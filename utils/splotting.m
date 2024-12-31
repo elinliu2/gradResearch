@@ -21,7 +21,7 @@ classdef splotting
             zlabel(title);
         end
 
-        function StatePlot(x1, x2, time, figNum, plotTitle)
+        function StatePlot(time, x1, x2, figNum, plotTitle)
             figure(figNum);
             hold off
             scatter(x1, x2, 1, time);
@@ -42,5 +42,17 @@ classdef splotting
             xlabel("time");
             ylabel(ylab);
         end
+
+        function trajectoryPlot3d(time, x, y, z, figNum, plotTitle)
+            figure(figNum);
+            hold off
+            scatter3(x, y, z, 10, time);
+            hold on
+            title(plotTitle);
+            xlabel("x");
+            ylabel("y");
+            zlabel("z");
+        end
+
     end
 end

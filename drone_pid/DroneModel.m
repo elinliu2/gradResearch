@@ -3,24 +3,24 @@ classdef DroneModel
         g;
         m;
 
-        kp;
-        ki;
-        kd;
+        kp1;
+        ki1;
+        kd1;
 
-        d_x1; % offset of propeller from CoM
-        d_x2;
-        d_x3;
-        d_x4;
+        kp2;
+        ki2;
+        kd2;
 
-        d_y1;
-        d_y2;
-        d_y3;
-        d_y4;
+        kp3;
+        ki3;
+        kd3;
 
-        d_tau1; % drag
-        d_tau2;
-        d_tau3;
-        d_tau4;
+        kp4;
+        ki4;
+        kd4;
+
+        l; % l is the distance between Ob and each propeller; 
+        K_psi; %  is the thrust-to-moment gain ;
 
         Ja;
         Jb;
@@ -43,33 +43,32 @@ classdef DroneModel
     end
     
     methods
-        function obj = DroneModel(kp, ki, kd)
+        function obj = DroneModel(kp1, ki1, kd1, kp2, ki2, kd2, kp3, ki3, kd3, kp4, ki4, kd4)
             obj.g = 9.8;
-            obj.m = 1; % 1 kg
+            obj.m = 1.4; % kg
 
-            obj.d_x1 = 0.2;
-            obj.d_x2 = 0.2;
-            obj.d_x3 = 0.2;
-            obj.d_x4 = 0.2;
-    
-            obj.d_y1 = 0;
-            obj.d_y2 = 0;
-            obj.d_y3 = 0;
-            obj.d_y4 = 0;
-    
-            obj.d_tau1 = 0.002;
-            obj.d_tau2 = 0.002;
-            obj.d_tau3 = 0.002;
-            obj.d_tau4 = 0.002;
+            obj.l = 0.2; % m
+            obj.K_psi = 4; % Nm
 
-            obj.Ja = 0.4;
-            obj.Jb = 0.4;
-            obj.Jc = 0.4;
+            obj.Ja = 0.03; % kgm^2
+            obj.Jb = 0.03; % kgm^2
+            obj.Jc = 0.04; % kgm^2
 
+            obj.kp1 = kp1;
+            obj.ki1 = ki1;
+            obj.kd1 = kd1;
 
-            obj.kp = kp;
-            obj.ki = ki;
-            obj.kd = kd;
+            obj.kp2 = kp2;
+            obj.ki2 = ki2;
+            obj.kd2 = kd2;
+
+            obj.kp3 = kp3;
+            obj.ki3 = ki3;
+            obj.kd3 = kd3;
+
+            obj.kp4 = kp4;
+            obj.ki4 = ki4;
+            obj.kd4 = kd4;
 
             obj.disturbance = 0;
             
@@ -95,21 +94,16 @@ classdef DroneModel
             % initialize plot
             if (shouldPlot)
                 figure(100)
-                hold on
-                sim = scatter3d(0, 0, 0, 20, [0.5 0 0.5], "filled");
+                sim = scatter3(0, 0, 0, 20, "blue", "filled");
                 h_annot = annotation('textbox',[.9 .5 .1 .2],'String',0,'EdgeColor','none');
-                title("Pendulum Sim");
+                title("Drone Sim");
                 xlabel("x");
                 ylabel("y");
-                xlim([-6 6])
-                ylim([-6 6])
-            else
-                sim = 0;
-                h_annot = 0;
+                zlabel("z");
+                zlim([0 15])
             end
-
             
-            [time, stateProgression] = ode45(@pendulumDynamics, t_span, initialState, options, model);
+            [time, stateProgression] = ode45(@droneDynamics, t_span, initialState, options, model);
             global MODEL_COPY;
             model = MODEL_COPY;
             
@@ -132,43 +126,42 @@ classdef DroneModel
             pdot_y = state(5);
             pdot_z = state(6);
 
-            a = state(7); % alpha
-            b = state(8); % beta
-            c = state(9); % gamma
+            a = state(7); % theta (pitch)
+            b = state(8); % phi (roll)
+            c = state(9); % psi (yaw)
 
-            w_a = state(10);
-            w_b = state(11);
-            w_c = state(12);
+            dot_a = state(10);
+            dot_b = state(11);
+            dot_c = state(12);
 
-            dx1 = pdot_x + model.disturbanceSignal(model.disturbance, t);
+            dx1 = pdot_x; 
             dx2 = pdot_y;
             dx3 = pdot_z;
 
-            [F1, F2, F3, F4] = model.controller;
+            [F1, F2, F3, F4, model] = model.controller(state, model);
 
-            dx4 = 1/(model.m) * (F1+F2+F3+F4) * (cos(a)*sin(b)*cos(c) + sin(a)*sin(c));
-            dx5 = 1/(model.m) * (F1+F2+F3+F4) * (sin(a)*sin(b)*cos(c) - cos(a)*sin(c));
-            dx6 = 1/(model.m) * (F1+F2+F3+F4) * (cos(b)*cos(c)) - model.g;
+            dx4 = 1/(model.m) * (F1+F2+F3+F4) * (sin(a)*cos(b)*cos(c) + sin(b)*sin(c));
+            dx5 = 1/(model.m) * (F1+F2+F3+F4) * (sin(a)*cos(b)*sin(c) - sin(b)*cos(c));
+            dx6 = 1/(model.m) * (F1+F2+F3+F4) * (cos(a)*cos(b)) - model.g;
 
-            dx7 = w_a;
-            dx8 = w_b;
-            dx9 = w_c;
+            dx7 = dot_a;
+            dx8 = dot_b;
+            dx9 = dot_c;
 
-            w = [w_a; w_b; w_c];
-            Jw = [model.Ja*w_a; model.Jb*w_b; model.Jc*w_c];
-            wJw = cross(w, Jw);
-            dx10 = 1/(model.Ja) * (F1*model.d_y1 + F2*model.d_y2 + F3*model.d_y3 + F4*model.d_y4) - wJw(1) ; 
-            dx11 = 1/(model.Jb) * (-F1*model.d_x1 - F2*model.d_x2 - F3*model.d_x3 - F4*model.d_x4) - wJw(1) ; 
-            dx12 = 1/(model.Jc) * (F1*model.d_tau1 + F2*model.d_tau2 + F3*model.d_tau3 + F4*model.d_tau4) - wJw(1) ; 
+            dx10 = 1/(model.Ja) * model.l * (F1 - F2); 
+            dx11 = 1/(model.Jb) * model.l * (F3 - F4);
+            dx12 = 1/(model.Jc) * model.K_psi * (F1 + F2 - F3 - F4);
+            
+            dx13 = state(1);
+            dx14 = state(2);
+            dx15 = state(3);
 
-            dState = [dx1; dx2; dx3; dx4; dx5; dx6; dx7; dx8; dx9; dx10; dx11; dx12];
+            dState = [dx1; dx2; dx3; dx4; dx5; dx6; dx7; dx8; dx9; dx10; dx11; dx12; dx13; dx14; dx15];
 
             % This allows the controller to update the parameter values
             global MODEL_COPY;
             MODEL_COPY = model;
         end
-        
-        
     end
 end
 
