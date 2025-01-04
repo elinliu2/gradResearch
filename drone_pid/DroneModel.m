@@ -126,9 +126,9 @@ classdef DroneModel
             pdot_y = state(5);
             pdot_z = state(6);
 
-            a = state(7); % theta (pitch)
-            b = state(8); % phi (roll)
-            c = state(9); % psi (yaw)
+            theta = state(7); % theta (pitch)
+            phi = state(8); % phi (roll)
+            psi = state(9); % psi (yaw)
 
             dot_a = state(10);
             dot_b = state(11);
@@ -140,9 +140,9 @@ classdef DroneModel
 
             [F1, F2, F3, F4, model] = model.controller(state, ref, model);
 
-            dx4 = 1/(model.m) * (F1+F2+F3+F4) * (sin(a)*cos(b)*cos(c) + sin(b)*sin(c));
-            dx5 = 1/(model.m) * (F1+F2+F3+F4) * (sin(a)*cos(b)*sin(c) - sin(b)*cos(c));
-            dx6 = 1/(model.m) * (F1+F2+F3+F4) * (cos(a)*cos(b)) - model.g;
+            dx4 = 1/(model.m) * (F1+F2+F3+F4) * (sin(theta)*cos(phi)*cos(psi) + sin(phi)*sin(psi));
+            dx5 = 1/(model.m) * (F1+F2+F3+F4) * (sin(theta)*cos(phi)*sin(psi) - sin(phi)*cos(psi));
+            dx6 = 1/(model.m) * (F1+F2+F3+F4) * (cos(theta)*cos(phi)) - model.g;
 
             dx7 = dot_a;
             dx8 = dot_b;

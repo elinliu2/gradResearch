@@ -4,7 +4,7 @@ addpath('./drone_pid')
 
 % Sim Constants
 SC.T = 1e-3;
-SC.t_final = 60;
+SC.t_final = 15;
 SC.start = -1;
 SC.stop = 1;
 SC.step = 0.5;
@@ -21,7 +21,7 @@ SC.ref = 0;
 % splotting.uplup(time, stateProgression(:,2), 3, "x2 over time", "x2");
 
 a = 5; 
-b = 0.01;
+b = 0.1;
 c = 10;
 
 kp1 = a;
@@ -37,7 +37,7 @@ ki3 = b;
 kd3 = c;
 
 kp4 = 5;
-ki4 = 0.05;
+ki4 = 0.5;
 kd4 = 5;
 
 drone = DroneModel(kp1, ki1, kd1, kp2, ki2, kd2, kp3, ki3, kd3, kp4, ki4, kd4);
@@ -46,4 +46,10 @@ initialState(3) = 100; % Drone starts 100 m in the air
 
 ref = [0.01; 0.01; 101];
 [time, stateProgression, drone] = trajectory(drone, SC, initialState, ref, false);
-splotting.trajectoryPlot3d(time, stateProgression(:,1), stateProgression(:,2), stateProgression(:,3), 1, "State Progression");
+% splotting.trajectoryPlot3d(time, stateProgression(:,1), stateProgression(:,2), stateProgression(:,3), 1, "State Progression");
+
+hold on;
+plot(time, 0.1*(101-stateProgression(:,3)) );
+plot(time, atan2(ref(1)-stateProgression(:,1), ref(3)-stateProgression(:,3)));
+plot(time, stateProgression(:,7));
+legend("delta\_z\_scaled", "theta\_ref", "theta");
