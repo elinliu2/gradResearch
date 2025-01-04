@@ -3,8 +3,8 @@ addpath('./pendulum_pd')
 addpath('./drone_pid')
 
 % Sim Constants
-SC.T = 1e-2;
-SC.t_final = 15;
+SC.T = 1e-3;
+SC.t_final = 60;
 SC.start = -1;
 SC.stop = 1;
 SC.step = 0.5;
@@ -19,26 +19,31 @@ SC.ref = 0;
 % splotting.StatePlot(time, stateProgression(:,1), stateProgression(:,2), 1, "State Progression");
 % splotting.uplup(time, stateProgression(:,1), 2, "x1 over time", "x1");
 % splotting.uplup(time, stateProgression(:,2), 3, "x2 over time", "x2");
-kp1 = 5;
-ki1 = 0.5;
-kd1 = 5;
 
-kp2 = 5;
-ki2 = 0.5;
-kd2 = 5;
+a = 5; 
+b = 0.01;
+c = 10;
 
-kp3 = 5;
-ki3 = 0.5;
-kd3 = 5;
+kp1 = a;
+ki1 = b;
+kd1 = c;
 
-kp4 = 10;
-ki4 = 0.5;
+kp2 = a;
+ki2 = b;
+kd2 = c;
+
+kp3 = a;
+ki3 = b;
+kd3 = c;
+
+kp4 = 5;
+ki4 = 0.05;
 kd4 = 5;
 
 drone = DroneModel(kp1, ki1, kd1, kp2, ki2, kd2, kp3, ki3, kd3, kp4, ki4, kd4);
-initialState = zeros(15, 1);
+initialState = zeros(16, 1);
 initialState(3) = 100; % Drone starts 100 m in the air
-[time, stateProgression, drone] = trajectory(drone, SC, initialState, false);
+
+ref = [0.01; 0.01; 101];
+[time, stateProgression, drone] = trajectory(drone, SC, initialState, ref, false);
 splotting.trajectoryPlot3d(time, stateProgression(:,1), stateProgression(:,2), stateProgression(:,3), 1, "State Progression");
-
-

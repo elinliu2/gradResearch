@@ -86,7 +86,7 @@ classdef DroneModel
             obj.disturbanceSignal = @DroneControllers.dummyD;
         end
 
-        function [time, stateProgression, model] = trajectory(model, SC, initialState, shouldPlot)
+        function [time, stateProgression, model] = trajectory(model, SC, initialState, ref, shouldPlot)
 
             t_span = 0:SC.T:SC.t_final; % amount of time we will simulate for; fixed step sizes
             options = odeset('RelTol',1e-12, 'abstol', 1e-12); % will be used to set options for ODE solver
@@ -103,7 +103,7 @@ classdef DroneModel
                 zlim([0 15])
             end
             
-            [time, stateProgression] = ode45(@droneDynamics, t_span, initialState, options, model);
+            [time, stateProgression] = ode45(@droneDynamics, t_span, initialState, options, ref, model);
             global MODEL_COPY;
             model = MODEL_COPY;
             
@@ -121,7 +121,7 @@ classdef DroneModel
             end
         end
 
-        function [dState] = droneDynamics(t, state, model)
+        function [dState] = droneDynamics(t, state, ref, model)
             pdot_x = state(4);
             pdot_y = state(5);
             pdot_z = state(6);
@@ -138,7 +138,7 @@ classdef DroneModel
             dx2 = pdot_y;
             dx3 = pdot_z;
 
-            [F1, F2, F3, F4, model] = model.controller(state, model);
+            [F1, F2, F3, F4, model] = model.controller(state, ref, model);
 
             dx4 = 1/(model.m) * (F1+F2+F3+F4) * (sin(a)*cos(b)*cos(c) + sin(b)*sin(c));
             dx5 = 1/(model.m) * (F1+F2+F3+F4) * (sin(a)*cos(b)*sin(c) - sin(b)*cos(c));
@@ -152,11 +152,21 @@ classdef DroneModel
             dx11 = 1/(model.Jb) * model.l * (F3 - F4);
             dx12 = 1/(model.Jc) * model.K_psi * (F1 + F2 - F3 - F4);
             
-            dx13 = state(1);
-            dx14 = state(2);
-            dx15 = state(3);
 
-            dState = [dx1; dx2; dx3; dx4; dx5; dx6; dx7; dx8; dx9; dx10; dx11; dx12; dx13; dx14; dx15];
+            delta_x = ref(1) - state(1);
+            delta_y = ref(2) - state(2);
+            delta_z = ref(3) - state(3);
+
+            theta_ref = atan2(delta_x, delta_z);
+            phi_ref = atan2(-delta_y, delta_z);
+
+            dx13 = theta_ref - state(7);
+            dx14 = phi_ref   - state(8);
+            dx15 = 0         - state(9);
+            % dx16 = norm(ref-state(1:3));
+            dx16 = delta_z;
+
+            dState = [dx1; dx2; dx3; dx4; dx5; dx6; dx7; dx8; dx9; dx10; dx11; dx12; dx13; dx14; dx15; dx16];
 
             % This allows the controller to update the parameter values
             global MODEL_COPY;
