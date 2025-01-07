@@ -82,7 +82,7 @@ classdef DroneModel
             obj.numParams = 3;
             obj.initialdxdxo = eye(12);
     
-            obj.controller = @DroneControllers.ParameterizedPIDCtrl;
+            obj.controller = DroneControllers();
             obj.disturbanceSignal = @DroneControllers.dummyD;
         end
 
@@ -138,7 +138,7 @@ classdef DroneModel
             dx2 = pdot_y;
             dx3 = pdot_z;
 
-            [F1, F2, F3, F4, model] = model.controller(state, ref, model);
+            [F1, F2, F3, F4, model] = DroneControllers.ParameterizedPIDCtrl(state, ref, t, model);
 
             dx4 = 1/(model.m) * (F1+F2+F3+F4) * (sin(theta)*cos(phi)*cos(psi) + sin(phi)*sin(psi));
             dx5 = 1/(model.m) * (F1+F2+F3+F4) * (sin(theta)*cos(phi)*sin(psi) - sin(phi)*cos(psi));
@@ -152,17 +152,21 @@ classdef DroneModel
             dx11 = 1/(model.Jb) * model.l * (F3 - F4);
             dx12 = 1/(model.Jc) * model.K_psi * (F1 + F2 - F3 - F4);
             
-
             delta_x = ref(1) - state(1);
             delta_y = ref(2) - state(2);
             delta_z = ref(3) - state(3);
 
-            theta_ref = atan2(delta_x, delta_z);
-            phi_ref = atan2(-delta_y, delta_z);
+            % theta_ref = pi/6*sin(t);
+            % phi_ref = pi/6*cos(t);
+            % psi_ref = t;
 
+            theta_ref = atan2(delta_x, 1);
+            phi_ref = atan2(-delta_y, 1);
+            psi_ref = 0; 
+      
             dx13 = theta_ref - state(7);
             dx14 = phi_ref   - state(8);
-            dx15 = 0         - state(9);
+            dx15 = psi_ref   - state(9);
             % dx16 = norm(ref-state(1:3));
             dx16 = delta_z;
 
