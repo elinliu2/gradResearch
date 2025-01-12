@@ -69,7 +69,7 @@ classdef trajectorySensitivities
         end
         
         function trajSensTest = calculateTrajectorySensitivitiesTest(model, SC, initialState, numSteps)
-            delta = 1e-5;
+            delta = 1e-10;
             trajSensTest = zeros(model.numStates, model.numStates, numSteps);
 
             for index = 1:model.numStates

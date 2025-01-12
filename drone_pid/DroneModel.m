@@ -40,6 +40,7 @@ classdef DroneModel
 
         controller;
         disturbanceSignal;
+        initializeStates;
     end
     
     methods
@@ -78,16 +79,16 @@ classdef DroneModel
             obj.d2fdxdp = @derivatives_drone_pidmodel.d2fdxdp;
             obj.nudgeParams = @derivatives_drone_pidmodel.nudgeParams;
     
-            obj.numStates = 12;
-            obj.numParams = 3;
-            obj.initialdxdxo = eye(12);
+            obj.numStates = 16;
+            obj.numParams = 9;
+            obj.initialdxdxo = eye(16);
     
             obj.controller = DroneControllers();
             obj.disturbanceSignal = @DroneControllers.dummyD;
+            obj.initializeStates = @InitializeStatesDrone;
         end
 
-        function [time, stateProgression, model] = trajectory(model, SC, initialState, ref, shouldPlot)
-
+        function [time, stateProgression, model] = trajectory(model, SC, initialState, shouldPlot)
             t_span = 0:SC.T:SC.t_final; % amount of time we will simulate for; fixed step sizes
             options = odeset('RelTol',1e-12, 'abstol', 1e-12); % will be used to set options for ODE solver
         
@@ -103,7 +104,7 @@ classdef DroneModel
                 zlim([0 15])
             end
             
-            [time, stateProgression] = ode45(@droneDynamics, t_span, initialState, options, ref, model);
+            [time, stateProgression] = ode45(@droneDynamics, t_span, initialState, options, model);
             global MODEL_COPY;
             model = MODEL_COPY;
             
@@ -121,7 +122,7 @@ classdef DroneModel
             end
         end
 
-        function [dState] = droneDynamics(t, state, ref, model)
+        function [dState] = droneDynamics(t, state, model)
             pdot_x = state(4);
             pdot_y = state(5);
             pdot_z = state(6);
@@ -138,7 +139,7 @@ classdef DroneModel
             dx2 = pdot_y;
             dx3 = pdot_z;
 
-            [F1, F2, F3, F4, model] = DroneControllers.ParameterizedPIDCtrl(state, ref, t, model);
+            [F1, F2, F3, F4, model] = DroneControllers.CircleControl(state, t, model);
 
             dx4 = 1/(model.m) * (F1+F2+F3+F4) * (sin(theta)*cos(phi)*cos(psi) + sin(phi)*sin(psi));
             dx5 = 1/(model.m) * (F1+F2+F3+F4) * (sin(theta)*cos(phi)*sin(psi) - sin(phi)*cos(psi));
@@ -151,18 +152,17 @@ classdef DroneModel
             dx10 = 1/(model.Ja) * model.l * (F1 - F2); 
             dx11 = 1/(model.Jb) * model.l * (F3 - F4);
             dx12 = 1/(model.Jc) * model.K_psi * (F1 + F2 - F3 - F4);
-            
-            delta_x = ref(1) - state(1);
-            delta_y = ref(2) - state(2);
+
+            ref(3) = 101;
             delta_z = ref(3) - state(3);
 
-            % theta_ref = pi/6*sin(t);
-            % phi_ref = pi/6*cos(t);
-            % psi_ref = t;
+            % theta_ref = atan2(delta_x, 1);
+            % phi_ref = atan2(-delta_y, 1);
+            % psi_ref = 0; 
 
-            theta_ref = atan2(delta_x, 1);
-            phi_ref = atan2(-delta_y, 1);
-            psi_ref = 0; 
+            theta_ref = pi/6*sin(t);
+            phi_ref = pi/6*cos(t);
+            psi_ref = t;
       
             dx13 = theta_ref - state(7);
             dx14 = phi_ref   - state(8);
@@ -175,6 +175,13 @@ classdef DroneModel
             % This allows the controller to update the parameter values
             global MODEL_COPY;
             MODEL_COPY = model;
+        end
+
+        function initialState = InitializeStatesDrone(~, i, j)
+            initialState = zeros(16, 1);
+            initialState(3) = 100; % Drone starts 100 m in the air
+            initialState(7) = i;
+            initialState(8) = j;
         end
     end
 end

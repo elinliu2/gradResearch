@@ -60,7 +60,7 @@ classdef norms
             sum = 0;
             for i = 1:size(a, 1)
                 for j = 1:size(a, 2)
-                   sum = abs(a(i, j));
+                   sum = sum + abs(a(i, j));
                 end
             end
         end

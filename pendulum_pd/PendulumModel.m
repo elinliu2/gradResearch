@@ -23,6 +23,7 @@ classdef PendulumModel
 
         controller;
         disturbanceSignal;
+        initializeStates;
     end
 
     methods
@@ -51,6 +52,7 @@ classdef PendulumModel
     
             obj.controller = @PendulumControllers.ParameterizedPDCtrl;
             obj.disturbanceSignal = @PendulumControllers.dummyD;
+            obj.initializeStates = @InitializeStatesPendulum;
         end
 
         function [time, stateProgression, model] = trajectory(model, SC, initialState, shouldPlot)
@@ -107,6 +109,12 @@ classdef PendulumModel
             % This allows the controller to update the parameter values
             global MODEL_COPY;
             MODEL_COPY = model;
+        end
+        
+        function initialState = InitializeStatesPendulum(~, i, j)
+            x1_0 = i;
+            x2_0 = j;
+            initialState = [x1_0; x2_0];
         end
     end
 end
