@@ -24,8 +24,8 @@ classdef trajectorySensitivities
                 dfdx = model.dfdx(model, stateProgression(i-1, :));
                 dfdx_plus = model.dfdx(model, stateProgression(i, :));
                 
-                dfdp = model.dfdp(model, stateProgression(i-1, :));
-                dfdp_plus = model.dfdp(model, stateProgression(i, :));
+                dfdp = model.dfdp(model, stateProgression(i-1, :), (i-1)*SC.T);
+                dfdp_plus = model.dfdp(model, stateProgression(i, :), i*SC.T);
         
                 dxdp = trajSens(:, :, i-1);
                 trajSens(:, :, i) =  (I-(SC.T/2)*dfdx_plus)\((SC.T/2)*(dfdx*dxdp + dfdp + dfdp_plus) + dxdp);

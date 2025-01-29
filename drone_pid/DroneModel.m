@@ -74,13 +74,13 @@ classdef DroneModel
             obj.disturbance = 0;
             
             obj.dfdx = @derivatives_drone_pidmodel.dfdx;
-            obj.dfdp = @derivatives_drone_pidmodel.dfdp;
+            obj.dfdp = @derivatives_drone_pidmodel.dfdp; 
             obj.d2fdx2 = @derivatives_drone_pidmodel.d2fdx2;
             obj.d2fdxdp = @derivatives_drone_pidmodel.d2fdxdp;
             obj.nudgeParams = @derivatives_drone_pidmodel.nudgeParams;
     
             obj.numStates = 16;
-            obj.numParams = 9;
+            obj.numParams = 12;
             obj.initialdxdxo = eye(16);
     
             obj.controller = DroneControllers();
@@ -139,7 +139,7 @@ classdef DroneModel
             dx2 = pdot_y;
             dx3 = pdot_z;
 
-            [F1, F2, F3, F4, model] = DroneControllers.CircleControl(state, t, model);
+            [F1, F2, F3, F4, model] = DroneControllers.dummyU(state, t, model);
 
             dx4 = 1/(model.m) * (F1+F2+F3+F4) * (sin(theta)*cos(phi)*cos(psi) + sin(phi)*sin(psi));
             dx5 = 1/(model.m) * (F1+F2+F3+F4) * (sin(theta)*cos(phi)*sin(psi) - sin(phi)*cos(psi));
@@ -160,8 +160,8 @@ classdef DroneModel
             % phi_ref = atan2(-delta_y, 1);
             % psi_ref = 0; 
 
-            theta_ref = pi/6*sin(t);
-            phi_ref = pi/6*cos(t);
+            theta_ref = pi/6;
+            phi_ref = 0;
             psi_ref = t;
       
             dx13 = theta_ref - state(7);

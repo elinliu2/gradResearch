@@ -1,10 +1,10 @@
 classdef DroneControllers
    methods (Static)
         function [F1, F2, F3, F4, model] = dummyU(~, ~, model)
-            F1 = 3.45;
-            F2 = 3.44;
-            F3 = 3.45;
-            F4 = 3.44;
+            F1 = 3.44;
+            F2 = 3.43;
+            F3 = 3.43;
+            F4 = 3.43;
         end
         function d = dummyD(disturbance, time)
             if (time < 5)
@@ -63,12 +63,12 @@ classdef DroneControllers
             % phi_ref_dot = eul_deriv(2);            
             % psi_ref_dot = eul_deriv(3);
 
-            theta_ref = pi/6*sin(t);
-            phi_ref = pi/6*cos(t);
+            theta_ref = pi/6;
+            phi_ref = 0;
             psi_ref = t;
 
-            theta_ref_dot = pi/6*cos(t);
-            phi_ref_dot = -pi/6*sin(t);
+            theta_ref_dot = 0;
+            phi_ref_dot = 0;
             psi_ref_dot = 1;
 
             u_theta = model.kp1 * (theta_ref - state(7)) + model.ki1 * state(13) + model.kd1 * ( theta_ref_dot - state(10));

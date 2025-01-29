@@ -4,7 +4,7 @@ classdef derivatives_pdctrlmodel
             x1 = state(1);
             dfdx = [0 1; -(model.g/model.l)*cos(x1)-model.kp/(model.m*model.l) -(model.D+model.kd)/(model.m*model.l)];
         end
-        function dfdp = dfdp(model, state)
+        function dfdp = dfdp(model, state, ~)
             x1 = state(1);
             x2 = state(2);
             dfdp = [0 0; -x1/(model.m*model.l) -x2/(model.m*model.l)];

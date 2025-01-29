@@ -46,7 +46,7 @@ classdef splotting
         function trajectoryPlot3d(time, x, y, z, figNum, plotTitle)
             figure(figNum);
             hold off
-            scatter3(x, y, z, 10, time);
+            scatter3(x, y, z, 10, time,'filled');
             hold on
             title(plotTitle);
             xlabel("x");
