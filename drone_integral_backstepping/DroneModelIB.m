@@ -131,26 +131,16 @@ classdef DroneModelIB
         end
 
         function [dState] = droneDynamics(t, state, model)
-            % ref.x = sin(t);
-            % ref.x_dot = cos(t);
-            % ref.x_ddot = -sin(t);
-            % ref.x_dddot = -cos(t);
-            % ref.x_ddddot = sin(t);
-            % ref.y = cos(t);
-            % ref.y_dot = -sin(t);
-            % ref.y_ddot = -cos(t);
-            % ref.y_dddot = sin(t);
-            % ref.y_ddddot = cos(t);
-            ref.x = sin(t);
-            ref.x_dot = cos(t);
-            ref.x_ddot = -sin(t);
-            ref.x_dddot = -cos(t);
-            ref.x_ddddot = sin(t);
-            ref.y = cos(t);
-            ref.y_dot = -sin(t);
-            ref.y_ddot = -cos(t);
-            ref.y_dddot = sin(t);
-            ref.y_ddddot = cos(t);
+            ref.x = 1;
+            ref.x_dot = 0;
+            ref.x_ddot = 0;
+            ref.x_dddot = 0;
+            ref.x_ddddot = 0;
+            ref.y = 1;
+            ref.y_dot = 0;
+            ref.y_ddot = 0;
+            ref.y_dddot = 0;
+            ref.y_ddddot = 0;
             ref.z = 100;
             ref.z_dot = 0;
             ref.z_ddot = 0;
@@ -277,6 +267,12 @@ classdef DroneModelIB
             F2 = -U_theta + U_psi + U_z;
             F3 = U_phi - U_psi + U_z;
             F4 = -U_phi - U_psi + U_z;
+
+            sat_limit = 25;
+            F1 = min(max(F1, sat_limit) -sat_limit);
+            F2 = min(max(F2, sat_limit) -sat_limit);
+            F3 = min(max(F3, sat_limit) -sat_limit);
+            F4 = min(max(F4, sat_limit) -sat_limit);
 
             dx4 = 1/(model.m) * (F1+F2+F3+F4) * (sin(theta)*cos(phi)*cos(psi) + sin(phi)*sin(psi));
             dx5 = 1/(model.m) * (F1+F2+F3+F4) * (sin(theta)*cos(phi)*sin(psi) - sin(phi)*cos(psi));
