@@ -42,7 +42,6 @@ classdef DroneModelIB
         numParams;
         initialdxdxo;
 
-        controller;
         disturbanceSignal;
         initializeStates;
     end
@@ -91,7 +90,6 @@ classdef DroneModelIB
             obj.numParams = 12;
             obj.initialdxdxo = eye(16);
     
-            obj.controller = DroneControllers();
             obj.disturbanceSignal = @DroneControllers.dummyD;
             obj.initializeStates = @InitializeStatesDrone;
         end
@@ -152,30 +150,73 @@ classdef DroneModelIB
             ref.psi_dddot = 0;
             ref.psi_ddddot = 0;
 
-            x_dot = state(4);
-            y_dot = state(5);
-            z_dot = state(6);
-
-            theta_dot = state(10);
-            phi_dot = state(11);
-            psi_dot = state(12);
-
-            dx1 = x_dot; 
-            dx2 = y_dot;
-            dx3 = z_dot;
-
-            dx7 = theta_dot;
-            dx8 = phi_dot;
-            dx9 = psi_dot;
-
-            % % % % % % % % % % Controller % % % % % % % % % % 
             x = state(1);
             y = state(2);
             z = state(3); 
 
+            dx1 = state(4); 
+            dx2 = state(5);
+            dx3 = state(6);
+
             theta = state(7); % theta (pitch)
             phi = state(8); % phi (roll)
             psi = state(9); % psi (yaw)
+
+            dx7 = state(10);
+            dx8 = state(11);
+            dx9 = state(12);
+
+            [U_theta, U_phi, U_psi, U_z, theta_ref, phi_ref] = IntegralBackSteppingController(state, ref, model);
+            
+            F1 = U_theta + U_psi + U_z;
+            F2 = -U_theta + U_psi + U_z;
+            F3 = U_phi - U_psi + U_z;
+            F4 = -U_phi - U_psi + U_z;
+
+            sat_limit = 25;
+            F1 = min(max(F1, sat_limit) -sat_limit);
+            F2 = min(max(F2, sat_limit) -sat_limit);
+            F3 = min(max(F3, sat_limit) -sat_limit);
+            F4 = min(max(F4, sat_limit) -sat_limit);
+
+            dx4 = 1/(model.m) * (F1+F2+F3+F4) * (sin(theta)*cos(phi)*cos(psi) + sin(phi)*sin(psi));
+            dx5 = 1/(model.m) * (F1+F2+F3+F4) * (sin(theta)*cos(phi)*sin(psi) - sin(phi)*cos(psi));
+            dx6 = 1/(model.m) * (F1+F2+F3+F4) * (cos(theta)*cos(phi)) - model.g;
+
+            dx10 = 1/(model.Jtheta) * model.l * (2*U_theta); 
+            dx11 = 1/(model.Jphi) * model.l * (2*U_phi);
+            dx12 = 1/(model.Jpsi) * model.K_psi * (4*U_psi);
+      
+            dx13 = theta_ref - theta;
+            dx14 = phi_ref - phi;
+            dx15 = ref.psi - psi;
+            dx16 = ref.z - z;
+            dx17 = ref.x - x;
+            dx18 = ref.y - y;
+
+            dState = [dx1; dx2; dx3; dx4; dx5; dx6; dx7; dx8; dx9; dx10; dx11; dx12; dx13; dx14; dx15; dx16; dx17; dx18];
+
+            % This allows the controller to update the parameter values
+            global MODEL_COPY;
+            MODEL_COPY = model;
+        end
+
+        function [U_theta, U_phi, U_psi, U_z, theta_ref, phi_ref] = IntegralBackSteppingController(state, ref, model)
+            x = state(1);
+            y = state(2);
+            z = state(3); 
+
+            x_dot = state(4);
+            y_dot = state(5);
+            z_dot = state(6);
+
+            theta = state(7); % theta (pitch)
+            phi = state(8); % phi (roll)
+            psi = state(9); % psi (yaw)
+
+            theta_dot = state(10);
+            phi_dot = state(11);
+            psi_dot = state(12);
 
             theta_integral_error = state(13);
             phi_integral_error = state(14);
@@ -260,40 +301,6 @@ classdef DroneModelIB
             e5 = ref.psi - psi;
             e6 = model.c5*e5 + ref.psi_dot + model.lambda3*psi_integral_error - psi_dot;
             U_psi = model.Jpsi/(4*model.K_psi)*((1-model.c5^2+model.lambda3)*e5 + (model.c5+model.c5)*e6 + ref.psi_ddot - model.c5*model.lambda3*psi_integral_error);
-
-            % % % % % % % % % % % % % % % % % % % % 
-            
-            F1 = U_theta + U_psi + U_z;
-            F2 = -U_theta + U_psi + U_z;
-            F3 = U_phi - U_psi + U_z;
-            F4 = -U_phi - U_psi + U_z;
-
-            sat_limit = 25;
-            F1 = min(max(F1, sat_limit) -sat_limit);
-            F2 = min(max(F2, sat_limit) -sat_limit);
-            F3 = min(max(F3, sat_limit) -sat_limit);
-            F4 = min(max(F4, sat_limit) -sat_limit);
-
-            dx4 = 1/(model.m) * (F1+F2+F3+F4) * (sin(theta)*cos(phi)*cos(psi) + sin(phi)*sin(psi));
-            dx5 = 1/(model.m) * (F1+F2+F3+F4) * (sin(theta)*cos(phi)*sin(psi) - sin(phi)*cos(psi));
-            dx6 = 1/(model.m) * (F1+F2+F3+F4) * (cos(theta)*cos(phi)) - model.g;
-
-            dx10 = 1/(model.Jtheta) * model.l * (2*U_theta); 
-            dx11 = 1/(model.Jphi) * model.l * (2*U_phi);
-            dx12 = 1/(model.Jpsi) * model.K_psi * (4*U_psi);
-      
-            dx13 = theta_ref - theta;
-            dx14 = phi_ref - phi;
-            dx15 = ref.psi - psi;
-            dx16 = ref.z - z;
-            dx17 = ref.x - x;
-            dx18 = ref.y - y;
-
-            dState = [dx1; dx2; dx3; dx4; dx5; dx6; dx7; dx8; dx9; dx10; dx11; dx12; dx13; dx14; dx15; dx16; dx17; dx18];
-
-            % This allows the controller to update the parameter values
-            global MODEL_COPY;
-            MODEL_COPY = model;
         end
 
         function initialState = InitializeStatesDrone(~, i, j)

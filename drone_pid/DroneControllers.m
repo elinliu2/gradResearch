@@ -29,16 +29,16 @@ classdef DroneControllers
             thrust_err = delta_z;
             thrust_err_dot = -state(6);
 
-            u_theta = model.kp1 * (theta_ref - state(7)) + model.ki1 * state(13) + model.kd1 * ( theta_ref_dot - state(10));
-            u_phi = model.kp2 * (phi_ref - state(8)) + model.ki2 * state(14) + model.kd2 * ( phi_ref_dot - state(11));
-            u_psi = model.kp3 * (psi_ref - state(9)) + model.ki3 * state(15) + model.kd3 * (-1 * state(12));
-            u_thrust = model.kp4 * thrust_err + model.ki4 * state(16) + model.kd4 * thrust_err_dot;
+            U_theta = model.kp1 * (theta_ref - state(7)) + model.ki1 * state(13) + model.kd1 * ( theta_ref_dot - state(10));
+            U_phi = model.kp2 * (phi_ref - state(8)) + model.ki2 * state(14) + model.kd2 * ( phi_ref_dot - state(11));
+            U_psi = model.kp3 * (psi_ref - state(9)) + model.ki3 * state(15) + model.kd3 * (-1 * state(12));
+            U_thrust = model.kp4 * thrust_err + model.ki4 * state(16) + model.kd4 * thrust_err_dot;
 
 
-            F1 = u_theta + u_psi + u_thrust;
-            F2 = - u_theta + u_psi + u_thrust;
-            F3 = u_phi - u_psi + u_thrust;
-            F4 = - u_phi - u_psi + u_thrust;
+            F1 = U_theta + U_psi + U_thrust;
+            F2 = - U_theta + U_psi + U_thrust;
+            F3 = U_phi - U_psi + U_thrust;
+            F4 = - U_phi - U_psi + U_thrust;
         end
 
         function [F1, F2, F3, F4, model] = CircleControl(state, t, model)
