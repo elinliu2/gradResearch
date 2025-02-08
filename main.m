@@ -5,7 +5,7 @@ addpath('./drone_integral_backstepping/')
 
 % Sim Constants
 SC.T = 1e-3;
-SC.t_final = 200;
+SC.t_final = 20;
 SC.start = -pi/2;
 SC.stop = pi/2;
 SC.step = 0.1;
@@ -66,7 +66,7 @@ lambda6 = 1e-1;
 drone = DroneModelIB(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, lambda1, lambda2, lambda3, lambda4, lambda5, lambda6);
 initialState = zeros(18, 1);
 for i = 1:12
-    initialState(i) = 0.9;
+    initialState(i) = 0;
 end
 initialState(3) = 100; % Drone starts 100 m in the air
 

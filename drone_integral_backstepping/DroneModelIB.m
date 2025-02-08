@@ -173,11 +173,11 @@ classdef DroneModelIB
             F3 = U_phi - U_psi + U_z;
             F4 = -U_phi - U_psi + U_z;
 
-            sat_limit = 25;
-            F1 = min(max(F1, sat_limit) -sat_limit);
-            F2 = min(max(F2, sat_limit) -sat_limit);
-            F3 = min(max(F3, sat_limit) -sat_limit);
-            F4 = min(max(F4, sat_limit) -sat_limit);
+            % sat_limit = 25;
+            % F1 = min(max(F1, sat_limit) -sat_limit);
+            % F2 = min(max(F2, sat_limit) -sat_limit);
+            % F3 = min(max(F3, sat_limit) -sat_limit);
+            % F4 = min(max(F4, sat_limit) -sat_limit);
 
             dx4 = 1/(model.m) * (F1+F2+F3+F4) * (sin(theta)*cos(phi)*cos(psi) + sin(phi)*sin(psi));
             dx5 = 1/(model.m) * (F1+F2+F3+F4) * (sin(theta)*cos(phi)*sin(psi) - sin(phi)*cos(psi));
@@ -239,7 +239,7 @@ classdef DroneModelIB
 
             z_ddot = 4*U_z*cos(theta)*cos(phi)/model.m-model.g;
             e8_dot = model.c7*(ref.z_dot - z_dot)*ref.z_ddot+model.lambda4*e7-z_ddot;
-            ez_dot = ((1-model.c7^2-model.lambda4)*(ref.z_dot-z_dot)+(model.c7+model.c8)*e8_dot-model.c7*model.lambda4*e7);
+            ez_dot = (1-model.c7^2+model.lambda4)*(ref.z_dot-z_dot)+(model.c7+model.c8)*e8_dot-model.c7*model.lambda4*e7;
             ez     = (1-model.c7^2+model.lambda4)*e7+(model.c7+model.c8)*e8-model.c7*model.lambda4*z_integral_error+model.g;
             U_zdot = model.m/4*(cos(theta)*cos(phi)*ez_dot - ez*(-sin(theta)*cos(phi)-cos(theta)*sin(phi)))/(cos(theta)*cos(phi))^2;
             
@@ -268,7 +268,7 @@ classdef DroneModelIB
             
             z_dddot = 4/(model.m)*(U_zdot*cos(phi)*cos(theta)-U_z*sin(phi)*phi_dot*cos(theta)-U_z*cos(theta)*sin(theta)*theta_dot);
             e8_ddot = model.c7*(ref.z_ddot-z_ddot)+ref.z_dddot+model.lambda4*(ref.z_dot-z_dot)-z_dddot;
-            ez_ddot = (1-model.c7^2-model.lambda4)*(ref.z_ddot-z_ddot)+(model.c7+model.c8)*e8_ddot-model.c7*model.lambda4*(ref.z_dot-z_dot);
+            ez_ddot = (1-model.c7^2+model.lambda4)*(ref.z_ddot-z_ddot)+(model.c7+model.c8)*e8_ddot-model.c7*model.lambda4*(ref.z_dot-z_dot);
             U_zdot_top_dot = -sin(theta)*cos(phi)*ez_dot - cos(theta)*sin(phi)*ez_dot + cos(theta)*cos(phi)*ez_ddot + ...
                 cos(theta)*cos(phi)*ez - sin(theta)*sin(phi)*ez + sin(theta)*cos(phi)*ez_dot - ...
                 sin(theta)*sin(phi)*ez + cos(theta)*cos(phi)*ez + cos(theta)*sin(phi)*ez_dot;
