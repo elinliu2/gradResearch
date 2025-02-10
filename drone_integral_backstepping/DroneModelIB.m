@@ -275,7 +275,7 @@ classdef DroneModelIB
             U_zdot_top = cos(theta)*cos(phi)*ez_dot - ez*(-sin(theta)*cos(phi)-cos(theta)*sin(phi));
             U_zddot = model.m/4*(cos(theta)*cos(phi)^2*U_zdot_top_dot - U_zdot_top*2*cos(theta)*cos(phi)*(-sin(theta*cos(phi)-cos(theta)*sin(phi))))/(cos(theta)*cos(phi))^4;
 
-            komh_dot = (U_zdot*ex_dot+U_z*ex_ddot)-(U_zdot*ex_dot+ex*U_zddot);
+            komh_dot = (U_z*ex_ddot)-(ex*U_zddot);
             komh = U_z*ex_dot - ex*U_zdot;
             theta_ref_ddot = model.m*(U_z^2*komh_dot-komh*2*U_z*U_zdot)/U_z^4;
 
