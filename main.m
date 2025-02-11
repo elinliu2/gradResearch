@@ -2,6 +2,9 @@ addpath('./utils')
 addpath('./pendulum_pd')
 addpath('./drone_pid')
 addpath('./drone_integral_backstepping/')
+addpath('./drone_integral_backstepping_syms/')
+
+tjs = trajectorySensitivities;
 
 % Sim Constants
 SC.T = 1e-3;
@@ -45,6 +48,7 @@ SC.ref = 0;
 % splotting.trajectoryPlot3d(time, stateProgression(:,1), stateProgression(:,2), stateProgression(:,3), 1, "State Progression");
 % % splotting.plotDroneXYZ(time, stateProgression, 2);
 % splotting.plotDroneAngles(time, stateProgression, 3);
+
 c1 = 10.5;
 c2 = 2;
 c3 = 10;
@@ -63,16 +67,41 @@ lambda3 = 1e-1;
 lambda4 = 1e-1;
 lambda5 = 1e-1;
 lambda6 = 1e-1;
-drone = DroneModelIB(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, lambda1, lambda2, lambda3, lambda4, lambda5, lambda6);
+drone = DroneModelIB_syms(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, lambda1, lambda2, lambda3, lambda4, lambda5, lambda6);
 initialState = zeros(18, 1);
 for i = 1:12
     initialState(i) = 0;
 end
 initialState(3) = 100; % Drone starts 100 m in the air
 
-[time, stateProgression, drone] = trajectory(drone, SC, initialState, false);
-splotting.trajectoryPlot3d(time, stateProgression(:,1), stateProgression(:,2), stateProgression(:,3), 1, "State Progression");
+ref.x = 1;
+ref.x_dot = 0;
+ref.x_ddot = 0;
+ref.x_dddot = 0;
+ref.x_ddddot = 0;
+ref.y = 1;
+ref.y_dot = 0;
+ref.y_ddot = 0;
+ref.y_dddot = 0;
+ref.y_ddddot = 0;
+ref.z = 100;
+ref.z_dot = 0;
+ref.z_ddot = 0;
+ref.z_dddot = 0;
+ref.z_ddddot = 0;
+ref.psi = 0;
+ref.psi_dot = 0;
+ref.psi_ddot = 0;
+ref.psi_dddot = 0;
+ref.psi_ddddot = 0;
 
+
+[time, stateProgression, drone] = trajectory(drone, SC, initialState, false, ref);
+trajSens = tjs.calculateTrajectorySensitivities(drone, SC, stateProgression, ref);
+% trajSensTest = tjs.calculateTrajectorySensitivitiesTest(drone, SC, initialState, length(stateProgression), ref);
+trajSensParam = tjs.calculateTrajectorySensitivitiesParameters(drone, SC, stateProgression, ref);
+            
+% splotting.trajectoryPlot3d(time, stateProgression(:,1), stateProgression(:,2), stateProgression(:,3), 1, "State Progression");
 % plot_all_the_plots(SC, drone);
 
 

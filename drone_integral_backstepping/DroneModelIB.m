@@ -86,9 +86,9 @@ classdef DroneModelIB
             obj.d2fdxdp = @derivatives_drone_pidmodel.d2fdxdp;
             obj.nudgeParams = @derivatives_drone_pidmodel.nudgeParams;
     
-            obj.numStates = 16;
+            obj.numStates = 18;
             obj.numParams = 12;
-            obj.initialdxdxo = eye(16);
+            obj.initialdxdxo = eye(obj.numStates);
     
             obj.disturbanceSignal = @DroneControllers.dummyD;
             obj.initializeStates = @InitializeStatesDrone;
@@ -303,8 +303,8 @@ classdef DroneModelIB
             U_psi = model.Jpsi/(4*model.K_psi)*((1-model.c5^2+model.lambda3)*e5 + (model.c5+model.c5)*e6 + ref.psi_ddot - model.c5*model.lambda3*psi_integral_error);
         end
 
-        function initialState = InitializeStatesDrone(~, i, j)
-            initialState = zeros(16, 1);
+        function initialState = InitializeStatesDrone(model, i, j)
+            initialState = zeros(model.numStates, 1);
             initialState(3) = 100; % Drone starts 100 m in the air
             initialState(7) = i;
             initialState(8) = j;

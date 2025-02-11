@@ -80,21 +80,21 @@ classdef DroneModelIB_syms
 
             obj.disturbance = 0;
             
-            obj.dfdx = @derivatives_drone_pidmodel.dfdx;
-            obj.dfdp = @derivatives_drone_pidmodel.dfdp; 
-            obj.d2fdx2 = @derivatives_drone_pidmodel.d2fdx2;
-            obj.d2fdxdp = @derivatives_drone_pidmodel.d2fdxdp;
-            obj.nudgeParams = @derivatives_drone_pidmodel.nudgeParams;
+            obj.dfdx = @derivatives_drone_IB_syms.dfdx;
+            obj.dfdp = @derivatives_drone_IB_syms.dfdp; 
+            obj.d2fdx2 = @derivatives_drone_IB_syms.d2fdx2;
+            obj.d2fdxdp = @derivatives_drone_IB_syms.d2fdxdp;
+            obj.nudgeParams = @derivatives_drone_IB_syms.nudgeParams;
     
-            obj.numStates = 16;
-            obj.numParams = 12;
-            obj.initialdxdxo = eye(16);
+            obj.numStates = 18;
+            obj.numParams = 25;
+            obj.initialdxdxo = eye(obj.numStates);
     
             obj.disturbanceSignal = @DroneControllers.dummyD;
             obj.initializeStates = @InitializeStatesDrone;
         end
 
-        function [time, stateProgression, model] = trajectory(model, SC, initialState, shouldPlot)
+        function [time, stateProgression, model] = trajectory(model, SC, initialState, shouldPlot, ref)
             t_span = 0:SC.T:SC.t_final; % amount of time we will simulate for; fixed step sizes
             options = odeset('RelTol',1e-12, 'abstol', 1e-12); % will be used to set options for ODE solver
         
@@ -110,7 +110,7 @@ classdef DroneModelIB_syms
                 zlim([0 15])
             end
             
-            [time, stateProgression] = ode45(@droneDynamics, t_span, initialState, options, model);
+            [time, stateProgression] = ode45(@droneDynamics, t_span, initialState, options, model, ref);
             global MODEL_COPY;
             model = MODEL_COPY;
             
@@ -128,28 +128,7 @@ classdef DroneModelIB_syms
             end
         end
 
-        function [dState] = droneDynamics(t, state, model)
-            ref.x = 1;
-            ref.x_dot = 0;
-            ref.x_ddot = 0;
-            ref.x_dddot = 0;
-            ref.x_ddddot = 0;
-            ref.y = 1;
-            ref.y_dot = 0;
-            ref.y_ddot = 0;
-            ref.y_dddot = 0;
-            ref.y_ddddot = 0;
-            ref.z = 100;
-            ref.z_dot = 0;
-            ref.z_ddot = 0;
-            ref.z_dddot = 0;
-            ref.z_ddddot = 0;
-            ref.psi = 0;
-            ref.psi_dot = 0;
-            ref.psi_ddot = 0;
-            ref.psi_dddot = 0;
-            ref.psi_ddddot = 0;
-
+        function [dState] = droneDynamics(t, state, model, ref)
             x = state(1);
             y = state(2);
             z = state(3); 
@@ -173,11 +152,11 @@ classdef DroneModelIB_syms
             F3 = U_phi - U_psi + U_z;
             F4 = -U_phi - U_psi + U_z;
 
-            sat_limit = 25;
-            F1 = min(max(F1, sat_limit) -sat_limit);
-            F2 = min(max(F2, sat_limit) -sat_limit);
-            F3 = min(max(F3, sat_limit) -sat_limit);
-            F4 = min(max(F4, sat_limit) -sat_limit);
+            % sat_limit = 25;
+            % F1 = min(max(F1, sat_limit) -sat_limit);
+            % F2 = min(max(F2, sat_limit) -sat_limit);
+            % F3 = min(max(F3, sat_limit) -sat_limit);
+            % F4 = min(max(F4, sat_limit) -sat_limit);
 
             dx4 = 1/(model.m) * (F1+F2+F3+F4) * (sin(theta)*cos(phi)*cos(psi) + sin(phi)*sin(psi));
             dx5 = 1/(model.m) * (F1+F2+F3+F4) * (sin(theta)*cos(phi)*sin(psi) - sin(phi)*cos(psi));
@@ -239,7 +218,7 @@ classdef DroneModelIB_syms
 
             z_ddot = 4*U_z*cos(theta)*cos(phi)/model.m-model.g;
             e8_dot = model.c7*(ref.z_dot - z_dot)*ref.z_ddot+model.lambda4*e7-z_ddot;
-            ez_dot = ((1-model.c7^2-model.lambda4)*(ref.z_dot-z_dot)+(model.c7+model.c8)*e8_dot-model.c7*model.lambda4*e7);
+            ez_dot = (1-model.c7^2+model.lambda4)*(ref.z_dot-z_dot)+(model.c7+model.c8)*e8_dot-model.c7*model.lambda4*e7;
             ez     = (1-model.c7^2+model.lambda4)*e7+(model.c7+model.c8)*e8-model.c7*model.lambda4*z_integral_error+model.g;
             U_zdot = model.m/4*(cos(theta)*cos(phi)*ez_dot - ez*(-sin(theta)*cos(phi)-cos(theta)*sin(phi)))/(cos(theta)*cos(phi))^2;
             
@@ -268,14 +247,14 @@ classdef DroneModelIB_syms
             
             z_dddot = 4/(model.m)*(U_zdot*cos(phi)*cos(theta)-U_z*sin(phi)*phi_dot*cos(theta)-U_z*cos(theta)*sin(theta)*theta_dot);
             e8_ddot = model.c7*(ref.z_ddot-z_ddot)+ref.z_dddot+model.lambda4*(ref.z_dot-z_dot)-z_dddot;
-            ez_ddot = (1-model.c7^2-model.lambda4)*(ref.z_ddot-z_ddot)+(model.c7+model.c8)*e8_ddot-model.c7*model.lambda4*(ref.z_dot-z_dot);
+            ez_ddot = (1-model.c7^2+model.lambda4)*(ref.z_ddot-z_ddot)+(model.c7+model.c8)*e8_ddot-model.c7*model.lambda4*(ref.z_dot-z_dot);
             U_zdot_top_dot = -sin(theta)*cos(phi)*ez_dot - cos(theta)*sin(phi)*ez_dot + cos(theta)*cos(phi)*ez_ddot + ...
                 cos(theta)*cos(phi)*ez - sin(theta)*sin(phi)*ez + sin(theta)*cos(phi)*ez_dot - ...
                 sin(theta)*sin(phi)*ez + cos(theta)*cos(phi)*ez + cos(theta)*sin(phi)*ez_dot;
             U_zdot_top = cos(theta)*cos(phi)*ez_dot - ez*(-sin(theta)*cos(phi)-cos(theta)*sin(phi));
             U_zddot = model.m/4*(cos(theta)*cos(phi)^2*U_zdot_top_dot - U_zdot_top*2*cos(theta)*cos(phi)*(-sin(theta*cos(phi)-cos(theta)*sin(phi))))/(cos(theta)*cos(phi))^4;
 
-            komh_dot = (U_zdot*ex_dot+U_z*ex_ddot)-(U_zdot*ex_dot+ex*U_zddot);
+            komh_dot = (U_z*ex_ddot)-(ex*U_zddot);
             komh = U_z*ex_dot - ex*U_zdot;
             theta_ref_ddot = model.m*(U_z^2*komh_dot-komh*2*U_z*U_zdot)/U_z^4;
 
