@@ -80,11 +80,11 @@ classdef DroneModelIB
 
             obj.disturbance = 0;
             
-            obj.dfdx = @derivatives_drone_pidmodel.dfdx;
-            obj.dfdp = @derivatives_drone_pidmodel.dfdp; 
-            obj.d2fdx2 = @derivatives_drone_pidmodel.d2fdx2;
-            obj.d2fdxdp = @derivatives_drone_pidmodel.d2fdxdp;
-            obj.nudgeParams = @derivatives_drone_pidmodel.nudgeParams;
+            obj.dfdx = @derivatives_drone_IB.dfdx;
+            obj.dfdp = @derivatives_drone_IB.dfdp; 
+            obj.d2fdx2 = @derivatives_drone_IB.d2fdx2;
+            obj.d2fdxdp = @derivatives_drone_IB.d2fdxdp;
+            obj.nudgeParams = @derivatives_drone_IB.nudgeParams;
     
             obj.numStates = 18;
             obj.numParams = 12;
@@ -94,7 +94,7 @@ classdef DroneModelIB
             obj.initializeStates = @InitializeStatesDrone;
         end
 
-        function [time, stateProgression, model] = trajectory(model, SC, initialState, shouldPlot)
+        function [time, stateProgression, model] = trajectory(model, SC, initialState, shouldPlot, ref)
             t_span = 0:SC.T:SC.t_final; % amount of time we will simulate for; fixed step sizes
             options = odeset('RelTol',1e-12, 'abstol', 1e-12); % will be used to set options for ODE solver
         
@@ -110,7 +110,7 @@ classdef DroneModelIB
                 zlim([0 15])
             end
             
-            [time, stateProgression] = ode45(@droneDynamics, t_span, initialState, options, model);
+            [time, stateProgression] = ode45(@droneDynamics, t_span, initialState, options, model, ref);
             global MODEL_COPY;
             model = MODEL_COPY;
             
@@ -128,7 +128,7 @@ classdef DroneModelIB
             end
         end
 
-        function [dState] = droneDynamics(t, state, model)
+        function [dState] = droneDynamics(t, state, model, ref)
             ref.x = 1;
             ref.x_dot = 0;
             ref.x_ddot = 0;

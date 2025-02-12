@@ -98,11 +98,13 @@ ref.psi_ddddot = 0;
 
 [time, stateProgression, drone] = trajectory(drone, SC, initialState, false, ref);
 trajSens = tjs.calculateTrajectorySensitivities(drone, SC, stateProgression, ref);
-% trajSensTest = tjs.calculateTrajectorySensitivitiesTest(drone, SC, initialState, length(stateProgression), ref);
-trajSensParam = tjs.calculateTrajectorySensitivitiesParameters(drone, SC, stateProgression, ref);
+trajSensTest = tjs.calculateTrajectorySensitivitiesTest(drone, SC, initialState, length(stateProgression), ref);
+% % trajSensParam = tjs.calculateTrajectorySensitivitiesParameters(drone, SC, stateProgression, ref);
             
-% splotting.trajectoryPlot3d(time, stateProgression(:,1), stateProgression(:,2), stateProgression(:,3), 1, "State Progression");
+splotting.trajectoryPlot3d(time, stateProgression(:,1), stateProgression(:,2), stateProgression(:,3), 1, "State Progression");
 % plot_all_the_plots(SC, drone);
+
+% dfdx = derivatives_drone_IB_syms.dfdx(drone, ones(1, 18)*10, ref);
 
 
 

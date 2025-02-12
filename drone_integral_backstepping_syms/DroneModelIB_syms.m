@@ -129,28 +129,26 @@ classdef DroneModelIB_syms
         end
 
         function [dState] = droneDynamics(t, state, model, ref)
-            x = state(1);
-            y = state(2);
-            z = state(3); 
 
-            dx1 = state(4); 
-            dx2 = state(5);
-            dx3 = state(6);
-
-            theta = state(7); % theta (pitch)
-            phi = state(8); % phi (roll)
-            psi = state(9); % psi (yaw)
-
-            dx7 = state(10);
-            dx8 = state(11);
-            dx9 = state(12);
+            x1 = state(1);
+            x2 = state(2);
+            x3 = state(3);
+            x4 = state(4);
+            x5 = state(5);
+            x6 = state(6);
+            x7 = state(7);
+            x8 = state(8);
+            x9 = state(9);
+            x10 = state(10);
+            x11 = state(11);
+            x12 = state(12);
 
             [U_theta, U_phi, U_psi, U_z, theta_ref, phi_ref] = IntegralBackSteppingController(state, ref, model);
             
-            F1 = U_theta + U_psi + U_z;
-            F2 = -U_theta + U_psi + U_z;
-            F3 = U_phi - U_psi + U_z;
-            F4 = -U_phi - U_psi + U_z;
+            % F1 = U_theta + U_psi + U_z;
+            % F2 = -U_theta + U_psi + U_z;
+            % F3 = U_phi - U_psi + U_z;
+            % F4 = -U_phi - U_psi + U_z;
 
             % sat_limit = 25;
             % F1 = min(max(F1, sat_limit) -sat_limit);
@@ -158,22 +156,30 @@ classdef DroneModelIB_syms
             % F3 = min(max(F3, sat_limit) -sat_limit);
             % F4 = min(max(F4, sat_limit) -sat_limit);
 
-            dx4 = 1/(model.m) * (F1+F2+F3+F4) * (sin(theta)*cos(phi)*cos(psi) + sin(phi)*sin(psi));
-            dx5 = 1/(model.m) * (F1+F2+F3+F4) * (sin(theta)*cos(phi)*sin(psi) - sin(phi)*cos(psi));
-            dx6 = 1/(model.m) * (F1+F2+F3+F4) * (cos(theta)*cos(phi)) - model.g;
+            f1 = x4; 
+            f2 = x5;
+            f3 = x6;
+            
+            f4 = 4*U_z/model.m*(sin(x7)*cos(x8)*cos(x9) + sin(x8)*sin(x9));
+            f5 = 4*U_z/model.m*(sin(x7)*cos(x8)*sin(x9) - sin(x8)*cos(x9));
+            f6 = 4*U_z/model.m*(cos(x7)*cos(x8)) - model.g;
+            
+            f7 = x10; 
+            f8 = x11;
+            f9 = x12;
+            
+            f10 = 1/(model.Jtheta) * model.l * (2*U_theta); 
+            f11 = 1/(model.Jphi) * model.l * (2*U_phi);
+            f12 = 1/(model.Jpsi) * model.K_psi * (4*U_psi);
+            
+            f13 = theta_ref - x7;
+            f14 = phi_ref - x8;
+            f15 = ref.psi - x9;
+            f16 = ref.z - x3;
+            f17 = ref.x - x1;
+            f18 = ref.y - x2;
 
-            dx10 = 1/(model.Jtheta) * model.l * (2*U_theta); 
-            dx11 = 1/(model.Jphi) * model.l * (2*U_phi);
-            dx12 = 1/(model.Jpsi) * model.K_psi * (4*U_psi);
-      
-            dx13 = theta_ref - theta;
-            dx14 = phi_ref - phi;
-            dx15 = ref.psi - psi;
-            dx16 = ref.z - z;
-            dx17 = ref.x - x;
-            dx18 = ref.y - y;
-
-            dState = [dx1; dx2; dx3; dx4; dx5; dx6; dx7; dx8; dx9; dx10; dx11; dx12; dx13; dx14; dx15; dx16; dx17; dx18];
+            dState = [f1; f2; f3; f4; f5; f6; f7; f8; f9; f10; f11; f12; f13; f14; f15; f16; f17; f18];
 
             % This allows the controller to update the parameter values
             global MODEL_COPY;
@@ -181,105 +187,146 @@ classdef DroneModelIB_syms
         end
 
         function [U_theta, U_phi, U_psi, U_z, theta_ref, phi_ref] = IntegralBackSteppingController(state, ref, model)
-            x = state(1);
-            y = state(2);
-            z = state(3); 
+            refx = ref.x;
+            refxdot = ref.x_dot;
+            refxddot = ref.x_ddot;
+            refxdddot = ref.x_dddot;
+            refxddddot = ref.x_ddddot;
+            refy = ref.y;
+            refydot = ref.y_dot;
+            refyddot = ref.y_ddot;
+            refydddot = ref.y_dddot;
+            refyddddot = ref.y_ddddot;
+            refz = ref.z;
+            refzdot = ref.z_dot;
+            refzddot = ref.z_ddot;
+            refzdddot = ref.z_dddot;
+            refpsi = ref.psi;
+            refpsidot = ref.psi_dot;
+            refpsiddot = ref.psi_ddot;
 
-            x_dot = state(4);
-            y_dot = state(5);
-            z_dot = state(6);
+            x1 = state(1);
+            x2 = state(2);
+            x3 = state(3);
+            x4 = state(4);
+            x5 = state(5);
+            x6 = state(6);
+            x7 = state(7);
+            x8 = state(8);
+            x9 = state(9);
+            x10 = state(10);
+            x11 = state(11);
+            x12 = state(12);
+            x13 = state(13);
+            x14 = state(14);
+            x15 = state(15);
+            x16 = state(16);
+            x17 = state(17);
+            x18 = state(18);
 
-            theta = state(7); % theta (pitch)
-            phi = state(8); % phi (roll)
-            psi = state(9); % psi (yaw)
-
-            theta_dot = state(10);
-            phi_dot = state(11);
-            psi_dot = state(12);
-
-            theta_integral_error = state(13);
-            phi_integral_error = state(14);
-            psi_integral_error = state(15);
-            z_integral_error = state(16);
-            x_integral_error = state(17);
-            y_integral_error = state(18);
-
-            e7 = ref.z - z;
-            e8 = model.c7*e7 + ref.z_dot + model.lambda4*z_integral_error - z_dot;
-            U_z = model.m/(cos(theta)*cos(phi)*4)*(model.g + (1-model.c7^2+model.lambda4)*e7 + (model.c7+model.c8)*e8 - model.c7*model.lambda4*z_integral_error);
-
-            e9 = ref.x - x;
-            e10 = model.c9*e9 + ref.x_dot + model.lambda5*x_integral_error - x_dot;
-            theta_ref = model.m/U_z*((1-model.c9^2  + model.lambda5)*e9 + (model.c9 +model.c10)*e10 + ref.x_ddot - model.c9*model.lambda5*x_integral_error);
-
-            e11 = ref.y - y;
-            e12 = model.c11*e11 + ref.y_dot + model.lambda6*y_integral_error - y_dot;
-            phi_ref =   model.m/U_z*( -(1-model.c11^2 + model.lambda6)*e11 - (model.c11+model.c12)*e12 - ref.y_ddot + model.c11*model.lambda6*y_integral_error);
-
-            z_ddot = 4*U_z*cos(theta)*cos(phi)/model.m-model.g;
-            e8_dot = model.c7*(ref.z_dot - z_dot)*ref.z_ddot+model.lambda4*e7-z_ddot;
-            ez_dot = (1-model.c7^2+model.lambda4)*(ref.z_dot-z_dot)+(model.c7+model.c8)*e8_dot-model.c7*model.lambda4*e7;
-            ez     = (1-model.c7^2+model.lambda4)*e7+(model.c7+model.c8)*e8-model.c7*model.lambda4*z_integral_error+model.g;
-            U_zdot = model.m/4*(cos(theta)*cos(phi)*ez_dot - ez*(-sin(theta)*cos(phi)-cos(theta)*sin(phi)))/(cos(theta)*cos(phi))^2;
+            c1 = model.c1;
+            c2 = model.c2;
+            c3 = model.c3;
+            c4 = model.c4;
+            c5 = model.c5;
+            c6 = model.c6;
+            c7 = model.c7; 
+            c8 = model.c8;
+            c9 = model.c9;
+            c10 = model.c10;
+            c11 = model.c11;
+            c12 = model.c12;
+            lambda1 = model.lambda1;
+            lambda2 = model.lambda2;
+            lambda3 = model.lambda3;
+            lambda4 = model.lambda4;
+            lambda5 = model.lambda5;
+            lambda6 = model.lambda6;
+            m = model.m;
+            g = model.g;
+            l = model.l;
+            K_psi = model.K_psi;
+            Jtheta = model.Jtheta;
+            Jphi = model.Jphi;
+            Jpsi = model.Jpsi;
             
-            x_ddot = 4*U_z*(sin(theta)*cos(phi)*cos(psi) + sin(phi)*sin(psi))/(model.m);
-            e10_dot= model.c9*(ref.x_dot - x_dot) - ref.x_ddot + model.lambda5*e9 - x_ddot;
-            ex_dot = (1-model.c9^2+model.lambda5)*(ref.x_dot-x_dot)+(model.c9+model.c10)*e10_dot+ref.x_dddot-model.c9*model.lambda5*e9;
-            ex     = (1-model.c9^2+model.lambda5)*e9 + (model.c9+model.c10)*e10 + ref.x_ddot - model.c9*model.lambda5*x_integral_error;
-
-            y_ddot = 4*U_z*(sin(theta)*cos(phi)*sin(psi) - sin(phi)*cos(psi));
-            e12_dot= model.c11*(ref.y_dot - y_dot) - ref.y_ddot + model.lambda6*e11 - y_ddot;
-            ey_dot = -(1-model.c11^2+model.lambda6)*(ref.y_dot-y_dot)-(model.c11+model.c12)*e12_dot-ref.y_dddot+model.c11*model.lambda6*e11;
-            ey     = -(1-model.c11^2+model.lambda6)*e11 - (model.c11+model.c12)*e12 - ref.y_ddot + model.c11*model.lambda6*y_integral_error;
+            e7 = refz - x3;
+            e8 = c7*e7 + refzdot + lambda4*x16 - x6;
+            U_z = m/(cos(x7)*cos(x8)*4)*(g + (1-c7^2+lambda4)*e7 + (c7+c8)*e8 - c7*lambda4*x16);
             
-            theta_ref_dot = model.m * (U_z*ex_dot - ex*U_zdot)/U_z^2;
-            phi_ref_dot = model.m * (U_z*ey_dot - ey*U_zdot)/U_z^2;
-
-            x_dddot = 4/model.m*( ...
-                U_zdot*(sin(phi)*sin(psi) + sin(theta)*cos(phi)*cos(psi)) + ...
-                U_z*(cos(phi)*sin(psi)*phi_dot + sin(phi)*cos(psi)*psi_dot + ...
-                     cos(theta)*theta_dot*cos(phi)*cos(psi) - ...
-                     sin(theta)*sin(phi)*phi_dot*cos(psi) - ...
-                     sin(theta)*cos(phi)*sin(psi)*psi_dot));
-
-            e10_ddot = model.c9*(ref.x_ddot - x_ddot) - ref.x_dddot + model.lambda5*(ref.x_dot - x_dot) - x_dddot;
-            ex_ddot = -(1-model.c9^2+model.lambda5)*(ref.x_ddot - x_ddot) - (model.c9+model.c10)*e10_ddot - ref.x_ddddot + model.c9*model.lambda5*(ref.x_dot - x_dot);
+            e9 = refx - x1;
+            e10 = c9*e9 + refxdot + lambda5*x17 - x4;
+            theta_ref = m/U_z*((1-c9^2  + lambda5)*e9 + (c9 +c10)*e10 + refxddot - c9*lambda5*x17);
             
-            z_dddot = 4/(model.m)*(U_zdot*cos(phi)*cos(theta)-U_z*sin(phi)*phi_dot*cos(theta)-U_z*cos(theta)*sin(theta)*theta_dot);
-            e8_ddot = model.c7*(ref.z_ddot-z_ddot)+ref.z_dddot+model.lambda4*(ref.z_dot-z_dot)-z_dddot;
-            ez_ddot = (1-model.c7^2+model.lambda4)*(ref.z_ddot-z_ddot)+(model.c7+model.c8)*e8_ddot-model.c7*model.lambda4*(ref.z_dot-z_dot);
-            U_zdot_top_dot = -sin(theta)*cos(phi)*ez_dot - cos(theta)*sin(phi)*ez_dot + cos(theta)*cos(phi)*ez_ddot + ...
-                cos(theta)*cos(phi)*ez - sin(theta)*sin(phi)*ez + sin(theta)*cos(phi)*ez_dot - ...
-                sin(theta)*sin(phi)*ez + cos(theta)*cos(phi)*ez + cos(theta)*sin(phi)*ez_dot;
-            U_zdot_top = cos(theta)*cos(phi)*ez_dot - ez*(-sin(theta)*cos(phi)-cos(theta)*sin(phi));
-            U_zddot = model.m/4*(cos(theta)*cos(phi)^2*U_zdot_top_dot - U_zdot_top*2*cos(theta)*cos(phi)*(-sin(theta*cos(phi)-cos(theta)*sin(phi))))/(cos(theta)*cos(phi))^4;
-
+            e11 = refy - x2;
+            e12 = c11*e11 + refydot + lambda6*x18 - x5;
+            phi_ref =   m/U_z*( -(1-c11^2 + lambda6)*e11 - (c11+c12)*e12 - refyddot + c11*lambda6*x18);
+            
+            z_ddot = 4*U_z*cos(x7)*cos(x8)/m-g;
+            e8_dot = c7*(refzdot - x6)*refzddot+lambda4*e7-z_ddot;
+            ez_dot = ((1-c7^2-lambda4)*(refzdot-x6)+(c7+c8)*e8_dot-c7*lambda4*e7);
+            ez     = (1-c7^2+lambda4)*e7+(c7+c8)*e8-c7*lambda4*x16+g;
+            U_zdot = m/4*(cos(x7)*cos(x8)*ez_dot - ez*(-sin(x7)*cos(x8)-cos(x7)*sin(x8)))/(cos(x7)*cos(x8))^2;
+            
+            x_ddot = 4*U_z*(sin(x7)*cos(x8)*cos(x9) + sin(x8)*sin(x9))/(m);
+            e10_dot= c9*(refxdot - x4) - refxddot + lambda5*e9 - x_ddot;
+            ex_dot = (1-c9^2+lambda5)*(refxdot-x4)+(c9+c10)*e10_dot+refxdddot-c9*lambda5*e9;
+            ex     = (1-c9^2+lambda5)*e9 + (c9+c10)*e10 + refxddot - c9*lambda5*x17;
+            
+            y_ddot = 4*U_z*(sin(x7)*cos(x8)*sin(x9) - sin(x8)*cos(x9));
+            e12_dot= c11*(refydot - x5) - refyddot + lambda6*e11 - y_ddot;
+            ey_dot = -(1-c11^2+lambda6)*(refydot-x5)-(c11+c12)*e12_dot-refydddot+c11*lambda6*e11;
+            ey     = -(1-c11^2+lambda6)*e11 - (c11+c12)*e12 - refyddot + c11*lambda6*x18;
+            
+            theta_ref_dot = m * (U_z*ex_dot - ex*U_zdot)/U_z^2;
+            phi_ref_dot = m * (U_z*ey_dot - ey*U_zdot)/U_z^2;
+            
+            x_dddot = 4/m*( ...
+                U_zdot*(sin(x8)*sin(x9) + sin(x7)*cos(x8)*cos(x9)) + ...
+                U_z*(cos(x8)*sin(x9)*x11 + sin(x8)*cos(x9)*x12 + ...
+                     cos(x7)*x10*cos(x8)*cos(x9) - ...
+                     sin(x7)*sin(x8)*x11*cos(x9) - ...
+                     sin(x7)*cos(x8)*sin(x9)*x12));
+            
+            e10_ddot = c9*(refxddot - x_ddot) - refxdddot + lambda5*(refxdot - x4) - x_dddot;
+            ex_ddot = -(1-c9^2+lambda5)*(refxddot - x_ddot) - (c9+c10)*e10_ddot - refxddddot + c9*lambda5*(refxdot - x4);
+            
+            z_dddot = 4/(m)*(U_zdot*cos(x8)*cos(x7)-U_z*sin(x8)*x11*cos(x7)-U_z*cos(x7)*sin(x7)*x10);
+            e8_ddot = c7*(refzddot-z_ddot)+refzdddot+lambda4*(refzdot-x6)-z_dddot;
+            ez_ddot = (1-c7^2-lambda4)*(refzddot-z_ddot)+(c7+c8)*e8_ddot-c7*lambda4*(refzdot-x6);
+            U_zdot_top_dot = -sin(x7)*cos(x8)*ez_dot - cos(x7)*sin(x8)*ez_dot + cos(x7)*cos(x8)*ez_ddot + ...
+                cos(x7)*cos(x8)*ez - sin(x7)*sin(x8)*ez + sin(x7)*cos(x8)*ez_dot - ...
+                sin(x7)*sin(x8)*ez + cos(x7)*cos(x8)*ez + cos(x7)*sin(x8)*ez_dot;
+            U_zdot_top = cos(x7)*cos(x8)*ez_dot - ez*(-sin(x7)*cos(x8)-cos(x7)*sin(x8));
+            U_zddot = m/4*(cos(x7)*cos(x8)^2*U_zdot_top_dot - U_zdot_top*2*cos(x7)*cos(x8)*(-sin(x7*cos(x8)-cos(x7)*sin(x8))))/(cos(x7)*cos(x8))^4;
+            
             komh_dot = (U_z*ex_ddot)-(ex*U_zddot);
             komh = U_z*ex_dot - ex*U_zdot;
-            theta_ref_ddot = model.m*(U_z^2*komh_dot-komh*2*U_z*U_zdot)/U_z^4;
-
-            y_dddot = 4/model.m*(U_zdot*(-sin(phi)*cos(psi)+sin(theta)*cos(phi)*sin(psi)) ...
-                    + U_z *(-cos(phi)*phi_dot*cos(psi)+sin(phi)*sin(psi)*psi_dot ...
-                            +cos(theta)*theta_dot*cos(psi)*sin(psi) ...
-                            -sin(theta)*sin(phi)*phi_dot*sin(psi) ...
-                            +sin(theta)*cos(phi)*cos(psi)*psi_dot));
-            e12_ddot = model.c11*(ref.y_ddot-y_ddot) - ref.y_dddot + model.lambda6*(ref.y_dot-y_dot)-y_dddot;
-            ey_ddot = (1-model.c11^2+model.lambda6)*(ref.y_ddot-y_ddot)+(model.c11+model.c12)*e12_ddot+ref.y_ddddot-model.c11*model.lambda6*(ref.y_dot-y_dot);
+            theta_ref_ddot = m*(U_z^2*komh_dot-komh*2*U_z*U_zdot)/U_z^4;
+            
+            y_dddot = 4/m*(U_zdot*(-sin(x8)*cos(x9)+sin(x7)*cos(x8)*sin(x9)) ...
+                    + U_z *(-cos(x8)*x11*cos(x9)+sin(x8)*sin(x9)*x12 ...
+                            +cos(x7)*x10*cos(x9)*sin(x9) ...
+                            -sin(x7)*sin(x8)*x11*sin(x9) ...
+                            +sin(x7)*cos(x8)*cos(x9)*x12));
+            e12_ddot = c11*(refyddot-y_ddot) - refydddot + lambda6*(refydot-x5)-y_dddot;
+            ey_ddot = (1-c11^2+lambda6)*(refyddot-y_ddot)+(c11+c12)*e12_ddot+refyddddot-c11*lambda6*(refydot-x5);
             ciwyw_dot = (U_zdot*ey_dot+U_z*ey_ddot)-(U_zdot*ey_dot+ey*U_zddot);
             ciwyw = U_z*ey_dot - ey*U_zdot;
-            phi_ref_ddot = model.m*(U_z^2*ciwyw_dot-ciwyw*2*U_z*U_zdot)/U_z^4;
+            phi_ref_ddot = m*(U_z^2*ciwyw_dot-ciwyw*2*U_z*U_zdot)/U_z^4;
+            
+            e1 = theta_ref - x7;
+            e2 = c1*e1 + theta_ref_dot + lambda1*x13 - x10;
+            U_theta = Jtheta/(2*l)*((1-c1^2+lambda1)*e1 + (c1+c2)*e2 + theta_ref_ddot - c1*lambda1*x13);
+            
+            e3 = phi_ref - x8;
+            e4 = c3*e3 + phi_ref_dot + lambda2*x14 - x11;
+            U_phi = Jphi/(2*l)*((1-c3^2+lambda2)*e3 + (c3+c4)*e4 + phi_ref_ddot - c3*lambda2*x14);
+            
+            e5 = refpsi - x9;
+            e6 = c5*e5 + refpsidot + lambda3*x15 - x12;
+            U_psi = Jpsi/(4*K_psi)*((1-c5^2+lambda3)*e5 + (c5+c6)*e6 + refpsiddot - c5*lambda3*x15);
 
-            e1 = theta_ref - theta;
-            e2 = model.c1*e1 + theta_ref_dot + model.lambda1*theta_integral_error - theta_dot;
-            U_theta = model.Jtheta/(2*model.l)*((1-model.c1^2+model.lambda1)*e1 + (model.c1+model.c2)*e2 + theta_ref_ddot - model.c1*model.lambda1*theta_integral_error);
-
-            e3 = phi_ref - phi;
-            e4 = model.c3*e3 + phi_ref_dot + model.lambda2*phi_integral_error - phi_dot;
-            U_phi = model.Jphi/(2*model.l)*((1-model.c3^2+model.lambda2)*e3 + (model.c3+model.c4)*e4 + phi_ref_ddot - model.c3*model.lambda2*phi_integral_error);
-
-            e5 = ref.psi - psi;
-            e6 = model.c5*e5 + ref.psi_dot + model.lambda3*psi_integral_error - psi_dot;
-            U_psi = model.Jpsi/(4*model.K_psi)*((1-model.c5^2+model.lambda3)*e5 + (model.c5+model.c5)*e6 + ref.psi_ddot - model.c5*model.lambda3*psi_integral_error);
         end
 
         function initialState = InitializeStatesDrone(~, i, j)

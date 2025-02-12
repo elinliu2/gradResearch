@@ -78,28 +78,16 @@ classdef derivatives_drone_IB_syms
             df5dx(16) = ((c7*lambda4 - lambda4*(c7 + c8))*(cos(x9)*sin(x8) - cos(x8)*sin(x7)*sin(x9)))/(cos(x7)*cos(x8));
         end
 
-        function df6dx = df6dx(model, state, ref)
+        function df6dx = df6dx(model, ~, ~)
             df6dx = zeros(1, model.numStates);
-            
-            refz = ref.z;
-            refzdot = ref.z_dot;
 
             c7 = model.c7; 
             c8 = model.c8;
             lambda4 = model.lambda4; 
-            g = model.g;
 
-            x3 = state(3);
-            x6 = state(6);
-            x7 = state(7);
-            x8 = state(8);
-            x16 = state(16);
-
-            df6dx(3) = ((g - cos(x7)*cos(x8))*(lambda4 - c7^2 + c7*(c7 + c8) + 1))/(cos(x7)*cos(x8));
-            df6dx(6) = ((c7 + c8)*(g - cos(x7)*cos(x8)))/(cos(x7)*cos(x8));
-            df6dx(7) = - (sin(x7)*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(- c7^2 + lambda4 + 1) - c7*lambda4*x16))/cos(x7) - (sin(x7)*(g - cos(x7)*cos(x8))*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(- c7^2 + lambda4 + 1) - c7*lambda4*x16))/(cos(x7)^2*cos(x8));
-            df6dx(8) = - (sin(x8)*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(- c7^2 + lambda4 + 1) - c7*lambda4*x16))/cos(x8) - (sin(x8)*(g - cos(x7)*cos(x8))*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(- c7^2 + lambda4 + 1) - c7*lambda4*x16))/(cos(x7)*cos(x8)^2);
-            df6dx(16) = ((c7*lambda4 - lambda4*(c7 + c8))*(g - cos(x7)*cos(x8)))/(cos(x7)*cos(x8));
+            df6dx(3) = c7^2 - lambda4 - c7*(c7 + c8) - 1;
+            df6dx(6) = - c7 - c8;
+            df6dx(16) = lambda4*(c7 + c8) - c7*lambda4;
         end
 
         function df10dx = df10dx(model, state, ref)
@@ -213,11 +201,12 @@ classdef derivatives_drone_IB_syms
             df12dx  = zeros(1, model.numStates);
 
             c5 = model.c5;
+            c6 = model.c6;
             lambda3 = model.lambda3;
 
-            df12dx(9) = - c5^2 - lambda3 - 1;
-            df12dx(12) = -2*c5;
-            df12dx(15) = c5*lambda3;
+            df12dx(9) = - c5^2 - lambda3 - c5*(c5 + c6) - 1;
+            df12dx(12) = - c5 - c6;
+            df12dx(15) = lambda3*(c5 + c6) - c5*lambda3;
         end
 
         function df13dx = df13dx(model, state, ref)
@@ -368,15 +357,12 @@ classdef derivatives_drone_IB_syms
 
             x3 = state(3);
             x6 = state(6);
-            x7 = state(7);
-            x8 = state(8);
             x16 = state(16);
 
-            df6dp(7) = -((g - cos(x7)*cos(x8))*(refzdot - x6 + (c7 + c8)*(refz - x3) - c7*(refz - x3)))/(cos(x7)*cos(x8));
-            df6dp(8) = -((g - cos(x7)*cos(x8))*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)))/(cos(x7)*cos(x8));
-            df6dp(16) = -((g - cos(x7)*cos(x8))*(refz - x3 - c7*x16 + x16*(c7 + c8)))/(cos(x7)*cos(x8));
-            df6dp(20) = - (g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(- c7^2 + lambda4 + 1) - c7*lambda4*x16)/(cos(x7)*cos(x8)) - (g - cos(x7)*cos(x8))/(cos(x7)*cos(x8));
-         end
+            df6dp(7) = refzdot - x6 + (c7 + c8)*(refz - x3) - c7*(refz - x3);
+            df6dp(8) = refzdot - x6 + lambda4*x16 + c7*(refz - x3);
+            df6dp(16) = refz - x3 - c7*x16 + x16*(c7 + c8);
+        end
 
         function df10dp = df10dp(model, state, ref)
             df10dp = zeros(1, model.numParams);
@@ -571,9 +557,206 @@ classdef derivatives_drone_IB_syms
 
         end
 
-        function d2fdx2 = d2fdx2(model, state)
-            
+        function d2fdx2 = d2fdx2(model, state, ref)
+            d2fdx2 = zeros(model.numStates, model.numStates, model.numStates);
+
+            d2fdx2(4, :, :) = derivatives_drone_IB_syms.d2f4dx2(model, state, ref);
+            d2fdx2(5, :, :) = derivatives_drone_IB_syms.d2f5dx2(model, state, ref);
+            d2fdx2(10, :, :) = derivatives_drone_IB_syms.d2f10dx2(model, state, ref);
+            d2fdx2(11, :, :) = derivatives_drone_IB_syms.d2f11dx2(model, state, ref);
+            d2fdx2(13, :, :) = derivatives_drone_IB_syms.d2f13dx2(model, state, ref);
+            d2fdx2(14, :, :) = derivatives_drone_IB_syms.d2f14dx2(model, state, ref);
         end
+
+        function d2f4dx2 = d2f4dx2(model, state, ref)
+            d2f4dx2 = zeros(model.numStates, model.numStates);
+            d2f4dx2(3,7)=- cos(x9)*(lambda4 - c7^2 + c7*(c7 + c8) + 1) - (sin(x7)*(sin(x8)*sin(x9) + cos(x8)*cos(x9)*sin(x7))*(lambda4 - c7^2 + c7*(c7 + c8) + 1))/(cos(x7)^2*cos(x8));
+            d2f4dx2(3,8)=- ((cos(x8)*sin(x9) - cos(x9)*sin(x7)*sin(x8))*(lambda4 - c7^2 + c7*(c7 + c8) + 1))/(cos(x7)*cos(x8)) - (sin(x8)*(sin(x8)*sin(x9) + cos(x8)*cos(x9)*sin(x7))*(lambda4 - c7^2 + c7*(c7 + c8) + 1))/(cos(x7)*cos(x8)^2);
+            d2f4dx2(3,9)=-((cos(x9)*sin(x8) - cos(x8)*sin(x7)*sin(x9))*(lambda4 - c7^2 + c7*(c7 + c8) + 1))/(cos(x7)*cos(x8));
+            d2f4dx2(6,7)=- cos(x9)*(c7 + c8) - (sin(x7)*(c7 + c8)*(sin(x8)*sin(x9) + cos(x8)*cos(x9)*sin(x7)))/(cos(x7)^2*cos(x8));
+            d2f4dx2(6,8)=- ((c7 + c8)*(cos(x8)*sin(x9) - cos(x9)*sin(x7)*sin(x8)))/(cos(x7)*cos(x8)) - (sin(x8)*(c7 + c8)*(sin(x8)*sin(x9) + cos(x8)*cos(x9)*sin(x7)))/(cos(x7)*cos(x8)^2);
+            d2f4dx2(6,9)=-((c7 + c8)*(cos(x9)*sin(x8) - cos(x8)*sin(x7)*sin(x9)))/(cos(x7)*cos(x8));
+            d2f4dx2(7,3)=- cos(x9)*(lambda4 - c7^2 + c7*(c7 + c8) + 1) - (sin(x7)*(sin(x8)*sin(x9) + cos(x8)*cos(x9)*sin(x7))*(lambda4 - c7^2 + c7*(c7 + c8) + 1))/(cos(x7)^2*cos(x8));
+            d2f4dx2(7,6)=- cos(x9)*(c7 + c8) - (sin(x7)*(c7 + c8)*(sin(x8)*sin(x9) + cos(x8)*cos(x9)*sin(x7)))/(cos(x7)^2*cos(x8));
+            d2f4dx2(7,7)=(cos(x9)*sin(x7)*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16))/cos(x7) + ((sin(x8)*sin(x9) + cos(x8)*cos(x9)*sin(x7))*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16))/(cos(x7)*cos(x8)) + (2*sin(x7)^2*(sin(x8)*sin(x9) + cos(x8)*cos(x9)*sin(x7))*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16))/(cos(x7)^3*cos(x8));
+            d2f4dx2(7,8)=(sin(x7)*(cos(x8)*sin(x9) - cos(x9)*sin(x7)*sin(x8))*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16))/(cos(x7)^2*cos(x8)) + (sin(x7)*sin(x8)*(sin(x8)*sin(x9) + cos(x8)*cos(x9)*sin(x7))*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16))/(cos(x7)^2*cos(x8)^2);
+            d2f4dx2(7,9)=(sin(x7)*(cos(x9)*sin(x8) - cos(x8)*sin(x7)*sin(x9))*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16))/(cos(x7)^2*cos(x8)) - sin(x9)*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16);
+            d2f4dx2(7,16)=- cos(x9)*(c7*lambda4 - lambda4*(c7 + c8)) - (sin(x7)*(c7*lambda4 - lambda4*(c7 + c8))*(sin(x8)*sin(x9) + cos(x8)*cos(x9)*sin(x7)))/(cos(x7)^2*cos(x8));
+            d2f4dx2(8,3)=- ((cos(x8)*sin(x9) - cos(x9)*sin(x7)*sin(x8))*(lambda4 - c7^2 + c7*(c7 + c8) + 1))/(cos(x7)*cos(x8)) - (sin(x8)*(sin(x8)*sin(x9) + cos(x8)*cos(x9)*sin(x7))*(lambda4 - c7^2 + c7*(c7 + c8) + 1))/(cos(x7)*cos(x8)^2);
+            d2f4dx2(8,6)=- ((c7 + c8)*(cos(x8)*sin(x9) - cos(x9)*sin(x7)*sin(x8)))/(cos(x7)*cos(x8)) - (sin(x8)*(c7 + c8)*(sin(x8)*sin(x9) + cos(x8)*cos(x9)*sin(x7)))/(cos(x7)*cos(x8)^2);
+            d2f4dx2(8,7)=(sin(x7)*(cos(x8)*sin(x9) - cos(x9)*sin(x7)*sin(x8))*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16))/(cos(x7)^2*cos(x8)) + (sin(x7)*sin(x8)*(sin(x8)*sin(x9) + cos(x8)*cos(x9)*sin(x7))*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16))/(cos(x7)^2*cos(x8)^2);
+            d2f4dx2(8,8)=(2*sin(x8)*(cos(x8)*sin(x9) - cos(x9)*sin(x7)*sin(x8))*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16))/(cos(x7)*cos(x8)^2) + (2*sin(x8)^2*(sin(x8)*sin(x9) + cos(x8)*cos(x9)*sin(x7))*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16))/(cos(x7)*cos(x8)^3);
+            d2f4dx2(8,9)=((cos(x8)*cos(x9) + sin(x7)*sin(x8)*sin(x9))*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16))/(cos(x7)*cos(x8)) + (sin(x8)*(cos(x9)*sin(x8) - cos(x8)*sin(x7)*sin(x9))*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16))/(cos(x7)*cos(x8)^2);
+            d2f4dx2(8,16)=- ((c7*lambda4 - lambda4*(c7 + c8))*(cos(x8)*sin(x9) - cos(x9)*sin(x7)*sin(x8)))/(cos(x7)*cos(x8)) - (sin(x8)*(c7*lambda4 - lambda4*(c7 + c8))*(sin(x8)*sin(x9) + cos(x8)*cos(x9)*sin(x7)))/(cos(x7)*cos(x8)^2);
+            d2f4dx2(9,3)=-((cos(x9)*sin(x8) - cos(x8)*sin(x7)*sin(x9))*(lambda4 - c7^2 + c7*(c7 + c8) + 1))/(cos(x7)*cos(x8));
+            d2f4dx2(9,6)=-((c7 + c8)*(cos(x9)*sin(x8) - cos(x8)*sin(x7)*sin(x9)))/(cos(x7)*cos(x8));
+            d2f4dx2(9,7)=(sin(x7)*(cos(x9)*sin(x8) - cos(x8)*sin(x7)*sin(x9))*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16))/(cos(x7)^2*cos(x8)) - sin(x9)*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16);
+            d2f4dx2(9,8)=((cos(x8)*cos(x9) + sin(x7)*sin(x8)*sin(x9))*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16))/(cos(x7)*cos(x8)) + (sin(x8)*(cos(x9)*sin(x8) - cos(x8)*sin(x7)*sin(x9))*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16))/(cos(x7)*cos(x8)^2);
+            d2f4dx2(9,9)=-((sin(x8)*sin(x9) + cos(x8)*cos(x9)*sin(x7))*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16))/(cos(x7)*cos(x8));
+            d2f4dx2(9,16)=-((c7*lambda4 - lambda4*(c7 + c8))*(cos(x9)*sin(x8) - cos(x8)*sin(x7)*sin(x9)))/(cos(x7)*cos(x8));
+            d2f4dx2(16,7)=- cos(x9)*(c7*lambda4 - lambda4*(c7 + c8)) - (sin(x7)*(c7*lambda4 - lambda4*(c7 + c8))*(sin(x8)*sin(x9) + cos(x8)*cos(x9)*sin(x7)))/(cos(x7)^2*cos(x8));
+            d2f4dx2(16,8)=- ((c7*lambda4 - lambda4*(c7 + c8))*(cos(x8)*sin(x9) - cos(x9)*sin(x7)*sin(x8)))/(cos(x7)*cos(x8)) - (sin(x8)*(c7*lambda4 - lambda4*(c7 + c8))*(sin(x8)*sin(x9) + cos(x8)*cos(x9)*sin(x7)))/(cos(x7)*cos(x8)^2);
+            d2f4dx2(16,9)=-((c7*lambda4 - lambda4*(c7 + c8))*(cos(x9)*sin(x8) - cos(x8)*sin(x7)*sin(x9)))/(cos(x7)*cos(x8));
+        end
+                
+        function d2f5dx2 = d2f5dx2(model, state, ref)
+            d2f5dx2 = zeros(model.numStates, model.numStates);
+            d2f5dx2(3,7)=(sin(x7)*(cos(x9)*sin(x8) - cos(x8)*sin(x7)*sin(x9))*(lambda4 - c7^2 + c7*(c7 + c8) + 1))/(cos(x7)^2*cos(x8)) - sin(x9)*(lambda4 - c7^2 + c7*(c7 + c8) + 1);
+            d2f5dx2(3,8)=((cos(x8)*cos(x9) + sin(x7)*sin(x8)*sin(x9))*(lambda4 - c7^2 + c7*(c7 + c8) + 1))/(cos(x7)*cos(x8)) + (sin(x8)*(cos(x9)*sin(x8) - cos(x8)*sin(x7)*sin(x9))*(lambda4 - c7^2 + c7*(c7 + c8) + 1))/(cos(x7)*cos(x8)^2);
+            d2f5dx2(3,9)=-((sin(x8)*sin(x9) + cos(x8)*cos(x9)*sin(x7))*(lambda4 - c7^2 + c7*(c7 + c8) + 1))/(cos(x7)*cos(x8));
+            d2f5dx2(6,7)=(sin(x7)*(c7 + c8)*(cos(x9)*sin(x8) - cos(x8)*sin(x7)*sin(x9)))/(cos(x7)^2*cos(x8)) - sin(x9)*(c7 + c8);
+            d2f5dx2(6,8)=((c7 + c8)*(cos(x8)*cos(x9) + sin(x7)*sin(x8)*sin(x9)))/(cos(x7)*cos(x8)) + (sin(x8)*(c7 + c8)*(cos(x9)*sin(x8) - cos(x8)*sin(x7)*sin(x9)))/(cos(x7)*cos(x8)^2);
+            d2f5dx2(6,9)=-((c7 + c8)*(sin(x8)*sin(x9) + cos(x8)*cos(x9)*sin(x7)))/(cos(x7)*cos(x8));
+            d2f5dx2(7,3)=(sin(x7)*(cos(x9)*sin(x8) - cos(x8)*sin(x7)*sin(x9))*(lambda4 - c7^2 + c7*(c7 + c8) + 1))/(cos(x7)^2*cos(x8)) - sin(x9)*(lambda4 - c7^2 + c7*(c7 + c8) + 1);
+            d2f5dx2(7,6)=(sin(x7)*(c7 + c8)*(cos(x9)*sin(x8) - cos(x8)*sin(x7)*sin(x9)))/(cos(x7)^2*cos(x8)) - sin(x9)*(c7 + c8);
+            d2f5dx2(7,7)=(sin(x7)*sin(x9)*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16))/cos(x7) - ((cos(x9)*sin(x8) - cos(x8)*sin(x7)*sin(x9))*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16))/(cos(x7)*cos(x8)) - (2*sin(x7)^2*(cos(x9)*sin(x8) - cos(x8)*sin(x7)*sin(x9))*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16))/(cos(x7)^3*cos(x8));
+            d2f5dx2(7,8)=- (sin(x7)*(cos(x8)*cos(x9) + sin(x7)*sin(x8)*sin(x9))*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16))/(cos(x7)^2*cos(x8)) - (sin(x7)*sin(x8)*(cos(x9)*sin(x8) - cos(x8)*sin(x7)*sin(x9))*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16))/(cos(x7)^2*cos(x8)^2);
+            d2f5dx2(7,9)=cos(x9)*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16) + (sin(x7)*(sin(x8)*sin(x9) + cos(x8)*cos(x9)*sin(x7))*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16))/(cos(x7)^2*cos(x8));
+            d2f5dx2(7,16)=(sin(x7)*(c7*lambda4 - lambda4*(c7 + c8))*(cos(x9)*sin(x8) - cos(x8)*sin(x7)*sin(x9)))/(cos(x7)^2*cos(x8)) - sin(x9)*(c7*lambda4 - lambda4*(c7 + c8));
+            d2f5dx2(8,3)=((cos(x8)*cos(x9) + sin(x7)*sin(x8)*sin(x9))*(lambda4 - c7^2 + c7*(c7 + c8) + 1))/(cos(x7)*cos(x8)) + (sin(x8)*(cos(x9)*sin(x8) - cos(x8)*sin(x7)*sin(x9))*(lambda4 - c7^2 + c7*(c7 + c8) + 1))/(cos(x7)*cos(x8)^2);
+            d2f5dx2(8,6)=((c7 + c8)*(cos(x8)*cos(x9) + sin(x7)*sin(x8)*sin(x9)))/(cos(x7)*cos(x8)) + (sin(x8)*(c7 + c8)*(cos(x9)*sin(x8) - cos(x8)*sin(x7)*sin(x9)))/(cos(x7)*cos(x8)^2);
+            d2f5dx2(8,7)=- (sin(x7)*(cos(x8)*cos(x9) + sin(x7)*sin(x8)*sin(x9))*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16))/(cos(x7)^2*cos(x8)) - (sin(x7)*sin(x8)*(cos(x9)*sin(x8) - cos(x8)*sin(x7)*sin(x9))*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16))/(cos(x7)^2*cos(x8)^2);
+            d2f5dx2(8,8)=- (2*sin(x8)*(cos(x8)*cos(x9) + sin(x7)*sin(x8)*sin(x9))*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16))/(cos(x7)*cos(x8)^2) - (2*sin(x8)^2*(cos(x9)*sin(x8) - cos(x8)*sin(x7)*sin(x9))*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16))/(cos(x7)*cos(x8)^3);
+            d2f5dx2(8,9)=((cos(x8)*sin(x9) - cos(x9)*sin(x7)*sin(x8))*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16))/(cos(x7)*cos(x8)) + (sin(x8)*(sin(x8)*sin(x9) + cos(x8)*cos(x9)*sin(x7))*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16))/(cos(x7)*cos(x8)^2);
+            d2f5dx2(8,16)=((c7*lambda4 - lambda4*(c7 + c8))*(cos(x8)*cos(x9) + sin(x7)*sin(x8)*sin(x9)))/(cos(x7)*cos(x8)) + (sin(x8)*(c7*lambda4 - lambda4*(c7 + c8))*(cos(x9)*sin(x8) - cos(x8)*sin(x7)*sin(x9)))/(cos(x7)*cos(x8)^2);
+            d2f5dx2(9,3)=-((sin(x8)*sin(x9) + cos(x8)*cos(x9)*sin(x7))*(lambda4 - c7^2 + c7*(c7 + c8) + 1))/(cos(x7)*cos(x8));
+            d2f5dx2(9,6)=-((c7 + c8)*(sin(x8)*sin(x9) + cos(x8)*cos(x9)*sin(x7)))/(cos(x7)*cos(x8));
+            d2f5dx2(9,7)=cos(x9)*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16) + (sin(x7)*(sin(x8)*sin(x9) + cos(x8)*cos(x9)*sin(x7))*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16))/(cos(x7)^2*cos(x8));
+            d2f5dx2(9,8)=((cos(x8)*sin(x9) - cos(x9)*sin(x7)*sin(x8))*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16))/(cos(x7)*cos(x8)) + (sin(x8)*(sin(x8)*sin(x9) + cos(x8)*cos(x9)*sin(x7))*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16))/(cos(x7)*cos(x8)^2);
+            d2f5dx2(9,9)=((cos(x9)*sin(x8) - cos(x8)*sin(x7)*sin(x9))*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16))/(cos(x7)*cos(x8));
+            d2f5dx2(9,16)=-((c7*lambda4 - lambda4*(c7 + c8))*(sin(x8)*sin(x9) + cos(x8)*cos(x9)*sin(x7)))/(cos(x7)*cos(x8));
+            d2f5dx2(16,7)=(sin(x7)*(c7*lambda4 - lambda4*(c7 + c8))*(cos(x9)*sin(x8) - cos(x8)*sin(x7)*sin(x9)))/(cos(x7)^2*cos(x8)) - sin(x9)*(c7*lambda4 - lambda4*(c7 + c8));
+            d2f5dx2(16,8)=((c7*lambda4 - lambda4*(c7 + c8))*(cos(x8)*cos(x9) + sin(x7)*sin(x8)*sin(x9)))/(cos(x7)*cos(x8)) + (sin(x8)*(c7*lambda4 - lambda4*(c7 + c8))*(cos(x9)*sin(x8) - cos(x8)*sin(x7)*sin(x9)))/(cos(x7)*cos(x8)^2);
+            d2f5dx2(16,9)=-((c7*lambda4 - lambda4*(c7 + c8))*(sin(x8)*sin(x9) + cos(x8)*cos(x9)*sin(x7)))/(cos(x7)*cos(x8));
+        end
+
+        function d2f10dx2 = d2f10dx2(model, state, ref)
+            d2f10dx2 = zeros(model.numStates, model.numStates);
+        end
+
+        function d2f11dx2 = d2f11dx2(model, state, ref)
+            d2f11dx2 = zeros(model.numStates, model.numStates);
+        end
+
+        function d2f13dx2 = d2f13dx2(model, state, ref)
+            d2f13dx2 = zeros(model.numStates, model.numStates);
+            d2f13dx2(1,3)=-(4*cos(x7)*cos(x8)*(lambda4 - c7^2 + c7*(c7 + c8) + 1)*(lambda5 - c9^2 + c9*(c9 + c10) + 1))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+           d2f13dx2(1,6)=-(4*cos(x7)*cos(x8)*(c7 + c8)*(lambda5 - c9^2 + c9*(c9 + c10) + 1))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+           d2f13dx2(1,7)=(4*cos(x8)*sin(x7)*(lambda5 - c9^2 + c9*(c9 + c10) + 1))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16);
+           d2f13dx2(1,8)=(4*cos(x7)*sin(x8)*(lambda5 - c9^2 + c9*(c9 + c10) + 1))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16);
+           d2f13dx2(1,16)=-(4*cos(x7)*cos(x8)*(c7*lambda4 - lambda4*(c7 + c8))*(lambda5 - c9^2 + c9*(c9 + c10) + 1))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+           d2f13dx2(3,1)=-(4*cos(x7)*cos(x8)*(lambda4 - c7^2 + c7*(c7 + c8) + 1)*(lambda5 - c9^2 + c9*(c9 + c10) + 1))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+           d2f13dx2(3,3)=(8*cos(x7)*cos(x8)*(refxddot + (c9 + c10)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)) + (refx - x1)*(lambda5 - c9^2 + 1) - c9*lambda5*x17)*(lambda4 - c7^2 + c7*(c7 + c8) + 1)^2)/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^3;
+           d2f13dx2(3,4)=-(4*cos(x7)*cos(x8)*(c9 + c10)*(lambda4 - c7^2 + c7*(c7 + c8) + 1))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+           d2f13dx2(3,6)=(8*cos(x7)*cos(x8)*(c7 + c8)*(refxddot + (c9 + c10)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)) + (refx - x1)*(lambda5 - c9^2 + 1) - c9*lambda5*x17)*(lambda4 - c7^2 + c7*(c7 + c8) + 1))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^3;
+           d2f13dx2(3,7)=-(4*cos(x8)*sin(x7)*(refxddot + (c9 + c10)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)) + (refx - x1)*(lambda5 - c9^2 + 1) - c9*lambda5*x17)*(lambda4 - c7^2 + c7*(c7 + c8) + 1))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+           d2f13dx2(3,8)=-(4*cos(x7)*sin(x8)*(refxddot + (c9 + c10)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)) + (refx - x1)*(lambda5 - c9^2 + 1) - c9*lambda5*x17)*(lambda4 - c7^2 + c7*(c7 + c8) + 1))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+           d2f13dx2(3,16)=(8*cos(x7)*cos(x8)*(c7*lambda4 - lambda4*(c7 + c8))*(refxddot + (c9 + c10)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)) + (refx - x1)*(lambda5 - c9^2 + 1) - c9*lambda5*x17)*(lambda4 - c7^2 + c7*(c7 + c8) + 1))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^3;
+           d2f13dx2(3,17)=-(4*cos(x7)*cos(x8)*(c9*lambda5 - lambda5*(c9 + c10))*(lambda4 - c7^2 + c7*(c7 + c8) + 1))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+           d2f13dx2(4,3)=-(4*cos(x7)*cos(x8)*(c9 + c10)*(lambda4 - c7^2 + c7*(c7 + c8) + 1))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+           d2f13dx2(4,6)=-(4*cos(x7)*cos(x8)*(c7 + c8)*(c9 + c10))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+           d2f13dx2(4,7)=(4*cos(x8)*sin(x7)*(c9 + c10))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16);
+           d2f13dx2(4,8)=(4*cos(x7)*sin(x8)*(c9 + c10))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16);
+           d2f13dx2(4,16)=-(4*cos(x7)*cos(x8)*(c9 + c10)*(c7*lambda4 - lambda4*(c7 + c8)))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+           d2f13dx2(6,1)=-(4*cos(x7)*cos(x8)*(c7 + c8)*(lambda5 - c9^2 + c9*(c9 + c10) + 1))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+           d2f13dx2(6,3)=(8*cos(x7)*cos(x8)*(c7 + c8)*(refxddot + (c9 + c10)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)) + (refx - x1)*(lambda5 - c9^2 + 1) - c9*lambda5*x17)*(lambda4 - c7^2 + c7*(c7 + c8) + 1))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^3;
+           d2f13dx2(6,4)=-(4*cos(x7)*cos(x8)*(c7 + c8)*(c9 + c10))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+           d2f13dx2(6,6)=(8*cos(x7)*cos(x8)*(c7 + c8)^2*(refxddot + (c9 + c10)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)) + (refx - x1)*(lambda5 - c9^2 + 1) - c9*lambda5*x17))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^3;
+           d2f13dx2(6,7)=-(4*cos(x8)*sin(x7)*(c7 + c8)*(refxddot + (c9 + c10)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)) + (refx - x1)*(lambda5 - c9^2 + 1) - c9*lambda5*x17))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+           d2f13dx2(6,8)=-(4*cos(x7)*sin(x8)*(c7 + c8)*(refxddot + (c9 + c10)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)) + (refx - x1)*(lambda5 - c9^2 + 1) - c9*lambda5*x17))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+           d2f13dx2(6,16)=(8*cos(x7)*cos(x8)*(c7 + c8)*(c7*lambda4 - lambda4*(c7 + c8))*(refxddot + (c9 + c10)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)) + (refx - x1)*(lambda5 - c9^2 + 1) - c9*lambda5*x17))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^3;
+           d2f13dx2(6,17)=-(4*cos(x7)*cos(x8)*(c7 + c8)*(c9*lambda5 - lambda5*(c9 + c10)))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+           d2f13dx2(7,1)=(4*cos(x8)*sin(x7)*(lambda5 - c9^2 + c9*(c9 + c10) + 1))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16);
+           d2f13dx2(7,3)=-(4*cos(x8)*sin(x7)*(refxddot + (c9 + c10)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)) + (refx - x1)*(lambda5 - c9^2 + 1) - c9*lambda5*x17)*(lambda4 - c7^2 + c7*(c7 + c8) + 1))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+           d2f13dx2(7,4)=(4*cos(x8)*sin(x7)*(c9 + c10))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16);
+           d2f13dx2(7,6)=-(4*cos(x8)*sin(x7)*(c7 + c8)*(refxddot + (c9 + c10)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)) + (refx - x1)*(lambda5 - c9^2 + 1) - c9*lambda5*x17))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+           d2f13dx2(7,7)=-(4*cos(x7)*cos(x8)*(refxddot + (c9 + c10)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)) + (refx - x1)*(lambda5 - c9^2 + 1) - c9*lambda5*x17))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16);
+           d2f13dx2(7,8)=(4*sin(x7)*sin(x8)*(refxddot + (c9 + c10)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)) + (refx - x1)*(lambda5 - c9^2 + 1) - c9*lambda5*x17))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16);
+           d2f13dx2(7,16)=-(4*cos(x8)*sin(x7)*(c7*lambda4 - lambda4*(c7 + c8))*(refxddot + (c9 + c10)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)) + (refx - x1)*(lambda5 - c9^2 + 1) - c9*lambda5*x17))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+           d2f13dx2(7,17)=(4*cos(x8)*sin(x7)*(c9*lambda5 - lambda5*(c9 + c10)))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16);
+           d2f13dx2(8,1)=(4*cos(x7)*sin(x8)*(lambda5 - c9^2 + c9*(c9 + c10) + 1))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16);
+           d2f13dx2(8,3)=-(4*cos(x7)*sin(x8)*(refxddot + (c9 + c10)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)) + (refx - x1)*(lambda5 - c9^2 + 1) - c9*lambda5*x17)*(lambda4 - c7^2 + c7*(c7 + c8) + 1))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+           d2f13dx2(8,4)=(4*cos(x7)*sin(x8)*(c9 + c10))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16);
+           d2f13dx2(8,6)=-(4*cos(x7)*sin(x8)*(c7 + c8)*(refxddot + (c9 + c10)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)) + (refx - x1)*(lambda5 - c9^2 + 1) - c9*lambda5*x17))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+           d2f13dx2(8,7)=(4*sin(x7)*sin(x8)*(refxddot + (c9 + c10)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)) + (refx - x1)*(lambda5 - c9^2 + 1) - c9*lambda5*x17))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16);
+           d2f13dx2(8,8)=-(4*cos(x7)*cos(x8)*(refxddot + (c9 + c10)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)) + (refx - x1)*(lambda5 - c9^2 + 1) - c9*lambda5*x17))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16);
+           d2f13dx2(8,16)=-(4*cos(x7)*sin(x8)*(c7*lambda4 - lambda4*(c7 + c8))*(refxddot + (c9 + c10)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)) + (refx - x1)*(lambda5 - c9^2 + 1) - c9*lambda5*x17))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+           d2f13dx2(8,17)=(4*cos(x7)*sin(x8)*(c9*lambda5 - lambda5*(c9 + c10)))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16);
+           d2f13dx2(16,1)=-(4*cos(x7)*cos(x8)*(c7*lambda4 - lambda4*(c7 + c8))*(lambda5 - c9^2 + c9*(c9 + c10) + 1))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+           d2f13dx2(16,3)=(8*cos(x7)*cos(x8)*(c7*lambda4 - lambda4*(c7 + c8))*(refxddot + (c9 + c10)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)) + (refx - x1)*(lambda5 - c9^2 + 1) - c9*lambda5*x17)*(lambda4 - c7^2 + c7*(c7 + c8) + 1))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^3;
+           d2f13dx2(16,4)=-(4*cos(x7)*cos(x8)*(c9 + c10)*(c7*lambda4 - lambda4*(c7 + c8)))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+           d2f13dx2(16,6)=(8*cos(x7)*cos(x8)*(c7 + c8)*(c7*lambda4 - lambda4*(c7 + c8))*(refxddot + (c9 + c10)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)) + (refx - x1)*(lambda5 - c9^2 + 1) - c9*lambda5*x17))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^3;
+           d2f13dx2(16,7)=-(4*cos(x8)*sin(x7)*(c7*lambda4 - lambda4*(c7 + c8))*(refxddot + (c9 + c10)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)) + (refx - x1)*(lambda5 - c9^2 + 1) - c9*lambda5*x17))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+           d2f13dx2(16,8)=-(4*cos(x7)*sin(x8)*(c7*lambda4 - lambda4*(c7 + c8))*(refxddot + (c9 + c10)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)) + (refx - x1)*(lambda5 - c9^2 + 1) - c9*lambda5*x17))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+           d2f13dx2(16,16)=(8*cos(x7)*cos(x8)*(c7*lambda4 - lambda4*(c7 + c8))^2*(refxddot + (c9 + c10)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)) + (refx - x1)*(lambda5 - c9^2 + 1) - c9*lambda5*x17))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^3;
+           d2f13dx2(16,17)=-(4*cos(x7)*cos(x8)*(c7*lambda4 - lambda4*(c7 + c8))*(c9*lambda5 - lambda5*(c9 + c10)))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+           d2f13dx2(17,3)=-(4*cos(x7)*cos(x8)*(c9*lambda5 - lambda5*(c9 + c10))*(lambda4 - c7^2 + c7*(c7 + c8) + 1))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+           d2f13dx2(17,6)=-(4*cos(x7)*cos(x8)*(c7 + c8)*(c9*lambda5 - lambda5*(c9 + c10)))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+           d2f13dx2(17,7)=(4*cos(x8)*sin(x7)*(c9*lambda5 - lambda5*(c9 + c10)))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16);
+           d2f13dx2(17,8)=(4*cos(x7)*sin(x8)*(c9*lambda5 - lambda5*(c9 + c10)))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16);
+           d2f13dx2(17,16)=-(4*cos(x7)*cos(x8)*(c7*lambda4 - lambda4*(c7 + c8))*(c9*lambda5 - lambda5*(c9 + c10)))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+        end
+
+        function d2f14dx2 = d2f14dx2(model, state, ref)
+            d2f14dx2 = zeros(model.numStates, model.numStates);
+            d2f14dx2(2,3)=(4*cos(x7)*cos(x8)*(lambda4 - c7^2 + c7*(c7 + c8) + 1)*(lambda6 - c11^2 + c11*(c11 + c12) + 1))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+           d2f14dx2(2,6)=(4*cos(x7)*cos(x8)*(c7 + c8)*(lambda6 - c11^2 + c11*(c11 + c12) + 1))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+           d2f14dx2(2,7)=-(4*cos(x8)*sin(x7)*(lambda6 - c11^2 + c11*(c11 + c12) + 1))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16);
+           d2f14dx2(2,8)=-(4*cos(x7)*sin(x8)*(lambda6 - c11^2 + c11*(c11 + c12) + 1))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16);
+           d2f14dx2(2,16)=(4*cos(x7)*cos(x8)*(c7*lambda4 - lambda4*(c7 + c8))*(lambda6 - c11^2 + c11*(c11 + c12) + 1))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+           d2f14dx2(3,2)=(4*cos(x7)*cos(x8)*(lambda4 - c7^2 + c7*(c7 + c8) + 1)*(lambda6 - c11^2 + c11*(c11 + c12) + 1))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+           d2f14dx2(3,3)=-(8*cos(x7)*cos(x8)*(refyddot + (c11 + c12)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)) + (refy - x2)*(lambda6 - c11^2 + 1) - c11*lambda6*x18)*(lambda4 - c7^2 + c7*(c7 + c8) + 1)^2)/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^3;
+           d2f14dx2(3,5)=(4*cos(x7)*cos(x8)*(c11 + c12)*(lambda4 - c7^2 + c7*(c7 + c8) + 1))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+           d2f14dx2(3,6)=-(8*cos(x7)*cos(x8)*(c7 + c8)*(refyddot + (c11 + c12)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)) + (refy - x2)*(lambda6 - c11^2 + 1) - c11*lambda6*x18)*(lambda4 - c7^2 + c7*(c7 + c8) + 1))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^3;
+           d2f14dx2(3,7)=(4*cos(x8)*sin(x7)*(refyddot + (c11 + c12)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)) + (refy - x2)*(lambda6 - c11^2 + 1) - c11*lambda6*x18)*(lambda4 - c7^2 + c7*(c7 + c8) + 1))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+           d2f14dx2(3,8)=(4*cos(x7)*sin(x8)*(refyddot + (c11 + c12)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)) + (refy - x2)*(lambda6 - c11^2 + 1) - c11*lambda6*x18)*(lambda4 - c7^2 + c7*(c7 + c8) + 1))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+           d2f14dx2(3,16)=-(8*cos(x7)*cos(x8)*(c7*lambda4 - lambda4*(c7 + c8))*(refyddot + (c11 + c12)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)) + (refy - x2)*(lambda6 - c11^2 + 1) - c11*lambda6*x18)*(lambda4 - c7^2 + c7*(c7 + c8) + 1))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^3;
+           d2f14dx2(3,18)=(4*cos(x7)*cos(x8)*(c11*lambda6 - lambda6*(c11 + c12))*(lambda4 - c7^2 + c7*(c7 + c8) + 1))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+           d2f14dx2(5,3)=(4*cos(x7)*cos(x8)*(c11 + c12)*(lambda4 - c7^2 + c7*(c7 + c8) + 1))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+           d2f14dx2(5,6)=(4*cos(x7)*cos(x8)*(c7 + c8)*(c11 + c12))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+           d2f14dx2(5,7)=-(4*cos(x8)*sin(x7)*(c11 + c12))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16);
+           d2f14dx2(5,8)=-(4*cos(x7)*sin(x8)*(c11 + c12))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16);
+           d2f14dx2(5,16)=(4*cos(x7)*cos(x8)*(c11 + c12)*(c7*lambda4 - lambda4*(c7 + c8)))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+           d2f14dx2(6,2)=(4*cos(x7)*cos(x8)*(c7 + c8)*(lambda6 - c11^2 + c11*(c11 + c12) + 1))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+           d2f14dx2(6,3)=-(8*cos(x7)*cos(x8)*(c7 + c8)*(refyddot + (c11 + c12)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)) + (refy - x2)*(lambda6 - c11^2 + 1) - c11*lambda6*x18)*(lambda4 - c7^2 + c7*(c7 + c8) + 1))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^3;
+           d2f14dx2(6,5)=(4*cos(x7)*cos(x8)*(c7 + c8)*(c11 + c12))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+           d2f14dx2(6,6)=-(8*cos(x7)*cos(x8)*(c7 + c8)^2*(refyddot + (c11 + c12)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)) + (refy - x2)*(lambda6 - c11^2 + 1) - c11*lambda6*x18))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^3;
+           d2f14dx2(6,7)=(4*cos(x8)*sin(x7)*(c7 + c8)*(refyddot + (c11 + c12)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)) + (refy - x2)*(lambda6 - c11^2 + 1) - c11*lambda6*x18))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+           d2f14dx2(6,8)=(4*cos(x7)*sin(x8)*(c7 + c8)*(refyddot + (c11 + c12)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)) + (refy - x2)*(lambda6 - c11^2 + 1) - c11*lambda6*x18))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+           d2f14dx2(6,16)=-(8*cos(x7)*cos(x8)*(c7 + c8)*(c7*lambda4 - lambda4*(c7 + c8))*(refyddot + (c11 + c12)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)) + (refy - x2)*(lambda6 - c11^2 + 1) - c11*lambda6*x18))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^3;
+           d2f14dx2(6,18)=(4*cos(x7)*cos(x8)*(c7 + c8)*(c11*lambda6 - lambda6*(c11 + c12)))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+           d2f14dx2(7,2)=-(4*cos(x8)*sin(x7)*(lambda6 - c11^2 + c11*(c11 + c12) + 1))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16);
+           d2f14dx2(7,3)=(4*cos(x8)*sin(x7)*(refyddot + (c11 + c12)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)) + (refy - x2)*(lambda6 - c11^2 + 1) - c11*lambda6*x18)*(lambda4 - c7^2 + c7*(c7 + c8) + 1))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+           d2f14dx2(7,5)=-(4*cos(x8)*sin(x7)*(c11 + c12))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16);
+           d2f14dx2(7,6)=(4*cos(x8)*sin(x7)*(c7 + c8)*(refyddot + (c11 + c12)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)) + (refy - x2)*(lambda6 - c11^2 + 1) - c11*lambda6*x18))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+           d2f14dx2(7,7)=(4*cos(x7)*cos(x8)*(refyddot + (c11 + c12)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)) + (refy - x2)*(lambda6 - c11^2 + 1) - c11*lambda6*x18))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16);
+           d2f14dx2(7,8)=-(4*sin(x7)*sin(x8)*(refyddot + (c11 + c12)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)) + (refy - x2)*(lambda6 - c11^2 + 1) - c11*lambda6*x18))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16);
+           d2f14dx2(7,16)=(4*cos(x8)*sin(x7)*(c7*lambda4 - lambda4*(c7 + c8))*(refyddot + (c11 + c12)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)) + (refy - x2)*(lambda6 - c11^2 + 1) - c11*lambda6*x18))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+           d2f14dx2(7,18)=-(4*cos(x8)*sin(x7)*(c11*lambda6 - lambda6*(c11 + c12)))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16);
+           d2f14dx2(8,2)=-(4*cos(x7)*sin(x8)*(lambda6 - c11^2 + c11*(c11 + c12) + 1))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16);
+           d2f14dx2(8,3)=(4*cos(x7)*sin(x8)*(refyddot + (c11 + c12)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)) + (refy - x2)*(lambda6 - c11^2 + 1) - c11*lambda6*x18)*(lambda4 - c7^2 + c7*(c7 + c8) + 1))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+           d2f14dx2(8,5)=-(4*cos(x7)*sin(x8)*(c11 + c12))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16);
+           d2f14dx2(8,6)=(4*cos(x7)*sin(x8)*(c7 + c8)*(refyddot + (c11 + c12)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)) + (refy - x2)*(lambda6 - c11^2 + 1) - c11*lambda6*x18))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+           d2f14dx2(8,7)=-(4*sin(x7)*sin(x8)*(refyddot + (c11 + c12)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)) + (refy - x2)*(lambda6 - c11^2 + 1) - c11*lambda6*x18))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16);
+           d2f14dx2(8,8)=(4*cos(x7)*cos(x8)*(refyddot + (c11 + c12)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)) + (refy - x2)*(lambda6 - c11^2 + 1) - c11*lambda6*x18))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16);
+           d2f14dx2(8,16)=(4*cos(x7)*sin(x8)*(c7*lambda4 - lambda4*(c7 + c8))*(refyddot + (c11 + c12)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)) + (refy - x2)*(lambda6 - c11^2 + 1) - c11*lambda6*x18))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+           d2f14dx2(8,18)=-(4*cos(x7)*sin(x8)*(c11*lambda6 - lambda6*(c11 + c12)))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16);
+           d2f14dx2(16,2)=(4*cos(x7)*cos(x8)*(c7*lambda4 - lambda4*(c7 + c8))*(lambda6 - c11^2 + c11*(c11 + c12) + 1))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+           d2f14dx2(16,3)=-(8*cos(x7)*cos(x8)*(c7*lambda4 - lambda4*(c7 + c8))*(refyddot + (c11 + c12)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)) + (refy - x2)*(lambda6 - c11^2 + 1) - c11*lambda6*x18)*(lambda4 - c7^2 + c7*(c7 + c8) + 1))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^3;
+           d2f14dx2(16,5)=(4*cos(x7)*cos(x8)*(c11 + c12)*(c7*lambda4 - lambda4*(c7 + c8)))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+           d2f14dx2(16,6)=-(8*cos(x7)*cos(x8)*(c7 + c8)*(c7*lambda4 - lambda4*(c7 + c8))*(refyddot + (c11 + c12)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)) + (refy - x2)*(lambda6 - c11^2 + 1) - c11*lambda6*x18))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^3;
+           d2f14dx2(16,7)=(4*cos(x8)*sin(x7)*(c7*lambda4 - lambda4*(c7 + c8))*(refyddot + (c11 + c12)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)) + (refy - x2)*(lambda6 - c11^2 + 1) - c11*lambda6*x18))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+           d2f14dx2(16,8)=(4*cos(x7)*sin(x8)*(c7*lambda4 - lambda4*(c7 + c8))*(refyddot + (c11 + c12)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)) + (refy - x2)*(lambda6 - c11^2 + 1) - c11*lambda6*x18))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+           d2f14dx2(16,16)=-(8*cos(x7)*cos(x8)*(c7*lambda4 - lambda4*(c7 + c8))^2*(refyddot + (c11 + c12)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)) + (refy - x2)*(lambda6 - c11^2 + 1) - c11*lambda6*x18))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^3;
+           d2f14dx2(16,18)=(4*cos(x7)*cos(x8)*(c7*lambda4 - lambda4*(c7 + c8))*(c11*lambda6 - lambda6*(c11 + c12)))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+           d2f14dx2(18,3)=(4*cos(x7)*cos(x8)*(c11*lambda6 - lambda6*(c11 + c12))*(lambda4 - c7^2 + c7*(c7 + c8) + 1))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+           d2f14dx2(18,6)=(4*cos(x7)*cos(x8)*(c7 + c8)*(c11*lambda6 - lambda6*(c11 + c12)))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+           d2f14dx2(18,7)=-(4*cos(x8)*sin(x7)*(c11*lambda6 - lambda6*(c11 + c12)))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16);
+           d2f14dx2(18,8)=-(4*cos(x7)*sin(x8)*(c11*lambda6 - lambda6*(c11 + c12)))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16);
+           d2f14dx2(18,16)=(4*cos(x7)*cos(x8)*(c7*lambda4 - lambda4*(c7 + c8))*(c11*lambda6 - lambda6*(c11 + c12)))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
+
+        end
+        
         function d2fdxdp = d2fdxdp(model, ~)
           
         end
