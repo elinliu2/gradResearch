@@ -39,18 +39,18 @@ classdef trajectorySensitivities
             I = eye(n);
 
             for i = 2:length(stateProgression)
-                d2fdx2 = model.d2fdx2(model, stateProgression(i-1, :));
+                d2fdx2 = model.d2fdx2(model, stateProgression(i-1, :), ref);
                 dxdp = dxdp_list(:, :, i-1);
                 dxdx0 = dxdxo_list(:, :, i-1);
-                d2fdxdp = model.d2fdxdp(model, stateProgression(i-1, :));
+                d2fdxdp = model.d2fdxdp(model, stateProgression(i-1, :), ref);
                 dfdx = model.dfdx(model, stateProgression(i-1, :), ref);
                 d2xdxodp = d2TrajSens(:, :, :, i-1);
 
 
-                d2fdx2_plus = model.d2fdx2(model, stateProgression(i, :));
+                d2fdx2_plus = model.d2fdx2(model, stateProgression(i, :), ref);
                 dxdp_plus = dxdp_list(:, :, i);
                 dxdx0_plus = dxdxo_list(:, :, i);
-                d2fdxdp_plus = model.d2fdxdp(model, stateProgression(i, :));
+                d2fdxdp_plus = model.d2fdxdp(model, stateProgression(i, :), ref);
                 dfdx_plus = model.dfdx(model, stateProgression(i, :), ref);
                 
                 a = inv(I - (SC.T/2)*dfdx_plus);
