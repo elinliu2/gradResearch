@@ -1116,9 +1116,9 @@ classdef derivatives_drone_IB_syms
         end
 
         function d2f10dxdp = d2f10dxdp(model, state, ref)
-            d2f10dxdp = zeros(model.numStates, model.numParamnumParams);
+            d2f10dxdp = zeros(model.numStates, model.numParams);
 
-            syms m c1 c2 c7 c8 c9 c10  lambda1 lambda4 lambda5 g 
+            syms m c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 c11 c12 lambda1 lambda2 lambda3 lambda4 lambda5 lambda6 g Jtheta Jphi Jpsi K_psi l
             syms x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16 x17 x18
             syms refx refxdot refxddot refxdddot refxddddot
             syms refz refzdot refzddot refzdddot 
@@ -1200,9 +1200,9 @@ classdef derivatives_drone_IB_syms
         end
 
         function d2f11dxdp = d2f11dxdp(model, state, ref)
-            d2f11dxdp = zeros(model.numStates, model.numParamnumParams);
+            d2f11dxdp = zeros(model.numStates, model.numParams);
 
-            syms m  c3 c4  c7 c8  c11 c12  lambda2  lambda4  lambda6 g 
+            syms m c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 c11 c12 lambda1 lambda2 lambda3 lambda4 lambda5 lambda6 g Jtheta Jphi Jpsi K_psi l
             syms x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16 x17 x18
             syms refy refydot refyddot refydddot refyddddot
             syms refz refzdot refzddot refzdddot 
@@ -1280,11 +1280,10 @@ classdef derivatives_drone_IB_syms
                     end
                 end
             end
-
         end
 
         function d2f12dxdp = d2f12dxdp(model, ~, ~)
-            d2f12dxdp = zeros(model.numStates, model.numParamnumParams);
+            d2f12dxdp = zeros(model.numStates, model.numParams);
 
             c5 = model.c5;
             c6 = model.c6;
@@ -1299,8 +1298,9 @@ classdef derivatives_drone_IB_syms
            d2f12dxdp(15,15)=c6;
         end
         
+        
         function d2f13dxdp = d2f13dxdp(model, state, ref)
-            d2f13dxdp = zeros(model.numStates, model.numParamnumParams);
+            d2f13dxdp = zeros(model.numStates, model.numParams);
 
             refx = ref.x;
             refxdot = ref.x_dot;
@@ -1382,7 +1382,7 @@ classdef derivatives_drone_IB_syms
         end
 
         function d2f14dxdp = d2f14dxdp(model, state, ref)
-            d2f14dxdp = zeros(model.numStates, model.numParamnumParams);
+            d2f14dxdp = zeros(model.numStates, model.numParams);
 
             refy = ref.y;
             refydot = ref.y_dot;
@@ -1462,6 +1462,7 @@ classdef derivatives_drone_IB_syms
            d2f14dxdp(18,18)=-(4*c12*cos(x7)*cos(x8))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16);
            d2f14dxdp(18,20)=-(4*cos(x7)*cos(x8)*(c11*lambda6 - lambda6*(c11 + c12)))/(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16)^2;
         end
+        
         
         function model = nudgeParams(model, delta, index)
             
