@@ -86,7 +86,7 @@ classdef DroneModelIB_syms
             obj.d2fdxdp = @derivatives_drone_IB_syms.d2fdxdp;
             obj.nudgeParams = @derivatives_drone_IB_syms.nudgeParams;
     
-            obj.numStates = 20;
+            obj.numStates = 19;
             obj.numParams = 18;
             obj.initialdxdxo = eye(obj.numStates);
     
@@ -143,7 +143,7 @@ classdef DroneModelIB_syms
             x11 = state(11);
             x12 = state(12);
 
-            [U_theta, U_phi, U_psi, U_z, theta_ref, phi_ref, U_zdot, U_zddot] = IntegralBackSteppingController(state, ref, model);
+            [U_theta, U_phi, U_psi, U_z, theta_ref, phi_ref, U_zdot] = IntegralBackSteppingController(state, ref, model);
             
             % F1 = U_theta + U_psi + U_z;
             % F2 = -U_theta + U_psi + U_z;
@@ -179,9 +179,8 @@ classdef DroneModelIB_syms
             f17 = ref.x - x1;
             f18 = ref.y - x2;
             f19 = U_zdot;
-            f20 = U_zddot;
 
-            dState = [f1; f2; f3; f4; f5; f6; f7; f8; f9; f10; f11; f12; f13; f14; f15; f16; f17; f18; f19; f20];
+            dState = [f1; f2; f3; f4; f5; f6; f7; f8; f9; f10; f11; f12; f13; f14; f15; f16; f17; f18; f19];
 
             % This allows the controller to update the parameter values
             global MODEL_COPY;
@@ -213,7 +212,6 @@ function [U_theta, U_phi, U_psi, U_z, theta_ref, phi_ref, U_zdot, U_zddot] = Int
     refz = ref.z;
     refzdot = ref.z_dot;
     refzddot = ref.z_ddot;
-    refzdddot = ref.z_dddot;
     refpsi = ref.psi;
     refpsidot = ref.psi_dot;
     refpsiddot = ref.psi_ddot;
@@ -237,10 +235,6 @@ function [U_theta, U_phi, U_psi, U_z, theta_ref, phi_ref, U_zdot, U_zddot] = Int
     x17 = state(17);
     x18 = state(18);
     x19 = state(19);
-    x20 = state(20);
-    x21 = state(21);
-    x22 = state(22);
-    x23 = state(23);
 
     c1 = model.c1;
     c2 = model.c2;
@@ -270,7 +264,7 @@ function [U_theta, U_phi, U_psi, U_z, theta_ref, phi_ref, U_zdot, U_zddot] = Int
     
     e7 = refz - x3;
     e8 = c7*e7 + refzdot + lambda4*x16 - x6;
-    U_z = m/(cos(x7)*cos(x8)*4)*(g + (1-c7^2+lambda4)*e7 + (c7+c8)*e8 - c7*lambda4*x16);
+    U_z = x19;
 
     e9 = refx - x1;
     e10 = c9*e9 + refxdot + lambda5*x17 - x4;
@@ -281,7 +275,7 @@ function [U_theta, U_phi, U_psi, U_z, theta_ref, phi_ref, U_zdot, U_zddot] = Int
     phi_ref =   m/U_z*( -(1-c11^2 + lambda6)*e11 - (c11+c12)*e12 - refyddot + c11*lambda6*x18);
     
     z_ddot = 4*U_z*cos(x7)*cos(x8)/m-g;
-    e8_dot = -c8*e8-e7;
+    e8_dot = c7*(refzdot - x6)+refzddot+lambda4*e7-z_ddot;
     ez_dot = ((1-c7^2+lambda4)*(refzdot-x6)+(c7+c8)*e8_dot-c7*lambda4*e7);
     ez     = (1-c7^2+lambda4)*e7+(c7+c8)*e8-c7*lambda4*x16+g;
     U_zdot = m/4*( cos(x7)*cos(x8)*ez_dot + ez*(sin(x7)*cos(x8)*x10+cos(x7)*sin(x8)*x11) )/(cos(x7)*cos(x8))^2;
@@ -305,22 +299,10 @@ function [U_theta, U_phi, U_psi, U_z, theta_ref, phi_ref, U_zdot, U_zddot] = Int
              cos(x7)*x10*cos(x8)*cos(x9) - ...
              sin(x7)*sin(x8)*x11*cos(x9) - ...
              sin(x7)*cos(x8)*sin(x9)*x12));
-    
     e10_ddot = c9*(refxddot - x_ddot) - refxdddot + lambda5*(refxdot - x4) - x_dddot;
     ex_ddot = -(1-c9^2+lambda5)*(refxddot - x_ddot) - (c9+c10)*e10_ddot - refxddddot + c9*lambda5*(refxdot - x4);
-    
-    z_dddot = 4/(m)*(U_zdot*cos(x8)*cos(x7)-U_z*sin(x8)*x11*cos(x7)-U_z*cos(x7)*sin(x7)*x10);
-    e8_ddot = c7*(refzddot-z_ddot)+refzdddot+lambda4*(refzdot-x6)-z_dddot;
-    ez_ddot = (1-c7^2-lambda4)*(refzddot-z_ddot)+(c7+c8)*e8_ddot-c7*lambda4*(refzdot-x6);
-    
-    U_zdot_top_dot = -sin(x7)*cos(x8)*x10*ez_dot - cos(x7)*sin(x8)*ez_dot + cos(x7)*cos(x8)*ez_ddot + ...
-        cos(x7)*cos(x8)*ez - sin(x7)*sin(x8)*ez + sin(x7)*cos(x8)*ez_dot - ...
-        sin(x7)*sin(x8)*ez + cos(x7)*cos(x8)*ez + cos(x7)*sin(x8)*ez_dot;
 
-    U_zdot_top = cos(x7)*cos(x8)*ez_dot + ez*(sin(x7)*cos(x8)*x10+cos(x7)*sin(x8)*x11) ;
-    U_zddot = m/4*(cos(x7)*cos(x8)^2*U_zdot_top_dot - U_zdot_top*2*cos(x7)*cos(x8)*(-sin(x7*cos(x8)-cos(x7)*sin(x8))))/(cos(x7)*cos(x8))^4;
-    
-    komh_dot = (U_z*ex_ddot)-(ex*U_zddot);
+    komh_dot = (U_z*ex_ddot);
     komh = U_z*ex_dot - ex*U_zdot;
     theta_ref_ddot = m*(U_z^2*komh_dot-komh*2*U_z*U_zdot)/U_z^4;
     
@@ -331,8 +313,9 @@ function [U_theta, U_phi, U_psi, U_z, theta_ref, phi_ref, U_zdot, U_zddot] = Int
                     +sin(x7)*cos(x8)*cos(x9)*x12));
     e12_ddot = c11*(refyddot-y_ddot) - refydddot + lambda6*(refydot-x5)-y_dddot;
     ey_ddot = (1-c11^2+lambda6)*(refyddot-y_ddot)+(c11+c12)*e12_ddot+refyddddot-c11*lambda6*(refydot-x5);
-    ciwyw_dot = (U_zdot*ey_dot+U_z*ey_ddot)-(U_zdot*ey_dot+ey*U_zddot);
+    ciwyw_dot = (U_z*ey_ddot);
     ciwyw = U_z*ey_dot - ey*U_zdot;
+
     phi_ref_ddot = m*(U_z^2*ciwyw_dot-ciwyw*2*U_z*U_zdot)/U_z^4;
     
     e1 = theta_ref - x7;
