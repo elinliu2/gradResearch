@@ -67,12 +67,9 @@ lambda3 = 1e-1;
 lambda4 = 1e-1;
 lambda5 = 1e-1;
 lambda6 = 1e-1;
-drone = DroneModelIB_syms(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, lambda1, lambda2, lambda3, lambda4, lambda5, lambda6);
-initialState = zeros(18, 1);
-for i = 1:12
-    initialState(i) = 0;
-end
-initialState(3) = 100; % Drone starts 100 m in the air
+m = 1.4; % kg
+g = 9.8;
+drone = DroneModelIB_syms(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, lambda1, lambda2, lambda3, lambda4, lambda5, lambda6, m, g);
 
 ref.x = 1;
 ref.x_dot = 0;
@@ -84,7 +81,7 @@ ref.y_dot = 0;
 ref.y_ddot = 0;
 ref.y_dddot = 0;
 ref.y_ddddot = 0;
-ref.z = 100;
+ref.z = 101;
 ref.z_dot = 0;
 ref.z_ddot = 0;
 ref.z_dddot = 0;
@@ -95,12 +92,34 @@ ref.psi_ddot = 0;
 ref.psi_dddot = 0;
 ref.psi_ddddot = 0;
 
+initialState = zeros(23, 1);
+for i = 1:12
+    initialState(i) = 0;
+end
+
+x3 = 100; % Drone starts 100 m in the air
+initialState(3) = x3; 
+x6 = 0;
+x7 = 0;
+x8 = 0;
+x16 = 0;
+e7 = ref.z - x3;
+e8 = c7*e7 + ref.z_dot + lambda4*x16 - x6;
+U_z = m/(cos(x7)*cos(x8)*4)*(g + (1-c7^2+lambda4)*e7 + (c7+c8)*e8 - c7*lambda4*x16);
+initialState(19) = U_z;
+
+z_ddot = 4*U_z*cos(x7)*cos(x8)/m-g;
+e8_dot = c7*(ref.z_dot - x6)*ref.z_ddot+lambda4*e7-z_ddot;
+ez_dot = ((1-c7^2-lambda4)*(ref.z_dot-x6)+(c7+c8)*e8_dot-c7*lambda4*e7);
+ez     = (1-c7^2+lambda4)*e7+(c7+c8)*e8-c7*lambda4*x16+g;
+U_zdot = m/4*(cos(x7)*cos(x8)*ez_dot - ez*(-sin(x7)*cos(x8)-cos(x7)*sin(x8)))/(cos(x7)*cos(x8))^2;
+initialState(20) = U_zdot;
 
 [time, stateProgression, drone] = trajectory(drone, SC, initialState, false, ref);
-trajSens = tjs.calculateTrajectorySensitivities(drone, SC, stateProgression, ref);
-trajSensTest = tjs.calculateTrajectorySensitivitiesTest(drone, SC, initialState, length(stateProgression), ref);
-trajSensParam = tjs.calculateTrajectorySensitivitiesParameters(drone, SC, stateProgression, ref);
-secondTrajSensParam = tjs.calculateSecondOrderTrajectorySensitivitiesParams(drone, SC, stateProgression, trajSens, trajSensParam, ref);
+% trajSens = tjs.calculateTrajectorySensitivities(drone, SC, stateProgression, ref);
+% trajSensTest = tjs.calculateTrajectorySensitivitiesTest(drone, SC, initialState, length(stateProgression), ref);
+% trajSensParam = tjs.calculateTrajectorySensitivitiesParameters(drone, SC, stateProgression, ref);
+% secondTrajSensParam = tjs.calculateSecondOrderTrajectorySensitivitiesParams(drone, SC, stateProgression, trajSens, trajSensParam, ref);
                         
 splotting.trajectoryPlot3d(time, stateProgression(:,1), stateProgression(:,2), stateProgression(:,3), 1, "State Progression");
 % plot_all_the_plots(SC, drone);

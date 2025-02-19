@@ -14,7 +14,7 @@ classdef norms
         function min = infimumOfReciprocalOfElementOneNorm(trajSens)
             min = 1/norms.elementOneNorm(trajSens(:,:, 1));
 
-            for i = 2:length(trajSens)
+            for i = 2:size(trajSens, 3)
                 if (1/norms.elementOneNorm(trajSens(:, :,i)) < min)
                     min = 1/norms.elementOneNorm(trajSens(:,:,i));
                 end

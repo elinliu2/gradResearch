@@ -2,10 +2,10 @@ classdef trajectorySensitivities
     methods(Static)
         function trajSens = calculateTrajectorySensitivities(model, SC, stateProgression, ref)
             n = model.numStates;
-            trajSens = zeros(n, n, length(stateProgression));
+            trajSens = zeros(n, n, size(stateProgression, 1));
             trajSens(:, :, 1) = model.initialdxdxo;
             I = eye(n);
-            for i = 2:length(stateProgression)
+            for i = 2:size(stateProgression,1)
                 dfdx_plus = model.dfdx(model, stateProgression(i, :), ref);
                 dfdx = model.dfdx(model, stateProgression(i-1, :), ref);
         
@@ -17,10 +17,10 @@ classdef trajectorySensitivities
         function trajSens = calculateTrajectorySensitivitiesParameters(model, SC, stateProgression, ref)
             n = model.numStates;
             m = model.numParams;
-            trajSens = zeros(n, m, length(stateProgression));
+            trajSens = zeros(n, m, size(stateProgression, 1));
             I = eye(n);
             trajSens(:, :, 1) = 0;
-            for i = 2:length(stateProgression)
+            for i = 2:size(stateProgression, 1)
                 dfdx = model.dfdx(model, stateProgression(i-1, :), ref);
                 dfdx_plus = model.dfdx(model, stateProgression(i, :), ref);
                 
@@ -35,10 +35,10 @@ classdef trajectorySensitivities
         function d2TrajSens = calculateSecondOrderTrajectorySensitivitiesParams(model, SC, stateProgression, dxdxo_list, dxdp_list, ref)
             n = model.numStates;
             m = model.numParams;
-            d2TrajSens = zeros(n, n, m, length(stateProgression));
+            d2TrajSens = zeros(n, n, m, size(stateProgression, 1));
             I = eye(n);
 
-            for i = 2:length(stateProgression)
+            for i = 2:size(stateProgression, 1)
                 d2fdx2 = model.d2fdx2(model, stateProgression(i-1, :), ref);
                 dxdp = dxdp_list(:, :, i-1);
                 dxdx0 = dxdxo_list(:, :, i-1);
@@ -157,7 +157,7 @@ classdef trajectorySensitivities
         function tp = findtp(trajSens)
             min = 1/norm(trajSens(:,:,1), 1);
             tp = 1;
-            for i = 2:length(trajSens)
+            for i = 2:size(trajSens,3)
                 if (1/norm(trajSens(:,:,i), 1) < min)
                     min = 1./norm(trajSens(:,:,i), 1);
                     tp = i;
