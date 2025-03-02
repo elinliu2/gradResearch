@@ -88,24 +88,19 @@ classdef trajectorySensitivities
             end            
         end
 
-        function trajSensTestParams = calculateTrajectorySensitivitiesTestParams(model, SC, initialState, numSteps)
-            delta = 1e-5;
+        function trajSensTestParams = calculateTrajectorySensitivitiesTestParams(model, SC, initialState, numSteps, ref)
+            delta = 1e-15;
             oldmodel = model;
             trajSensTestParams = zeros(model.numStates, model.numParams, numSteps);
             for index = 1:model.numParams
                 model = model.nudgeParams(model, delta, index);
-                [~, state_index_plus] = trajectory(model, SC, initialState, false);
+                [~, state_index_plus] = trajectory(model, SC, initialState, false, ref);
                 model = oldmodel;
                 model = model.nudgeParams(model, -1*delta, index);
-                [~, state_index_minus] = trajectory(model, SC, initialState, false);
+                [~, state_index_minus] = trajectory(model, SC, initialState, false, ref);
                 model = oldmodel;
-
-                for i = 1:numSteps
-                    for j = 1:model.numStates
-                        dxdstate = (state_index_plus(i, j)-state_index_minus(i, j))/(2*delta);
-                        trajSensTestParams(j, index, i) = dxdstate;
-                    end
-                end
+                
+                trajSensTestParams(:, index, :) = transpose(state_index_plus-state_index_minus)/(2*delta);
             end
         end
         
@@ -132,20 +127,20 @@ classdef trajectorySensitivities
             end 
         end
 
-        function secondTrajSensTest = calculateSecondOrderTrajectorySensitivitiesTestParams(model, SC, initialState, numSteps)
+        function secondTrajSensTest = calculateSecondOrderTrajectorySensitivitiesTestParams(model, SC, initialState, numSteps, ref)
             delta = 1e-5;
             secondTrajSensTest = zeros(model.numStates, model.numStates, model.numParams, numSteps);
             oldmodel = model;
             tjs = trajectorySensitivities;
             for index = 1:model.numParams
                 model = model.nudgeParams(model, delta, index);
-                [~, state_index_plus] = trajectory(model, SC, initialState, false);
-                trajSens_plus = tjs.calculateTrajectorySensitivities(model, SC, state_index_plus);
+                [~, state_index_plus] = trajectory(model, SC, initialState, false, ref);
+                trajSens_plus = tjs.calculateTrajectorySensitivities(model, SC, state_index_plus, ref);
                 model = oldmodel;
 
                 model = model.nudgeParams(model, -1*delta, index);
-                [~, state_index_minus] = trajectory(model, SC, initialState, false);
-                trajSens_minus = tjs.calculateTrajectorySensitivities(model, SC, state_index_minus);
+                [~, state_index_minus] = trajectory(model, SC, initialState, false, ref);
+                trajSens_minus = tjs.calculateTrajectorySensitivities(model, SC, state_index_minus, ref);
                 model = oldmodel;
 
                 dtrajSens = (trajSens_plus - trajSens_minus)/(2*delta);

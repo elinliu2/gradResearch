@@ -33,7 +33,7 @@ classdef norms
         
         function max = supremum(trajSens)
             max = norm(trajSens(:,:, 1), 1);
-            for i = 2:length(trajSens)
+            for i = 2:size(trajSens, 3)
                 if (norm(trajSens(:,:, i), 1) > max)
                     max = norm(trajSens(:,:,i), 1);
                 end

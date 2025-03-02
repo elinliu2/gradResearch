@@ -212,6 +212,7 @@ function [U_theta, U_phi, U_psi, U_z, theta_ref, phi_ref, U_zdot, U_zddot] = Int
     refz = ref.z;
     refzdot = ref.z_dot;
     refzddot = ref.z_ddot;
+    refzdddot = ref.z_dddot;
     refpsi = ref.psi;
     refpsidot = ref.psi_dot;
     refpsiddot = ref.psi_ddot;
@@ -276,58 +277,98 @@ function [U_theta, U_phi, U_psi, U_z, theta_ref, phi_ref, U_zdot, U_zddot] = Int
     
     z_ddot = 4*U_z*cos(x7)*cos(x8)/m-g;
     e8_dot = c7*(refzdot - x6)+refzddot+lambda4*e7-z_ddot;
-    ez_dot = ((1-c7^2+lambda4)*(refzdot-x6)+(c7+c8)*e8_dot-c7*lambda4*e7);
     ez     = (1-c7^2+lambda4)*e7+(c7+c8)*e8-c7*lambda4*x16+g;
-    U_zdot = m/4*( cos(x7)*cos(x8)*ez_dot + ez*(sin(x7)*cos(x8)*x10+cos(x7)*sin(x8)*x11) )/(cos(x7)*cos(x8))^2;
+    ez_dot = ((1-c7^2+lambda4)*(refzdot-x6)+(c7+c8)*e8_dot-c7*lambda4*e7);
+    U_zdot = m/4*( cos(x7)*cos(x8)*ez_dot + ez*(-sin(x7)*cos(x8)*x10-cos(x7)*sin(x8)*x11) )/(cos(x7)*cos(x8))^2;
 
     x_ddot = 4*U_z*(sin(x7)*cos(x8)*cos(x9) + sin(x8)*sin(x9))/(m);
     e10_dot= c9*(refxdot - x4) - refxddot + lambda5*e9 - x_ddot;
     ex_dot = (1-c9^2+lambda5)*(refxdot-x4)+(c9+c10)*e10_dot+refxdddot-c9*lambda5*e9;
     ex     = (1-c9^2+lambda5)*e9 + (c9+c10)*e10 + refxddot - c9*lambda5*x17;
     
-    y_ddot = 4*U_z*(sin(x7)*cos(x8)*sin(x9) - sin(x8)*cos(x9));
+    y_ddot = 4*U_z*(sin(x7)*cos(x8)*sin(x9) - sin(x8)*cos(x9))/(m);
     e12_dot= c11*(refydot - x5) - refyddot + lambda6*e11 - y_ddot;
     ey_dot = -(1-c11^2+lambda6)*(refydot-x5)-(c11+c12)*e12_dot-refydddot+c11*lambda6*e11;
     ey     = -(1-c11^2+lambda6)*e11 - (c11+c12)*e12 - refyddot + c11*lambda6*x18;
     
     theta_ref_dot = m * (U_z*ex_dot - ex*U_zdot)/U_z^2;
     phi_ref_dot = m * (U_z*ey_dot - ey*U_zdot)/U_z^2;
-    
-    x_dddot = 4/m*( ...
-        U_zdot*(sin(x8)*sin(x9) + sin(x7)*cos(x8)*cos(x9)) + ...
-        U_z*(cos(x8)*sin(x9)*x11 + sin(x8)*cos(x9)*x12 + ...
-             cos(x7)*x10*cos(x8)*cos(x9) - ...
-             sin(x7)*sin(x8)*x11*cos(x9) - ...
-             sin(x7)*cos(x8)*sin(x9)*x12));
-    e10_ddot = c9*(refxddot - x_ddot) - refxdddot + lambda5*(refxdot - x4) - x_dddot;
-    ex_ddot = -(1-c9^2+lambda5)*(refxddot - x_ddot) - (c9+c10)*e10_ddot - refxddddot + c9*lambda5*(refxdot - x4);
 
-    komh_dot = (U_z*ex_ddot);
-    komh = U_z*ex_dot - ex*U_zdot;
-    theta_ref_ddot = m*(U_z^2*komh_dot-komh*2*U_z*U_zdot)/U_z^4;
-    
-    y_dddot = 4/m*(U_zdot*(-sin(x8)*cos(x9)+sin(x7)*cos(x8)*sin(x9)) ...
-            + U_z *(-cos(x8)*x11*cos(x9)+sin(x8)*sin(x9)*x12 ...
-                    +cos(x7)*x10*cos(x9)*sin(x9) ...
-                    -sin(x7)*sin(x8)*x11*sin(x9) ...
-                    +sin(x7)*cos(x8)*cos(x9)*x12));
-    e12_ddot = c11*(refyddot-y_ddot) - refydddot + lambda6*(refydot-x5)-y_dddot;
-    ey_ddot = (1-c11^2+lambda6)*(refyddot-y_ddot)+(c11+c12)*e12_ddot+refyddddot-c11*lambda6*(refydot-x5);
-    ciwyw_dot = (U_z*ey_ddot);
-    ciwyw = U_z*ey_dot - ey*U_zdot;
+    z_dddot = 4/m*(U_z*(-sin(x7)*cos(x8)*x10-cos(x7)*sin(x8)*x11) + U_zdot*(cos(x7)*cos(x8)));
+    e8_ddot = c7*(refzddot-z_ddot) + refzdddot + lambda4*(refzdot - x6) - z_dddot;
+    ez_ddot = (1-c7^2+lambda4)*(refzddot - z_ddot) + (c7+c8)*e8_ddot - c7*lambda4*(refzdddot - z_dddot);
 
-    phi_ref_ddot = m*(U_z^2*ciwyw_dot-ciwyw*2*U_z*U_zdot)/U_z^4;
-    
     e1 = theta_ref - x7;
     e2 = c1*e1 + theta_ref_dot + lambda1*x13 - x10;
-    U_theta = Jtheta/(2*l)*((1-c1^2+lambda1)*e1 + (c1+c2)*e2 + theta_ref_ddot - c1*lambda1*x13);
-    
     e3 = phi_ref - x8;
     e4 = c3*e3 + phi_ref_dot + lambda2*x14 - x11;
-    U_phi = Jphi/(2*l)*((1-c3^2+lambda2)*e3 + (c3+c4)*e4 + phi_ref_ddot - c3*lambda2*x14);
-    
     e5 = refpsi - x9;
     e6 = c5*e5 + refpsidot + lambda3*x15 - x12;
+    
+    x_dddot = 4/m*( ...
+        U_zdot*(sin(x8)*sin(x9) + sin(x7)*cos(x8)*cos(x9)) ...
+        + U_z*(cos(x8)*sin(x9)*x11 + sin(x8)*cos(x9)*x12 ...
+             + cos(x7)*x10*cos(x8)*cos(x9) ...
+             - sin(x7)*sin(x8)*x11*cos(x9) ...
+             - sin(x7)*cos(x8)*sin(x9)*x12));
+    e10_ddot = c9*(refxddot - x_ddot) - refxdddot + lambda5*(refxdot - x4) - x_dddot;
+    ex_ddot = (1-c9^2+lambda5)*(refxddot - x_ddot) + (c9+c10)*e10_ddot + refxddddot - c9*lambda5*(refxdot - x4);
+
+    y_dddot = 4/m*( ...
+        U_zdot*(-sin(x8)*cos(x9) + sin(x7)*cos(x8)*sin(x9)) ...
+        + U_z *(-cos(x8)*cos(x9)*x11 + sin(x8)*sin(x9)*x12 ...
+             + cos(x7)*x10*cos(x9)*sin(x9) ...
+             - sin(x7)*sin(x8)*x11*sin(x9) ...
+             + sin(x7)*cos(x8)*cos(x9)*x12));
+
+    e12_ddot = c11*(refyddot-y_ddot) - refydddot + lambda6*(refydot-x5)-y_dddot;
+    ey_ddot = -(1-c11^2+lambda6)*(refyddot-y_ddot) - (c11+c12)*e12_ddot - refyddddot + c11*lambda6*(refydot-x5);
+
+    U_zdottop = m/4*(cos(x7)*cos(x8)*ez_dot + ez*(-sin(x7)*cos(x8)*x10 - cos(x7)*sin(x8)*x11));
+    
+    betty = m*( (ex/(U_z*cos(x7)*cos(x8))^2*( ...
+      + sin(x7)*cos(x8)*x10*ez_dot ...
+      + cos(x7)*sin(x8)*x11*ez_dot ...
+      - cos(x7)*cos(x8)*ez_ddot ...
+      + cos(x7)*cos(x8)*x10^2*ez - sin(x7)*sin(x8)*x10*x11*ez ...
+      + cos(x7)*cos(x8)*x11^2*ez - sin(x7)*sin(x8)*x10*x11*ez ...
+      + sin(x7)*cos(x8)*x10*ez_dot + cos(x7)*sin(x8)*x11*ez_dot )) ...
+      + ex/U_z^2*(U_zdottop*(-sin(x7)*cos(x8)*x10-cos(x7)*sin(x8)*x11)*2*cos(x7)*cos(x8))/(cos(x7)*cos(x8))^3 ...
+      + ex_ddot/U_z - (U_z*ex_dot-ex*U_zdot)*2*U_zdot/U_z^3 );
+
+    august = m*( (ey/(U_z*cos(x7)*cos(x8))^2*( ...
+      + sin(x7)*cos(x8)*x10*ez_dot ...
+      + cos(x7)*sin(x8)*x11*ez_dot ...
+      - cos(x7)*cos(x8)*ez_ddot ...
+      + cos(x7)*cos(x8)*x10^2*ez - sin(x7)*sin(x8)*x10*x11*ez ...
+      + cos(x7)*cos(x8)*x11^2*ez - sin(x7)*sin(x8)*x10*x11*ez ...
+      + sin(x7)*cos(x8)*x10*ez_dot + cos(x7)*sin(x8)*x11*ez_dot )) ...
+      + ey/U_z^2*(U_zdottop*(-sin(x7)*cos(x8)*x10-cos(x7)*sin(x8)*x11)*2*cos(x7)*cos(x8))/(cos(x7)*cos(x8))^3 ...
+      + ey_ddot/U_z - (U_z*ey_dot-ey*U_zdot)*2*U_zdot/U_z^3 );
+
+    ivy =   (1-c1^2+lambda1)*e1 + (c1+c2)*e2 - lambda1*x13;
+    rwylm = (1-c3^2+lambda2)*e3 + (c3+c4)*e4 - lambda2*x14;
+
+    peace = m*ey*ez/(U_z*cos(x7)*cos(x8))^2;
+    hoax =  m*ex*ez/(U_z*cos(x7)*cos(x8))^2;
+
+    waolom = sin(x7)*cos(x8)*ivy + cos(x7)*sin(x8)*rwylm;
+    bdilh  = 1/(1-hoax*sin(x7)*cos(x8));
+
+    phi_ref_ddot = (peace*sin(x7)*cos(x8)*bdilh*(hoax*waolom+betty) + peace*waolom + august)...
+    /(1-peace*cos(x7)*sin(x8)-peace*sin(x7)*cos(x8)*bdilh*hoax*cos(x7)*sin(x8));
+
+    theta_ref_ddot = (hoax*(waolom + cos(x7)*sin(x8)*phi_ref_ddot) + betty) ...
+        /(1-hoax*sin(x7)*cos(x8)); 
+    
+
+    % ciwyw_dot = (U_z*ey_ddot);
+    % ciwyw = U_z*ey_dot - ey*U_zdot;
+    % 
+    % phi_ref_ddot = m*(U_z^2*ciwyw_dot-ciwyw*2*U_z*U_zdot)/U_z^4;
+
+    U_theta = Jtheta/(2*l)*((1-c1^2+lambda1)*e1 + (c1+c2)*e2 + theta_ref_ddot - c1*lambda1*x13);
+    U_phi = Jphi/(2*l)*((1-c3^2+lambda2)*e3 + (c3+c4)*e4 + phi_ref_ddot - c3*lambda2*x14);
     U_psi = Jpsi/(4*K_psi)*((1-c5^2+lambda3)*e5 + (c5+c6)*e6 + refpsiddot - c5*lambda3*x15);
 
 end

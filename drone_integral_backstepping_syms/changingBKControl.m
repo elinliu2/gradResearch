@@ -28,12 +28,10 @@ lambda3 = 1e-1;
 lambda4 = 1e-1;
 lambda5 = 1e-1;
 lambda6 = 1e-1;
-model = DroneModelIB_syms(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, lambda1, lambda2, lambda3, lambda4, lambda5, lambda6);
-initialState = zeros(18, 1);
-for i = 1:12
-    initialState(i) = 0;
-end
-initialState(3) = 100; % Drone starts 100 m in the air
+m = 1.4; % kg
+g = 9.8;
+
+model = DroneModelIB_syms(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, lambda1, lambda2, lambda3, lambda4, lambda5, lambda6, m, g);
 
 ref.x = 1;
 ref.x_dot = 0;
@@ -56,7 +54,24 @@ ref.psi_ddot = 0;
 ref.psi_dddot = 0;
 ref.psi_ddddot = 0;
 
-numIterations = 2;
+initialState = zeros(19, 1);
+for i = 1:12
+    initialState(i) = 0;
+end
+
+x3 = 100; % Drone starts 100 m in the air
+initialState(3) = x3; 
+x6 = initialState(6);
+x7 = initialState(7);
+x8 = initialState(8);
+x16 = initialState(16);
+
+e7 = ref.z - x3;
+e8 = c7*e7 + ref.z_dot + lambda4*x16 - x6;
+U_z = m/(cos(x7)*cos(x8)*4)*(g + (1-c7^2+lambda4)*e7 + (c7+c8)*e8 - c7*lambda4*x16);
+initialState(19) = U_z;
+
+numIterations = 150;
 param_tracker = zeros(model.numParams, numIterations);
 G_tracker = zeros(1, numIterations);
 
@@ -78,7 +93,7 @@ for counter=1:numIterations
     
     dGp = tjs.calculate_dG(G, trajSens, secondTrajSensParam, tp, model);
 
-    scale = 0.1;
+    scale = 0.01;
     normdGp = sqrt(dGp(1)^2 + dGp(2)^2);
 
     model.c1 = model.c1 + dGp(1)/normdGp*scale;
@@ -104,8 +119,8 @@ for counter=1:numIterations
     G_tracker(counter) = G;
 end
 
-for i = 1:18
-    splotting.uplup(1:counter, param_tracker(1:counter), i, "param over iteration", string(i));
-end
+% for i = 1:18
+%     splotting.uplup(1:counter, param_tracker(1:counter), i, "param over iteration", string(i));
+% end
 
 splotting.uplup(1:counter, G_tracker(1:counter), 19, "G over iteration", "G");

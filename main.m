@@ -7,8 +7,8 @@ addpath('./drone_integral_backstepping_syms/')
 tjs = trajectorySensitivities;
 
 % Sim Constants
-SC.T = 1e-2;
-SC.t_final = 10;
+SC.T = 1e-4;
+SC.t_final = 20;
 SC.start = -pi/2;
 SC.stop = pi/2;
 SC.step = 0.1;
@@ -110,14 +110,20 @@ U_z = m/(cos(x7)*cos(x8)*4)*(g + (1-c7^2+lambda4)*e7 + (c7+c8)*e8 - c7*lambda4*x
 initialState(19) = U_z;
 
 [time, stateProgression, drone] = trajectory(drone, SC, initialState, false, ref);
-trajSens = tjs.calculateTrajectorySensitivities(drone, SC, stateProgression, ref);
-% trajSensTest = tjs.calculateTrajectorySensitivitiesTest(drone, SC, initialState, length(stateProgression), ref);
-trajSensParam = tjs.calculateTrajectorySensitivitiesParameters(drone, SC, stateProgression, ref);
-trajSensTestParam = tjs.calculateTrajectorySensitivitiesTestParams(model, SC, initialState, length(stateProgression));
-
+% trajSens = tjs.calculateTrajectorySensitivities(drone, SC, stateProgression, ref);
+% trajSensTest = tjs.calculateTrajectorySensitivitiesTest(drone, SC, initialState, size(stateProgression, 1), ref);
+% 
+% trajSensParam = tjs.calculateTrajectorySensitivitiesParameters(drone, SC, stateProgression, ref);
+% trajSensTestParam = tjs.calculateTrajectorySensitivitiesTestParams(drone, SC, initialState, size(stateProgression, 1), ref);
+% 
 % secondTrajSensParam = tjs.calculateSecondOrderTrajectorySensitivitiesParams(drone, SC, stateProgression, trajSens, trajSensParam, ref);
+% secondTrajSensTestParam = tjs.calculateSecondOrderTrajectorySensitivitiesTestParams(drone, SC, initialState, size(stateProgression, 1), ref);
                         
-% splotting.trajectoryPlot3d(time, stateProgression(:,1), stateProgression(:,2), stateProgression(:,3), 1, "State Progression");
+splotting.trajectoryPlot3d(time, stateProgression(:,1), stateProgression(:,2), stateProgression(:,3), 1, "State Progression");
 
-
+% paramNorm = zeros(1, 50000);
+% for x = 1:50000
+%     paramNorm(x) = norm(trajSensParam(:,:,x)-trajSensTestParam(:,:,x), 1);
+% end
+% plot(1:50000, paramNorm)
 
