@@ -92,22 +92,64 @@ ref.psi_ddot = 0;
 ref.psi_dddot = 0;
 ref.psi_ddddot = 0;
 
-initialState = zeros(19, 1);
+initialState = zeros(23, 1);
 for i = 1:12
     initialState(i) = 0;
 end
-
+x1 = initialState(1);
+x2 = initialState(2);
 x3 = 100; % Drone starts 100 m in the air
 initialState(3) = x3; 
+x4 = initialState(4);
+x5 = initialState(5);
 x6 = initialState(6);
 x7 = initialState(7);
 x8 = initialState(8);
+x9 = initialState(9);
+x10 = initialState(10);
+x11 = initialState(11);
+x12 = initialState(12);
 x16 = initialState(16);
+x17 = initialState(17);
+x18 = initialState(18);
 
 e7 = ref.z - x3;
 e8 = c7*e7 + ref.z_dot + lambda4*x16 - x6;
 U_z = m/(cos(x7)*cos(x8)*4)*(g + (1-c7^2+lambda4)*e7 + (c7+c8)*e8 - c7*lambda4*x16);
 initialState(19) = U_z;
+
+e9 = ref.x - x1;
+e10 = c9*e9 + ref.x_dot + lambda5*x17 - x4;
+theta_ref = m/U_z*((1-c9^2  + lambda5)*e9 + (c9 +c10)*e10 + ref.x_ddot - c9*lambda5*x17);
+initialState(21) = theta_ref;
+
+e11 = ref.y - x2;
+e12 = c11*e11 + ref.y_dot + lambda6*x18 - x5;
+phi_ref =   m/U_z*( -(1-c11^2 + lambda6)*e11 - (c11+c12)*e12 - ref.y_ddot + c11*lambda6*x18);
+initialState(22) = phi_ref;  
+
+z_ddot = 4*U_z*cos(x7)*cos(x8)/m-g;
+e8_dot = c7*(ref.z_dot - x6)+ref.z_ddot+lambda4*e7-z_ddot;
+ez     = (1-c7^2+lambda4)*e7+(c7+c8)*e8-c7*lambda4*x16+g;
+ez_dot = ((1-c7^2+lambda4)*(ref.z_dot-x6)+(c7+c8)*e8_dot-c7*lambda4*e7);
+U_zdot = m/4*( cos(x7)*cos(x8)*ez_dot + ez*(-sin(x7)*cos(x8)*x10-cos(x7)*sin(x8)*x11) )/(cos(x7)*cos(x8))^2;
+initialState(20) = U_zdot; 
+
+x_ddot = 4*U_z*(sin(x7)*cos(x8)*cos(x9) + sin(x8)*sin(x9))/(m);
+e10_dot= c9*(ref.x_dot - x4) - ref.x_ddot + lambda5*e9 - x_ddot;
+ex_dot = (1-c9^2+lambda5)*(ref.x_dot-x4)+(c9+c10)*e10_dot+ref.x_dddot-c9*lambda5*e9;
+ex     = (1-c9^2+lambda5)*e9 + (c9+c10)*e10 + ref.x_ddot - c9*lambda5*x17;
+
+y_ddot = 4*U_z*(sin(x7)*cos(x8)*sin(x9) - sin(x8)*cos(x9))/(m);
+e12_dot= c11*(ref.y_dot - x5) - ref.y_ddot + lambda6*e11 - y_ddot;
+ey_dot = -(1-c11^2+lambda6)*(ref.y_dot-x5)-(c11+c12)*e12_dot-ref.y_dddot+c11*lambda6*e11;
+ey     = -(1-c11^2+lambda6)*e11 - (c11+c12)*e12 - ref.y_ddot + c11*lambda6*x18;
+
+theta_ref_dot = m * (U_z*ex_dot - ex*U_zdot)/U_z^2;
+initialState(23) = theta_ref_dot;
+
+phi_ref_dot = m * (U_z*ey_dot - ey*U_zdot)/U_z^2;
+initialState(24) = phi_ref_dot;
 
 [time, stateProgression, drone] = trajectory(drone, SC, initialState, false, ref);
 % trajSens = tjs.calculateTrajectorySensitivities(drone, SC, stateProgression, ref);
@@ -119,8 +161,9 @@ initialState(19) = U_z;
 % secondTrajSensParam = tjs.calculateSecondOrderTrajectorySensitivitiesParams(drone, SC, stateProgression, trajSens, trajSensParam, ref);
 % secondTrajSensTestParam = tjs.calculateSecondOrderTrajectorySensitivitiesTestParams(drone, SC, initialState, size(stateProgression, 1), ref);
                         
-splotting.trajectoryPlot3d(time, stateProgression(:,1), stateProgression(:,2), stateProgression(:,3), 1, "State Progression");
-
+% splotting.trajectoryPlot3d(time, stateProgression(:,1), stateProgression(:,2), stateProgression(:,3), 1, "State Progression");
+d2fdx2 = drone.d2fdx2(drone, initialState, ref);
+                
 % paramNorm = zeros(1, 50000);
 % for x = 1:50000
 %     paramNorm(x) = norm(trajSensParam(:,:,x)-trajSensTestParam(:,:,x), 1);
