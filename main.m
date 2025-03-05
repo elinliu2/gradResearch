@@ -3,6 +3,8 @@ addpath('./pendulum_pd')
 addpath('./drone_pid')
 addpath('./drone_integral_backstepping/')
 addpath('./drone_integral_backstepping_syms/')
+addpath('./drone_integral_backstepping_syms/dfdx')
+addpath('./drone_integral_backstepping_syms/dfdp')
 
 tjs = trajectorySensitivities;
 
@@ -163,7 +165,8 @@ initialState(24) = phi_ref_dot;
                         
 % splotting.trajectoryPlot3d(time, stateProgression(:,1), stateProgression(:,2), stateProgression(:,3), 1, "State Progression");
 dfdx = drone.dfdx(drone, initialState, ref);
-                
+dfdp = drone.dfdp(drone, initialState, 0, ref);
+d2fdx2 = drone.d2fdx2(drone, initialState, ref);
 % paramNorm = zeros(1, 50000);
 % for x = 1:50000
 %     paramNorm(x) = norm(trajSensParam(:,:,x)-trajSensTestParam(:,:,x), 1);
