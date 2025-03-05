@@ -151,7 +151,7 @@ initialState(23) = theta_ref_dot;
 phi_ref_dot = m * (U_z*ey_dot - ey*U_zdot)/U_z^2;
 initialState(24) = phi_ref_dot;
 
-[time, stateProgression, drone] = trajectory(drone, SC, initialState, false, ref);
+% [time, stateProgression, drone] = trajectory(drone, SC, initialState, false, ref);
 % trajSens = tjs.calculateTrajectorySensitivities(drone, SC, stateProgression, ref);
 % trajSensTest = tjs.calculateTrajectorySensitivitiesTest(drone, SC, initialState, size(stateProgression, 1), ref);
 % 
@@ -162,7 +162,7 @@ initialState(24) = phi_ref_dot;
 % secondTrajSensTestParam = tjs.calculateSecondOrderTrajectorySensitivitiesTestParams(drone, SC, initialState, size(stateProgression, 1), ref);
                         
 % splotting.trajectoryPlot3d(time, stateProgression(:,1), stateProgression(:,2), stateProgression(:,3), 1, "State Progression");
-d2fdx2 = drone.d2fdx2(drone, initialState, ref);
+dfdx = drone.dfdx(drone, initialState, ref);
                 
 % paramNorm = zeros(1, 50000);
 % for x = 1:50000

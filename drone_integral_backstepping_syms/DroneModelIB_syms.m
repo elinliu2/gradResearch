@@ -80,7 +80,7 @@ classdef DroneModelIB_syms
 
             obj.disturbance = 0;
             
-            obj.dfdx = @derivatives_drone_IB_syms.dfdx;
+            obj.dfdx = @derivatives_drone_IB_syms_dfdx.dfdx;
             obj.dfdp = @derivatives_drone_IB_syms.dfdp; 
             obj.d2fdx2 = @derivatives_drone_IB_syms.d2fdx2;
             obj.d2fdxdp = @derivatives_drone_IB_syms.d2fdxdp;
