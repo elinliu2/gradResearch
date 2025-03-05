@@ -1,4 +1,3 @@
-
 classdef DroneModelIB_syms
     properties
         g;
