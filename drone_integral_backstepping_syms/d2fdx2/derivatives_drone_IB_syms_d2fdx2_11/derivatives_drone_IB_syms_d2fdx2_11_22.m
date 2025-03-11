@@ -1,6 +1,7 @@
 classdef derivatives_drone_IB_syms_d2fdx2_11_22
     methods (Static)
         function d2f11dx2_22 = d2f11dx2_22(model, state, ref)
+            d2f11dx2_22 = zeros(1, model.numStates);
             refx = ref.x;
             refxdot = ref.x_dot;
             refxddot = ref.x_ddot;

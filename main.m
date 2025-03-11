@@ -4,6 +4,10 @@ addpath('./drone_pid')
 addpath('./drone_integral_backstepping/')
 addpath('./drone_integral_backstepping_syms/')
 addpath('./drone_integral_backstepping_syms/dfdx')
+addpath('./drone_integral_backstepping_syms/d2fdx2/')
+addpath('./drone_integral_backstepping_syms/d2fdx2/derivatives_drone_IB_syms_d2fdx2_10/')
+addpath('./drone_integral_backstepping_syms/d2fdx2/derivatives_drone_IB_syms_d2fdx2_11/')
+
 addpath('./drone_integral_backstepping_syms/dfdp')
 
 tjs = trajectorySensitivities;
@@ -164,8 +168,8 @@ initialState(24) = phi_ref_dot;
 % secondTrajSensTestParam = tjs.calculateSecondOrderTrajectorySensitivitiesTestParams(drone, SC, initialState, size(stateProgression, 1), ref);
                         
 % splotting.trajectoryPlot3d(time, stateProgression(:,1), stateProgression(:,2), stateProgression(:,3), 1, "State Progression");
-dfdx = drone.dfdx(drone, initialState, ref);
-dfdp = drone.dfdp(drone, initialState, 0, ref);
+% dfdx = drone.dfdx(drone, initialState, ref);
+% dfdp = drone.dfdp(drone, initialState, 0, ref);
 d2fdx2 = drone.d2fdx2(drone, initialState, ref);
 % paramNorm = zeros(1, 50000);
 % for x = 1:50000

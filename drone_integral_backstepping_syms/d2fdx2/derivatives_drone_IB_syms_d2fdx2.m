@@ -7,11 +7,11 @@ classdef derivatives_drone_IB_syms_d2fdx2
             d2fdx2(5, :, :) = derivatives_drone_IB_syms_d2fdx2.d2f5dx2(model, state, ref);
             d2fdx2(6, :, :) = derivatives_drone_IB_syms_d2fdx2.d2f6dx2(model, state, ref);
 
-            d2fdx2(10, :, :) = derivatives_drone_IB_syms.d2f10dx2(model, state, ref);
-            d2fdx2(11, :, :) = derivatives_drone_IB_syms.d2f11dx2(model, state, ref);
-            d2fdx2(20, :, :) = derivatives_drone_IB_syms.d2f20dx2(model, state, ref);
-            d2fdx2(23, :, :) = derivatives_drone_IB_syms.d2f23dx2(model, state, ref);
-            d2fdx2(24, :, :) = derivatives_drone_IB_syms.d2f24dx2(model, state, ref);
+            % d2fdx2(10, :, :) = derivatives_drone_IB_syms_d2fdx2_10.d2f10dx2(model, state, ref);
+            d2fdx2(11, :, :) = derivatives_drone_IB_syms_d2fdx2_11.d2f11dx2(model, state, ref);
+            % d2fdx2(20, :, :) = derivatives_drone_IB_syms.d2f20dx2(model, state, ref);
+            % d2fdx2(23, :, :) = derivatives_drone_IB_syms.d2f23dx2(model, state, ref);
+            % d2fdx2(24, :, :) = derivatives_drone_IB_syms.d2f24dx2(model, state, ref);
         end
 
         function d2f4dx2 = d2f4dx2(model, state, ~)

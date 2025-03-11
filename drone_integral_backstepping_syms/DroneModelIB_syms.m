@@ -82,7 +82,7 @@ classdef DroneModelIB_syms
             
             obj.dfdx = @derivatives_drone_IB_syms_dfdx.dfdx;
             obj.dfdp = @derivatives_drone_IB_syms_dfdp.dfdp; 
-            obj.d2fdx2 = @derivatives_drone_IB_syms.d2fdx2;
+            obj.d2fdx2 = @derivatives_drone_IB_syms_d2fdx2.d2fdx2;
             obj.d2fdxdp = @derivatives_drone_IB_syms.d2fdxdp;
             obj.nudgeParams = @derivatives_drone_IB_syms.nudgeParams;
     
