@@ -1,15 +1,11 @@
 addpath('./utils')  
-addpath('./pendulum_pd')
-addpath('./drone_pid')
-addpath('./drone_integral_backstepping/')
-addpath('./drone_integral_backstepping_syms/')
 addpath('./drone_integral_backstepping_hybrid/')
 
 tjs = trajectorySensitivities;
 
 % Sim Constants
 SC.T = 1e-3;
-SC.t_final = 30;
+SC.t_final = 10;
 SC.start = -pi/2;
 SC.stop = pi/2;
 SC.step = 0.1;
@@ -70,7 +66,7 @@ lambda5 = 1e-1;
 lambda6 = 1e-1;
 m = 1.4; % kg
 g = 9.8;
-drone = DroneModelIB_syms(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, lambda1, lambda2, lambda3, lambda4, lambda5, lambda6, m, g);
+drone = droneModelIBHybrid(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, lambda1, lambda2, lambda3, lambda4, lambda5, lambda6, m, g);
 
 ref.x = 1;
 ref.x_dot = 0;
@@ -110,22 +106,19 @@ U_z = m/(cos(x7)*cos(x8)*4)*(g + (1-c7^2+lambda4)*e7 + (c7+c8)*e8 - c7*lambda4*x
 initialState(19) = U_z;
 
 [time, stateProgression, drone] = trajectory(drone, SC, initialState, false, ref);
-% trajSens = tjs.calculateTrajectorySensitivities(drone, SC, stateProgression, ref);
+trajSens = droneTrajectorySensitivitiesHybrid.calculateTrajectorySensitivities(drone, SC, stateProgression, ref);
 % trajSensTest = tjs.calculateTrajectorySensitivitiesTest(drone, SC, initialState, size(stateProgression, 1), ref);
-% 
+
 % trajSensParam = tjs.calculateTrajectorySensitivitiesParameters(drone, SC, stateProgression, ref);
 % trajSensTestParam = tjs.calculateTrajectorySensitivitiesTestParams(drone, SC, initialState, size(stateProgression, 1), ref);
 % 
 % secondTrajSensParam = tjs.calculateSecondOrderTrajectorySensitivitiesParams(drone, SC, stateProgression, trajSens, trajSensParam, ref);
 % secondTrajSensTestParam = tjs.calculateSecondOrderTrajectorySensitivitiesTestParams(drone, SC, initialState, size(stateProgression, 1), ref);
 
-splotting.trajectoryPlot3d(time, stateProgression(:, 1), stateProgression(:, 2), stateProgression(:, 3), 1, "State Progression");
-% dfdx = drone.dfdx(drone, initialState, ref);
-% dfdp = drone.dfdp(drone, initialState, 0, ref);
-% d2fdx2 = drone.d2fdx2(drone, initialState, ref);
-% paramNorm = zeros(1, 50000);
-% for x = 1:50000
-%     paramNorm(x) = norm(trajSensParam(:,:,x)-trajSensTestParam(:,:,x), 1);
-% end
-% plot(1:50000, paramNorm)
+% splotting.trajectoryPlot3d(time, stateProgression(:, 1), stateProgression(:, 2), stateProgression(:, 3), 1, "State Progression");
+dfdx = drone.dfdx(drone, initialState, ref);
+dfdp = drone.dfdp(drone, initialState, ref);
+d2fdx2 = drone.d2fdx2(drone, initialState, ref);
+d2fdxdp = drone.d2fdxdp(drone, initialState, ref);
+
 

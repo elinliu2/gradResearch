@@ -1,4 +1,4 @@
-classdef DroneModelIB_hybrid
+classdef droneModelIBHybrid
     properties
         g;
         m;
@@ -47,7 +47,7 @@ classdef DroneModelIB_hybrid
     end
     
     methods
-        function obj = DroneModelIB_hybrid(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, lambda1, lambda2, lambda3, lambda4, lambda5, lambda6, m, g)
+        function obj = droneModelIBHybrid(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, lambda1, lambda2, lambda3, lambda4, lambda5, lambda6, m, g)
             obj.g = g;
             obj.m = m; % kg
 
@@ -80,18 +80,17 @@ classdef DroneModelIB_hybrid
 
             obj.disturbance = 0;
             
-            obj.dfdx = @derivatives_drone_IB_hybrid.dfdx;
-            obj.dfdp = @derivatives_drone_IB_hybrid.dfdp; 
-            obj.d2fdx2 = @derivatives_drone_IB_hybrid.d2fdx2;
-            obj.d2fdxdp = @derivatives_drone_IB_hybrid.d2fdxdp;
-            obj.nudgeParams = @derivatives_drone_IB_hybrid.nudgeParams;
+            obj.dfdx = @derivativesDroneIBHybrid.dfdx;
+            obj.dfdp = @derivativesDroneIBHybrid.dfdp; 
+            obj.d2fdx2 = @derivativesDroneIBHybrid.d2fdx2;
+            obj.d2fdxdp = @derivativesDroneIBHybrid.d2fdxdp;
+            obj.nudgeParams = @derivativesDroneIBHybrid.nudgeParams;
     
             obj.numStates = 23;
             obj.numParams = 18;
             obj.initialdxdxo = eye(obj.numStates);
     
             obj.disturbanceSignal = @DroneControllers.dummyD;
-            obj.initializeStates = @InitializeStatesDrone;
         end
 
         function [t_span, stateProgression, model] = trajectory(model, SC, state_guess, shouldPlot, ref)
@@ -135,41 +134,11 @@ end
 
 function DF = DF(state_guess, model, SC, ref)
     DF = -eye(model.numStates);
-    dfdx_plus = derivatives_drone_IB_hybrid.dfdx(model, state_guess, ref);
+    dfdx_plus = derivativesDroneIBHybrid.dfdx(model, state_guess, ref);
     DF(1:19, :) = DF(1:19, :) + SC.T/2*dfdx_plus;
 
-    refx = ref.x;
-    refxdot = ref.x_dot;
-    refxddot = ref.x_ddot;
-    refy = ref.y;
-    refydot = ref.y_dot;
-    refyddot = ref.y_ddot;
-
-    m = model.m;
-    c9 = model.c9;
-    c10 = model.c10;
-    c11 = model.c11;
-    c12 = model.c12;
-    lambda5 = model.lambda5; 
-    lambda6 = model.lambda6; 
-
-    x1 = state_guess(1);
-    x2 = state_guess(2);
-    x4 = state_guess(4);
-    x5 = state_guess(5);
-    x17 = state_guess(17);
-    x18 = state_guess(18);
-    x19 = state_guess(19);
-    
-    DF(20, 1)=-1/SC.T*(m*(lambda5 - c9^2 + c9*(c9 + c10) + 1))/x19;
-    DF(20, 4)=-1/SC.T*(m*(c9 + c10))/x19;
-    DF(20, 17)=-1/SC.T*(m*(c9*lambda5 - lambda5*(c9 + c10)))/x19;
-    DF(20, 19)=-1/SC.T*(m*(refxddot + (c9 + c10)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)) + (refx - x1)*(lambda5 - c9^2 + 1) - c9*lambda5*x17))/x19^2;
-   
-    DF(21, 2)=1/SC.T*(m*(lambda6 - c11^2 + c11*(c11 + c12) + 1))/x19;
-    DF(21, 5)=1/SC.T*(m*(c11 + c12))/x19;
-    DF(21, 18)=1/SC.T*(m*(c11*lambda6 - lambda6*(c11 + c12)))/x19;
-    DF(21, 19)=1/SC.T*(m*(refyddot + (c11 + c12)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)) + (refy - x2)*(lambda6 - c11^2 + 1) - c11*lambda6*x18))/x19^2;
+    DF(20, :) = DF(20, :) + 1/SC.T*derivativesDroneIBHybrid.dthetarefdx(model, state_guess, ref);
+    DF(21, :) = DF(21, :) + 1/SC.T*derivativesDroneIBHybrid.dphirefdx(model, state_guess, ref);
 
     DF(22, 20) = 1/SC.T;
     DF(23, 21) = 1/SC.T;
@@ -260,7 +229,6 @@ function theta_ref = theta_ref(model, state, ref)
     U_z = x19;
 
     theta_ref = m/U_z*((1-c9^2  + lambda5)*e9 + (c9 +c10)*e10 + refxddot - c9*lambda5*x17);
-
 end
 
 function phi_ref = phi_ref(model, state, ref)
