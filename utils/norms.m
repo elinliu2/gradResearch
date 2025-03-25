@@ -42,7 +42,7 @@ classdef norms
         
         function max = secondOrderMax(secondTrajSens)
             max = norm(secondTrajSens(:, :, :, 1), "fro");
-            for i = 1:length(secondTrajSens)
+            for i = 1:size(secondTrajSens, 4)
                 if (norm(secondTrajSens(:, :, :, i), "fro") > max)
                     max = norm(secondTrajSens(:, :, :, i), "fro");
                 end

@@ -1,7 +1,7 @@
 clc;
 syms c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 c11 c12 lambda1 lambda2 lambda3 lambda4 lambda5 lambda6 
 syms m g Jtheta Jphi Jpsi K_psi l
-syms x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16 x17 x18 x19 x20 x21 x22 x23 x24 x25
+syms x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16 x17 x18 x19 x20 x21 x22 x23
 syms refx refxdot refxddot refxdddot refxddddot
 syms refy refydot refyddot refydddot refyddddot
 syms refz refzdot refzddot refzdddot refzddddot
@@ -67,8 +67,8 @@ f18 = refy - x2;
 f19 = U_zdot;
 
   func = [f1; f2; f3; f4; f5; f6; f7; f8; f9; f10; f11; f12; f13; f14; f15; f16; f17; f18; f19; theta_ref; phi_ref];
-  vars = [x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16 x17 x18 x19 x20 x21 x22 x23 x24];
-  coeff = [c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 c11 c12 lambda1 lambda2 lambda3 lambda4 lambda5 lambda6];
+  vars = [x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16 x17 x18 x19 x20 x21 x22 x23];
+  params = [x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16 x17 x18 x19 x20 x21 x22 x23 c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 c11 c12 lambda1 lambda2 lambda3 lambda4 lambda5 lambda6];
 
 filename = "C:\Users\elinl\OneDrive - University of Waterloo\research\derivatives.txt";
 
@@ -81,13 +81,13 @@ filename = "C:\Users\elinl\OneDrive - University of Waterloo\research\derivative
 %     end
 % end
  
-% for i = 1:18
-%     derivative = diff(phi_ref, coeff(i));
-%         if(derivative ~= 0)
-%             disp(strcat("           dphirefdp(", string(i) ,")=", string(derivative),";"))
-%             % lines = strcat("           df1dp(", string(i) ,")=", string(derivative),";");
-%             % writelines(lines,filename,WriteMode="append")
-%         end
+% for i = 1:41
+%     derivative = diff(phi_ref, params(i));
+%     if(derivative ~= 0)
+%         disp(strcat("           dphirefdp(", string(i) ,")=", string(derivative),";"))
+%         % lines = strcat("           df1dp(", string(i) ,")=", string(derivative),";");
+%         % writelines(lines,filename,WriteMode="append")
+%     end
 % end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% calc d2fdx2
@@ -121,7 +121,6 @@ filename = "C:\Users\elinl\OneDrive - University of Waterloo\research\derivative
 % df10dx_19=- (m*(lambda1 - c1^2 + 1)*(refxddot + (c9 + c10)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)) + (refx - x1)*(lambda5 - c9^2 + 1) - c9*lambda5*x17))/x19^2 - (c1*m*(c1 + c2)*(refxddot + (c9 + c10)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)) + (refx - x1)*(lambda5 - c9^2 + 1) - c9*lambda5*x17))/x19^2;
 % df10dx_20=c1 + c2;
 % df10dx_22=1;
-% 
 % dfunc = [df10dx_1 df10dx_4 df10dx_7 df10dx_10 df10dx_13 df10dx_17 df10dx_19 df10dx_20 df10dx_22 ];
 % dfunc_indicies = [1;4;7;10;13;17;19;20;22];
 
@@ -134,7 +133,6 @@ filename = "C:\Users\elinl\OneDrive - University of Waterloo\research\derivative
 % df11dx_19=(m*(lambda2 - c3^2 + 1)*(refyddot + (c11 + c12)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)) + (refy - x2)*(lambda6 - c11^2 + 1) - c11*lambda6*x18))/x19^2 + (c3*m*(c3 + c4)*(refyddot + (c11 + c12)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)) + (refy - x2)*(lambda6 - c11^2 + 1) - c11*lambda6*x18))/x19^2;
 % df11dx_21=c3 + c4;
 % df11dx_23=1;
-% 
 % dfunc = [df11dx_2 df11dx_5 df11dx_8 df11dx_11 df11dx_14 df11dx_18 df11dx_19 df11dx_21 df11dx_23 ];
 % dfunc_indicies = [2;5;8;11;14;18;19;21;23];
 
@@ -183,13 +181,13 @@ filename = "C:\Users\elinl\OneDrive - University of Waterloo\research\derivative
 % dfunc = [dthetarefdx_1 dthetarefdx_4 dthetarefdx_17 dthetarefdx_19 ];
 % dfunc_indicies = [1;4;17;19];
 
-% dphirefdx_2=(m*(lambda6 - c11^2 + c11*(c11 + c12) + 1))/x19;
-% dphirefdx_5=(m*(c11 + c12))/x19;
-% dphirefdx_18=(m*(c11*lambda6 - lambda6*(c11 + c12)))/x19;
-% dphirefdx_19=(m*(refyddot + (c11 + c12)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)) + (refy - x2)*(lambda6 - c11^2 + 1) - c11*lambda6*x18))/x19^2;
-% 
-% dfunc = [dphirefdx_2 dphirefdx_5 dphirefdx_18 dphirefdx_19 ];
-% dfunc_indicies = [2; 5; 18; 19];
+dphirefdx_2=(m*(lambda6 - c11^2 + c11*(c11 + c12) + 1))/x19;
+dphirefdx_5=(m*(c11 + c12))/x19;
+dphirefdx_18=(m*(c11*lambda6 - lambda6*(c11 + c12)))/x19;
+dphirefdx_19=(m*(refyddot + (c11 + c12)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)) + (refy - x2)*(lambda6 - c11^2 + 1) - c11*lambda6*x18))/x19^2;
+
+dfunc = [dphirefdx_2 dphirefdx_5 dphirefdx_18 dphirefdx_19 ];
+dfunc_indicies = [2; 5; 18; 19];
 
 
 % for i = 1:length(dfunc_indicies)
@@ -205,10 +203,10 @@ filename = "C:\Users\elinl\OneDrive - University of Waterloo\research\derivative
 
 for i = 1:length(dfunc_indicies)
     index = dfunc_indicies(i);
-    for j = 1:18
-        derivative = diff(dfunc(i), coeff(j));
+    for j = 1:41
+        derivative = diff(dfunc(i), params(j));
         if(derivative ~= 0)
-            disp(strcat("           d2f10dxdp(", num2str(index), ",", num2str(j), ")=", string(derivative),";"))
+            disp(strcat("           d2phirefdxdp(", num2str(index), ",", num2str(j), ")=", string(derivative),";"))
         end
     end
 end

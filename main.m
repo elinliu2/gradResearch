@@ -1,4 +1,6 @@
 addpath('./utils')  
+addpath('./pendulum_pd/')
+addpath('./drone_integral_backstepping_syms/')
 addpath('./drone_integral_backstepping_hybrid/')
 
 tjs = trajectorySensitivities;
@@ -106,19 +108,17 @@ U_z = m/(cos(x7)*cos(x8)*4)*(g + (1-c7^2+lambda4)*e7 + (c7+c8)*e8 - c7*lambda4*x
 initialState(19) = U_z;
 
 [time, stateProgression, drone] = trajectory(drone, SC, initialState, false, ref);
+
 trajSens = droneTrajectorySensitivitiesHybrid.calculateTrajectorySensitivities(drone, SC, stateProgression, ref);
 % trajSensTest = tjs.calculateTrajectorySensitivitiesTest(drone, SC, initialState, size(stateProgression, 1), ref);
 
-% trajSensParam = tjs.calculateTrajectorySensitivitiesParameters(drone, SC, stateProgression, ref);
+trajSensParam = droneTrajectorySensitivitiesHybrid.calculateTrajectorySensitivitiesParameters(drone, SC, stateProgression, ref);
 % trajSensTestParam = tjs.calculateTrajectorySensitivitiesTestParams(drone, SC, initialState, size(stateProgression, 1), ref);
-% 
-% secondTrajSensParam = tjs.calculateSecondOrderTrajectorySensitivitiesParams(drone, SC, stateProgression, trajSens, trajSensParam, ref);
-% secondTrajSensTestParam = tjs.calculateSecondOrderTrajectorySensitivitiesTestParams(drone, SC, initialState, size(stateProgression, 1), ref);
 
+secondTrajSensParam = droneTrajectorySensitivitiesHybrid.calculateSecondOrderTrajectorySensitivitiesParams(drone, SC, stateProgression, trajSens, trajSensParam, ref);
+% secondTrajSensTestParam = tjs.calculateSecondOrderTrajectorySensitivitiesTestParams(drone, SC, initialState, size(stateProgression, 1), ref);
 % splotting.trajectoryPlot3d(time, stateProgression(:, 1), stateProgression(:, 2), stateProgression(:, 3), 1, "State Progression");
-dfdx = drone.dfdx(drone, initialState, ref);
-dfdp = drone.dfdp(drone, initialState, ref);
-d2fdx2 = drone.d2fdx2(drone, initialState, ref);
-d2fdxdp = drone.d2fdxdp(drone, initialState, ref);
+
+
 
 

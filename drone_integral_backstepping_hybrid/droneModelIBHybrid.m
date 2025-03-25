@@ -87,7 +87,7 @@ classdef droneModelIBHybrid
             obj.nudgeParams = @derivativesDroneIBHybrid.nudgeParams;
     
             obj.numStates = 23;
-            obj.numParams = 18;
+            obj.numParams = 41;
             obj.initialdxdxo = eye(obj.numStates);
     
             obj.disturbanceSignal = @DroneControllers.dummyD;
@@ -118,6 +118,7 @@ classdef droneModelIBHybrid
             if (shouldPlot)
                 PlotDrone(sim, stateProgression);
             end
+
         end 
     end
 end
