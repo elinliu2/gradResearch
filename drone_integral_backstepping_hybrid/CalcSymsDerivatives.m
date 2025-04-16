@@ -72,14 +72,14 @@ f19 = U_zdot;
 
 filename = "C:\Users\elinl\OneDrive - University of Waterloo\research\derivatives.txt";
 
-% for i = 1:24
-%     derivative = diff(phi_ref, vars(i));
-%     if(derivative ~= 0)
-%         disp(strcat("           dphirefdx(", string(i) ,")=", string(derivative),";"))
-%         % lines = strcat("           df24dx(", string(i) ,")=", string(derivative),";");
-%         % writelines(lines,filename,WriteMode="append")
-%     end
-% end
+for i = 1:23
+    derivative = diff(phi_ref, vars(i));
+    if(derivative ~= 0)
+        disp(strcat("           dphirefdx(", string(i) ,")=", string(derivative),";"))
+        % lines = strcat("           df24dx(", string(i) ,")=", string(derivative),";");
+        % writelines(lines,filename,WriteMode="append")
+    end
+end
  
 % for i = 1:41
 %     derivative = diff(phi_ref, params(i));
@@ -200,17 +200,17 @@ dfunc_indicies = [2; 5; 18; 19];
 %     end
 % end
 
-
-for i = 1:length(dfunc_indicies)
-    index = dfunc_indicies(i);
-    for j = 1:41
-        derivative = diff(dfunc(i), params(j));
-        if(derivative ~= 0)
-            disp(strcat("           d2phirefdxdp(", num2str(index), ",", num2str(j), ")=", string(derivative),";"))
-        end
-    end
-end
-
+% 
+% for i = 1:length(dfunc_indicies)
+%     index = dfunc_indicies(i);
+%     for j = 1:41
+%         derivative = diff(dfunc(i), params(j));
+%         if(derivative ~= 0)
+%             disp(strcat("           d2phirefdxdp(", num2str(index), ",", num2str(j), ")=", string(derivative),";"))
+%         end
+%     end
+% end
+% 
 
 
 

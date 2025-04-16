@@ -79,10 +79,7 @@ classdef trajectorySensitivities
                 state(index) = initialState(index) - delta;
                 [~, state_index_minus]  = trajectory(model, SC, state, false, ref);
                 for i = 1:numSteps
-                    for j = 1:model.numStates
-                        dxdstate = (state_index_plus(i,j)-state_index_minus(i,j))/(2*delta);
-                        trajSensTest(j, index, i) = dxdstate;
-                    end
+                    trajSensTest(:, index, i) = (state_index_plus(i, :)-state_index_minus(i, :))/(2*delta);
                 end
             end            
         end
@@ -153,6 +150,22 @@ classdef trajectorySensitivities
                 if (1/norm(trajSens(:,:,i), 1) < min)
                     min = 1./norm(trajSens(:,:,i), 1);
                     tp = i;
+                end
+            end
+        end
+
+        function tp = findMaxTime(trajSens)
+            infnorm = max(trajSens, [],"all");
+            vecTrajSens = reshape(trajSens,[],1);
+            tp = 0;
+            itemsPerTimestamp = 1;
+            for i = 1:ndims(trajSens)-1
+                itemsPerTimestamp = itemsPerTimestamp * size(trajSens, i);
+            end
+            for i=1:length(vecTrajSens)
+                if vecTrajSens(i) == infnorm
+                    tp = idivide(length(vecTrajSens),int16(itemsPerTimestamp));
+                    return
                 end
             end
         end

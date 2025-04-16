@@ -38,6 +38,8 @@ classdef droneModelIBHybrid
         d2fdxdp;
         nudgeParams;
 
+        numX;
+        numY;
         numStates;
         numParams;
         initialdxdxo;
@@ -86,19 +88,21 @@ classdef droneModelIBHybrid
             obj.d2fdxdp = @derivativesDroneIBHybrid.d2fdxdp;
             obj.nudgeParams = @derivativesDroneIBHybrid.nudgeParams;
     
-            obj.numStates = 23;
+            obj.numX = 19;
+            obj.numY = 4;
+            obj.numStates = obj.numX + obj.numY;
             obj.numParams = 41;
             obj.initialdxdxo = eye(obj.numStates);
     
             obj.disturbanceSignal = @DroneControllers.dummyD;
         end
 
-        function [t_span, stateProgression, model] = trajectory(model, SC, state_guess, shouldPlot, ref)
+        function [t_span, stateProgression, model] = trajectory(model, SC, state, shouldPlot, ref)
             % Initialization
             t_span = 0:SC.T:SC.t_final; % amount of time we will simulate for; fixed step sizes
             tol = 1e-12; 
             stateProgression = zeros(length(t_span), model.numStates);
-            stateProgression(1, :) = state_guess;
+            stateProgression(1, :) = state;
 
             % Drone Simulation
             for i = 2:length(t_span)
@@ -106,17 +110,22 @@ classdef droneModelIBHybrid
                 x3 = 100; % Drone starts 100 m in the air
                 state_guess(3) = x3; 
                 state_guess(19) = U_z(model, state_guess, ref);
+                state_guess(20:23) = stateProgression(i-1, 20:23);
 
                 state_prev = stateProgression(i-1, :);
                 while abs(norm(F(state_prev, state_guess, model, SC, ref))) > tol
-                    state_guess = state_guess - transpose(DF(state_guess, model, SC, ref)\transpose(F(state_prev, state_guess, model, SC, ref)));
+                    state_guess(1:19) = state_guess(1:19) - transpose(DF(state_guess, model, SC, ref)\transpose(F(state_prev, state_guess, model, SC, ref)));
                 end
-                stateProgression(i, :) = state_guess;
+                stateProgression(i, 1:19) = state_guess(1:19);
+                stateProgression(i, 20) = 1/SC.T * (theta_ref(model, state_guess, ref) - theta_ref(model, state_prev, ref));
+                stateProgression(i, 21) = 1/SC.T * (phi_ref(model, state_guess, ref) - phi_ref(model, state_prev, ref));
+                stateProgression(i, 22) = 1/SC.T * (stateProgression(i, 20) - state_prev(20));
+                stateProgression(i, 23) = 1/SC.T * (stateProgression(i, 21) - state_prev(21));
             end
 
             % Plot
             if (shouldPlot)
-                PlotDrone(sim, stateProgression);
+                PlotDrone(stateProgression);
             end
 
         end 
@@ -124,25 +133,13 @@ classdef droneModelIBHybrid
 end
 
 function F = F(state_prev, state_guess, model, SC, ref)
-    F = state_prev(1:19) - state_guess(1:19) + SC.T/2*(f(state_prev, model, ref) + f(state_guess, model, ref));
-
-    F(20) = 1/SC.T * (theta_ref(model, state_guess, ref) - theta_ref(model, state_prev, ref)) - state_guess(20);
-    F(21) = 1/SC.T * (phi_ref(model, state_guess, ref) - phi_ref(model, state_prev, ref)) - state_guess(21);
-    F(22) = 1/SC.T * (state_guess(20) - state_prev(20)) - state_guess(22);
-    F(23) = 1/SC.T * (state_guess(21) - state_prev(21)) - state_guess(23);
-    
+    F = state_prev(1:model.numX) - state_guess(1:model.numX) + SC.T/2*(f(state_prev, model, ref) + f(state_guess, model, ref));
 end
 
 function DF = DF(state_guess, model, SC, ref)
-    DF = -eye(model.numStates);
+    DF = -eye(model.numX);
     dfdx_plus = derivativesDroneIBHybrid.dfdx(model, state_guess, ref);
-    DF(1:19, :) = DF(1:19, :) + SC.T/2*dfdx_plus;
-
-    DF(20, :) = DF(20, :) + 1/SC.T*derivativesDroneIBHybrid.dthetarefdx(model, state_guess, ref);
-    DF(21, :) = DF(21, :) + 1/SC.T*derivativesDroneIBHybrid.dphirefdx(model, state_guess, ref);
-
-    DF(22, 20) = 1/SC.T;
-    DF(23, 21) = 1/SC.T;
+    DF = DF + SC.T/2*dfdx_plus;
 end
         
 function f = f(state, model, ref)

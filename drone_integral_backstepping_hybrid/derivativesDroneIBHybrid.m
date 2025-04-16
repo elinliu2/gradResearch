@@ -1,7 +1,7 @@
 classdef derivativesDroneIBHybrid
     methods (Static)
         function dfdx = dfdx(model, state, ref)
-            dfdx = zeros(19, model.numStates);
+            dfdx = zeros(model.numX, model.numX);
             dfdx(1, 4) = 1;
             dfdx(2, 5) = 1;
             dfdx(3, 6) = 1;
@@ -29,7 +29,7 @@ classdef derivativesDroneIBHybrid
         end
 
         function df4dx = df4dx(model, state, ~)
-            df4dx = zeros(1, model.numStates);
+            df4dx = zeros(1, model.numX);
 
             m = model.m;
             x7 = state(7);
@@ -44,7 +44,7 @@ classdef derivativesDroneIBHybrid
         end
 
         function df5dx = df5dx(model, state, ~)
-            df5dx = zeros(1, model.numStates);
+            df5dx = zeros(1, model.numX);
 
             m = model.m;
             x7 = state(7);
@@ -59,7 +59,7 @@ classdef derivativesDroneIBHybrid
         end
         
         function df6dx = df6dx(model, state, ~)
-            df6dx = zeros(1, model.numStates);
+            df6dx = zeros(1, model.numX);
 
             m = model.m;
             x7 = state(7);
@@ -72,7 +72,7 @@ classdef derivativesDroneIBHybrid
         end
 
         function df10dx = df10dx(model, state, ref)
-            df10dx = zeros(1, model.numStates);
+            df10dx = zeros(1, model.numX);
 
             refx = ref.x;
             refxdot = ref.x_dot;
@@ -98,12 +98,11 @@ classdef derivativesDroneIBHybrid
            df10dx(13)=lambda1*(c1 + c2) - c1*lambda1;
            df10dx(17)=- (m*(c9*lambda5 - lambda5*(c9 + c10))*(lambda1 - c1^2 + 1))/x19 - (c1*m*(c1 + c2)*(c9*lambda5 - lambda5*(c9 + c10)))/x19;
            df10dx(19)=- (m*(lambda1 - c1^2 + 1)*(refxddot + (c9 + c10)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)) + (refx - x1)*(lambda5 - c9^2 + 1) - c9*lambda5*x17))/x19^2 - (c1*m*(c1 + c2)*(refxddot + (c9 + c10)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)) + (refx - x1)*(lambda5 - c9^2 + 1) - c9*lambda5*x17))/x19^2;
-           df10dx(20)=c1 + c2;
-           df10dx(22)=1;
+           
         end
 
         function df11dx = df11dx(model, state, ref)
-            df11dx = zeros(1, model.numStates);
+            df11dx = zeros(1, model.numX);
 
             refy = ref.y;
             refydot = ref.y_dot;
@@ -129,13 +128,12 @@ classdef derivativesDroneIBHybrid
            df11dx(14)=lambda2*(c3 + c4) - c3*lambda2;
            df11dx(18)=(m*(c11*lambda6 - lambda6*(c11 + c12))*(lambda2 - c3^2 + 1))/x19 + (c3*m*(c3 + c4)*(c11*lambda6 - lambda6*(c11 + c12)))/x19;
            df11dx(19)=(m*(lambda2 - c3^2 + 1)*(refyddot + (c11 + c12)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)) + (refy - x2)*(lambda6 - c11^2 + 1) - c11*lambda6*x18))/x19^2 + (c3*m*(c3 + c4)*(refyddot + (c11 + c12)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)) + (refy - x2)*(lambda6 - c11^2 + 1) - c11*lambda6*x18))/x19^2;
-           df11dx(21)=c3 + c4;
-           df11dx(23)=1;
+           
             
         end
         
         function df12dx = df12dx(model, ~, ~)
-            df12dx = zeros(1, model.numStates);
+            df12dx = zeros(1, model.numX);
 
             c5 = model.c5;
             c6 = model.c6;
@@ -147,7 +145,7 @@ classdef derivativesDroneIBHybrid
         end
 
         function df13dx = df13dx(model, state, ref)
-            df13dx = zeros(1, model.numStates);
+            df13dx = zeros(1, model.numX);
 
             refx = ref.x;
             refxdot = ref.x_dot;
@@ -172,7 +170,7 @@ classdef derivativesDroneIBHybrid
         end
 
         function df14dx = df14dx(model, state, ref)
-            df14dx = zeros(1, model.numStates);
+            df14dx = zeros(1, model.numX);
 
             refy = ref.y;
             refydot = ref.y_dot;
@@ -196,7 +194,7 @@ classdef derivativesDroneIBHybrid
         end
         
         function df19dx = df19dx(model, state, ref)
-            df19dx = zeros(1, model.numStates);
+            df19dx = zeros(1, model.numX);
 
             refz = ref.z;
             refzdot = ref.z_dot;
@@ -226,9 +224,18 @@ classdef derivativesDroneIBHybrid
            df19dx(16)=(m*(c7*lambda4 - lambda4*(c7 + c8))*(x10*cos(x8)*sin(x7) + x11*cos(x7)*sin(x8)))/(4*cos(x7)^2*cos(x8)^2);
            df19dx(19)=- c7 - c8;
         end
+        
+        function dfdy = dfdy(model, ~, ~)
+            dfdy = zeros(model.numX, model.numY);
+            dfdy(10, 1)=model.c1 + model.c2;
+            dfdy(10, 3)=1;
 
+            dfdy(11, 2)=model.c3 + model.c4;
+            dfdy(11, 4)=1;
+        end
+        
         function dthetarefdx = dthetarefdx(model, state, ref)
-            dthetarefdx = zeros(1, model.numStates);
+            dthetarefdx = zeros(1, model.numX);
 
             refx = ref.x;
             refxdot = ref.x_dot;
@@ -252,7 +259,7 @@ classdef derivativesDroneIBHybrid
         end
 
         function dphirefdx = dphirefdx(model, state, ref)
-            dphirefdx = zeros(1, model.numStates);
+            dphirefdx = zeros(1, model.numX);
 
             refy = ref.y;
             refydot = ref.y_dot;
@@ -547,6 +554,8 @@ classdef derivativesDroneIBHybrid
             
         end
 
+       
+        
         function dthetarefdp = dthetarefdp(model, state, ref)
             dthetarefdp = zeros(1, model.numParams);
 

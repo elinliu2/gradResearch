@@ -6,8 +6,9 @@ classdef droneTrajectorySensitivitiesHybrid
             trajSens(:, :, 1) = model.initialdxdxo;
             I = eye(n);
             for i = 2:size(stateProgression,1)
-                dfdx_plus = model.dfdx(model, stateProgression(i, :), ref);
-                dfdx = model.dfdx(model, stateProgression(i-1, :), ref);
+                dfdx_plus = derivativesDroneIBHybrid.dfdx(model, stateProgression(i, :), ref);
+                dfdx = derivativesDroneIBHybrid.dfdx(model, stateProgression(i-1, :), ref);
+                dfdy = derivativesDroneIBHybrid.dfdy(model, stateProgression(i-1, :), ref);
 
                 dthetarefdx_plus = derivativesDroneIBHybrid.dthetarefdx(model, stateProgression(i, :), ref);
                 dthetarefdx = derivativesDroneIBHybrid.dthetarefdx(model, stateProgression(i-1, :), ref);
@@ -15,16 +16,17 @@ classdef droneTrajectorySensitivitiesHybrid
                 dphirefdx_plus = derivativesDroneIBHybrid.dphirefdx(model, stateProgression(i, :), ref);
                 dphirefdx = derivativesDroneIBHybrid.dphirefdx(model, stateProgression(i-1, :), ref);
 
-                df22dx = [zeros(1, 19) 1 0 0 0];
-                df23dx = [zeros(1, 20) 1 0 0];
+                dgdx_plus = [dthetarefdx_plus; dphirefdx_plus];
+                dgdx = [dthetarefdx; dphirefdx];
         
-                dFdx = [SC.T/2*(dfdx); -1/SC.T*[dthetarefdx; dphirefdx; df22dx; df23dx] ];
-                dFdx_plus = [SC.T/2*(dfdx_plus); 1/SC.T*[dthetarefdx_plus; dphirefdx_plus; df22dx; df23dx] ];
+                dxdzo = trajSens(1:model.numX, :, i-1);
+                dydzo = trajSens(model.numX+1:model.numX+model.numY, :, i-1);
 
-                dxdxo = trajSens(:, :, i-1);
-                a = [dxdxo(1:19, :); zeros(4, model.numStates)];
+                dxdzo_plus = (eye(model.numX) - SC.T/2*dfdx_plus)\(dxdzo + SC.T/2*(dfdx*dxdzo + 2*dfdy*dydzo));
+                dy12dzo_plus = 1/SC.T*(dgdx_plus*dxdzo_plus - dgdx*dxdzo);
+                dy34dzo_plus = 1/SC.T*(dy12dzo_plus - dydzo(1:2, :));
 
-                trajSens(:, :, i) =  (I-dFdx_plus)\(a + dFdx*dxdxo);
+                trajSens(:, :, i) =  [dxdzo_plus; dy12dzo_plus; dy34dzo_plus];
             end
         end
 
