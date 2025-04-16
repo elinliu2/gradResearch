@@ -88,13 +88,11 @@ classdef trajectorySensitivities
             delta = 1e-5;
             oldmodel = model;
             trajSensTestParams = zeros(model.numStates, model.numParams, numSteps);
-            for index = 1:model.numParams
-                model = model.nudgeParams(model, delta, index);
-                [~, state_index_plus] = trajectory(model, SC, initialState, false, ref);
-                model = oldmodel;
-                model = model.nudgeParams(model, -1*delta, index);
-                [~, state_index_minus] = trajectory(model, SC, initialState, false, ref);
-                model = oldmodel;
+            for index = 1:model.numStates+model.numParams
+                [model, state] = model.nudgeParams(oldmodel, initialState, delta, index);
+                [~, state_index_plus] = trajectory(model, SC, state, false, ref);
+                [model, state] = model.nudgeParams(oldmodel, initialState, -1*delta, index);
+                [~, state_index_minus] = trajectory(model, SC, state, false, ref);
                 trajSensTestParams(:, index, :) = transpose(state_index_plus-state_index_minus)/(2*delta);
             end
         end

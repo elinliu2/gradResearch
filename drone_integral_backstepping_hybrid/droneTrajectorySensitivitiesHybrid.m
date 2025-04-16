@@ -4,7 +4,6 @@ classdef droneTrajectorySensitivitiesHybrid
             n = model.numStates;
             trajSens = zeros(n, n, size(stateProgression, 1));
             trajSens(:, :, 1) = model.initialdxdxo;
-            I = eye(n);
             for i = 2:size(stateProgression,1)
                 dfdx_plus = derivativesDroneIBHybrid.dfdx(model, stateProgression(i, :), ref);
                 dfdx = derivativesDroneIBHybrid.dfdx(model, stateProgression(i-1, :), ref);
@@ -30,18 +29,19 @@ classdef droneTrajectorySensitivitiesHybrid
             end
         end
 
-        function trajSens = calculateTrajectorySensitivitiesParameters(model, SC, stateProgression, ref)
+        function trajSensParams = calculateTrajectorySensitivitiesParameters(model, SC, stateProgression, trajSens, ref)
             n = model.numStates;
             m = model.numParams;
-            trajSens = zeros(n, m, size(stateProgression, 1));
-            I = eye(n);
-            trajSens(:, :, 1) = 0;
+            trajSensParams = zeros(n, n+m, size(stateProgression, 1));
+            trajSensParams(:, :, 1) = 0;
+            trajSensParams(1:n, 1:n, 1) = eye(n);
             for i = 2:size(stateProgression, 1)
-                dfdx = model.dfdx(model, stateProgression(i-1, :), ref);
-                dfdx_plus = model.dfdx(model, stateProgression(i, :), ref);
+                dfdx = derivativesDroneIBHybrid.dfdx(model, stateProgression(i-1, :), ref);
+                dfdx_plus = derivativesDroneIBHybrid.dfdx(model, stateProgression(i, :), ref);
+                dfdy = derivativesDroneIBHybrid.dfdy(model, stateProgression(i-1, :), ref);
                 
-                dfdp = model.dfdp(model, stateProgression(i-1, :), ref);
-                dfdp_plus = model.dfdp(model, stateProgression(i, :), ref);
+                dfdp = derivativesDroneIBHybrid.dfdp(model, stateProgression(i-1, :), ref);
+                dfdp_plus = derivativesDroneIBHybrid.dfdp(model, stateProgression(i, :), ref);
 
                 dthetarefdx_plus = derivativesDroneIBHybrid.dthetarefdx(model, stateProgression(i, :), ref);
                 dthetarefdx = derivativesDroneIBHybrid.dthetarefdx(model, stateProgression(i-1, :), ref);
@@ -49,22 +49,26 @@ classdef droneTrajectorySensitivitiesHybrid
                 dphirefdx_plus = derivativesDroneIBHybrid.dphirefdx(model, stateProgression(i, :), ref);
                 dphirefdx = derivativesDroneIBHybrid.dphirefdx(model, stateProgression(i-1, :), ref);
 
+                dgdx_plus = [dthetarefdx_plus; dphirefdx_plus];
+                dgdx = [dthetarefdx; dphirefdx];
+
                 dthetarefdp_plus = derivativesDroneIBHybrid.dthetarefdp(model, stateProgression(i, :), ref);
                 dthetarefdp = derivativesDroneIBHybrid.dthetarefdp(model, stateProgression(i-1, :), ref);
 
                 dphirefdp_plus = derivativesDroneIBHybrid.dphirefdp(model, stateProgression(i, :), ref);
                 dphirefdp = derivativesDroneIBHybrid.dphirefdp(model, stateProgression(i-1, :), ref);
 
-                dFdp = [SC.T/2*dfdx; -1/SC.T*dthetarefdx; -1/SC.T*dphirefdx; zeros(2, model.numStates)];
-                dFdp_plus = [SC.T/2*dfdx_plus; 1/SC.T*dthetarefdx_plus; 1/SC.T*dphirefdx_plus; zeros(2, model.numStates)];
-                
-                dxdp = trajSens(:, :, i-1);
-                a = [SC.T/2 * (dfdp + dfdp_plus) + dxdp(1:19, :); 
-                    1/SC.T*(dthetarefdp_plus-dthetarefdp); 
-                    1/SC.T*(dphirefdp_plus-dphirefdp);
-                    zeros(2, model.numParams)];
+                dgdp_plus = [dthetarefdp_plus; dphirefdp_plus];
+                dgdp = [dthetarefdp; dphirefdp];
 
-                trajSens(:, :, i) =  (I-dFdp_plus)\(a + dFdp*dxdp);
+                dxdp = trajSensParams(1:model.numX, n+1:n+m, i-1);
+                dydp = trajSensParams(model.numX+1:model.numX+model.numY, n+1:n+m, i-1);
+
+                dxdp_plus = (eye(model.numX) - SC.T/2*dfdx_plus)\(dxdp + SC.T/2*(dfdx*dxdp + 2*dfdy*dydp + dfdp_plus + dfdp));
+                dy12dp_plus = 1/SC.T*(dgdx_plus*dxdp_plus + dgdp_plus - dgdx*dxdp - dgdp);
+                dy34dp_plus = 1/SC.T*(dy12dp_plus - dydp(1:2, :));
+
+                trajSensParams(:, :, i) =  [ trajSens(:, :, i) [dxdp_plus; dy12dp_plus; dy34dp_plus]];
             end
         end
         

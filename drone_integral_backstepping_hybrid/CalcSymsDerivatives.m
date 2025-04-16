@@ -68,27 +68,27 @@ f19 = U_zdot;
 
   func = [f1; f2; f3; f4; f5; f6; f7; f8; f9; f10; f11; f12; f13; f14; f15; f16; f17; f18; f19; theta_ref; phi_ref];
   vars = [x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16 x17 x18 x19 x20 x21 x22 x23];
-  params = [x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16 x17 x18 x19 x20 x21 x22 x23 c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 c11 c12 lambda1 lambda2 lambda3 lambda4 lambda5 lambda6];
+  params = [c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 c11 c12 lambda1 lambda2 lambda3 lambda4 lambda5 lambda6];
 
 filename = "C:\Users\elinl\OneDrive - University of Waterloo\research\derivatives.txt";
 
-for i = 1:23
-    derivative = diff(phi_ref, vars(i));
-    if(derivative ~= 0)
-        disp(strcat("           dphirefdx(", string(i) ,")=", string(derivative),";"))
-        % lines = strcat("           df24dx(", string(i) ,")=", string(derivative),";");
-        % writelines(lines,filename,WriteMode="append")
-    end
-end
- 
-% for i = 1:41
-%     derivative = diff(phi_ref, params(i));
+% for i = 1:23
+%     derivative = diff(phi_ref, vars(i));
 %     if(derivative ~= 0)
-%         disp(strcat("           dphirefdp(", string(i) ,")=", string(derivative),";"))
-%         % lines = strcat("           df1dp(", string(i) ,")=", string(derivative),";");
+%         disp(strcat("           dphirefdx(", string(i) ,")=", string(derivative),";"))
+%         % lines = strcat("           df24dx(", string(i) ,")=", string(derivative),";");
 %         % writelines(lines,filename,WriteMode="append")
 %     end
 % end
+ 
+for i = 1:18
+    derivative = diff(phi_ref, params(i));
+    if(derivative ~= 0)
+        disp(strcat("           dphirefdp(", string(i) ,")=", string(derivative),";"))
+        % lines = strcat("           df1dp(", string(i) ,")=", string(derivative),";");
+        % writelines(lines,filename,WriteMode="append")
+    end
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% calc d2fdx2
 

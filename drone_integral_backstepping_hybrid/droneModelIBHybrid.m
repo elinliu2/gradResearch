@@ -91,7 +91,7 @@ classdef droneModelIBHybrid
             obj.numX = 19;
             obj.numY = 4;
             obj.numStates = obj.numX + obj.numY;
-            obj.numParams = 41;
+            obj.numParams = 18;
             obj.initialdxdxo = eye(obj.numStates);
     
             obj.disturbanceSignal = @DroneControllers.dummyD;
