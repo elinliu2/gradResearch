@@ -72,70 +72,84 @@ classdef droneTrajectorySensitivitiesHybrid
             end
         end
         
-        function d2TrajSens = calculateSecondOrderTrajectorySensitivitiesParams(model, SC, stateProgression, dxdxo_list, dxdp_list, ref)
+        function d2TrajSens = calculateSecondOrderTrajectorySensitivitiesParams(model, SC, stateProgression, dzdzo_list, dzdq_list, secondTrajSensTestParam, ref)
+            numX = model.numX;
+            numY = model.numY;
             n = model.numStates;
             m = model.numParams;
-            d2TrajSens = zeros(n, n, m, size(stateProgression, 1));
-            I = eye(n);
+            d2TrajSens = zeros(n, n, n+m, size(stateProgression, 1));
 
             for i = 2:size(stateProgression, 1)
-                dxdp = dxdp_list(:, :, i-1);
-                dxdx0 = dxdxo_list(:, :, i-1);
-                dxdp_plus = dxdp_list(:, :, i);
-                dxdx0_plus = dxdxo_list(:, :, i);
-
-                d2fdx2 = model.d2fdx2(model, stateProgression(i-1, :), ref);
-                d2fdxdp = model.d2fdxdp(model, stateProgression(i-1, :), ref);
-                dfdx = model.dfdx(model, stateProgression(i-1, :), ref);
-
-                d2fdx2_plus = model.d2fdx2(model, stateProgression(i, :), ref);
-                d2fdxdp_plus = model.d2fdxdp(model, stateProgression(i, :), ref);
-                dfdx_plus = model.dfdx(model, stateProgression(i, :), ref);
+                dxdzo =      dzdzo_list(1:numX, :,       i-1);
+                dxdp =       dzdq_list( 1:numX, n+1:n+m, i-1);
+                dxdzo_plus = dzdzo_list(1:numX, :,       i);
+                dxdp_plus =  dzdq_list( 1:numX, n+1:n+m, i);
+                dydzo =      dzdzo_list(numX+1:n, :,       i-1);
                 
-                b1 = conts({d2fdx2, dxdp, dxdx0}, {[3 1],[2 1]}, []);
-                c1 = conts({d2fdxdp, dxdx0}, {[2 1]}, []);
-                d1 = conts({d2fdx2_plus, dxdp_plus, dxdx0_plus}, {[3 1],[2 1]}, []);
-                e1 = conts({d2fdxdp_plus, dxdx0_plus}, {[2 1]}, []);
+                d2xdzo2  =  d2TrajSens(1:numX,   1:n, 1:n,     i-1);
+                d2ydzo2  =  d2TrajSens(numX+1:n, 1:n, 1:n,     i-1);
+                d2y12dzo2 = d2ydzo2(1:2, :, :);
+                d2xdzodp =  d2TrajSens(1:numX,   1:n, n+1:n+m, i-1);
+                d2ydzodp =  d2TrajSens(numX+1:n, 1:n, n+1:n+m, i-1);
+
+                d2fdx2 = derivativesDroneIBHybrid.d2fdx2(model, stateProgression(i-1, :), ref);
+                dfdx = derivativesDroneIBHybrid.dfdx(model, stateProgression(i-1, :), ref);
                 
-                d2thetarefdx2 = derivativesDroneIBHybrid.d2thetarefdx2(model, stateProgression(i-1, :), ref);
-                d2thetarefdxdp = derivativesDroneIBHybrid.d2thetarefdxdp(model, stateProgression(i-1, :), ref);
-                dthetarefdx = derivativesDroneIBHybrid.dthetarefdx(model, stateProgression(i-1, :), ref);
-             
-                d2thetarefdx2_plus = derivativesDroneIBHybrid.d2thetarefdx2(model, stateProgression(i, :), ref);
-                d2thetarefdxdp_plus = derivativesDroneIBHybrid.d2thetarefdxdp(model, stateProgression(i, :), ref);
+                d2fdy2 = derivativesDroneIBHybrid.d2fdy2(model, stateProgression(i-1, :), ref);
+                dfdy = derivativesDroneIBHybrid.dfdy(model, stateProgression(i-1, :), ref);
+
+                d2fdx2_plus = derivativesDroneIBHybrid.d2fdx2(model, stateProgression(i, :), ref);
+                dfdx_plus = derivativesDroneIBHybrid.dfdx(model, stateProgression(i, :), ref);
+               
+                a1 = conts({d2fdx2_plus, dxdzo_plus, dxdzo_plus}, {[2 1], [3 1]}, []);
+                b1 = conts({d2fdx2, dxdzo, dxdzo}, {[2 1], [3 1]}, []);
+                c1 = conts({dfdx, d2xdzo2}, {[2 1]}, []);
+                d1 = conts({d2fdy2, dydzo, dydzo}, {[2 1], [3 1]}, []);
+                e1 = conts({dfdy, d2ydzo2}, {[2 1]}, []);
+                f1 = d2xdzo2 + SC.T/2*(a1 + b1 + c1 + 2 * (d1 + e1));
+                d2xdzo2_plus = conts({inv(eye(numX) - dfdx_plus), f1}, {[2 1]}, []);
+
                 dthetarefdx_plus = derivativesDroneIBHybrid.dthetarefdx(model, stateProgression(i, :), ref);
+                dthetarefdx = derivativesDroneIBHybrid.dthetarefdx(model, stateProgression(i-1, :), ref);
 
-                b2 = conts({d2thetarefdx2, dxdp, dxdx0}, {[2 1],[1 1]}, []);
-                c2 = conts({d2thetarefdxdp, dxdx0}, {[1 1]}, []);
-                d2 = conts({d2thetarefdx2_plus, dxdp_plus, dxdx0_plus}, {[2 1],[1 1]}, []);
-                e2 = conts({d2thetarefdxdp_plus, dxdx0_plus}, {[1 1]}, []);
-
-                d2phirefdx2 = derivativesDroneIBHybrid.d2phirefdx2(model, stateProgression(i-1, :), ref);
-                d2phirefdxdp = derivativesDroneIBHybrid.d2phirefdxdp(model, stateProgression(i-1, :), ref);
+                dphirefdx_plus = derivativesDroneIBHybrid.dphirefdx(model, stateProgression(i, :), ref);
                 dphirefdx = derivativesDroneIBHybrid.dphirefdx(model, stateProgression(i-1, :), ref);
 
+                dgdx_plus = [dthetarefdx_plus; dphirefdx_plus];
+                dgdx = [dthetarefdx; dphirefdx];
+
+                d2thetarefdx2_plus = derivativesDroneIBHybrid.d2thetarefdx2(model, stateProgression(i, :), ref);
+                d2thetarefdx2 = derivativesDroneIBHybrid.d2thetarefdx2(model, stateProgression(i-1, :), ref);
+
                 d2phirefdx2_plus = derivativesDroneIBHybrid.d2phirefdx2(model, stateProgression(i, :), ref);
-                d2phirefdxdp_plus = derivativesDroneIBHybrid.d2phirefdxdp(model, stateProgression(i, :), ref);
-                dphirefdx_plus = derivativesDroneIBHybrid.dphirefdx(model, stateProgression(i, :), ref);
+                d2phirefdx2 = derivativesDroneIBHybrid.d2phirefdx2(model, stateProgression(i-1, :), ref);
 
-                b3 = conts({d2phirefdx2, dxdp, dxdx0}, {[2 1],[1 1]}, []);
-                c3 = conts({d2phirefdxdp, dxdx0}, {[1 1]}, []);
-                d3 = conts({d2phirefdx2_plus, dxdp_plus, dxdx0_plus}, {[2 1],[1 1]}, []);
-                e3 = conts({d2phirefdxdp_plus, dxdx0_plus}, {[1 1]}, []);
+                d2gdx2_plus = zeros(2, numX, numX);
+                d2gdx2_plus(1, :, :) = d2thetarefdx2_plus; 
+                d2gdx2_plus(2, :, :) = d2phirefdx2_plus;
+                d2gdx2 = zeros(2, numX, numX);
+                d2gdx2(1, :, :) = d2thetarefdx2; 
+                d2gdx2(2, :, :) = d2phirefdx2;
 
-                d2xdxodp = d2TrajSens(:, :, :, i-1);
+                % d2xdzo2_plus_test = secondTrajSensTestParam(1:19, 1:23, 1:23, i);
+                % d2xdzo2_test = secondTrajSensTestParam(1:19, 1:23, 1:23, i-1);
                 
-                a = zeros(model.numStates, model.numStates, model.numParams);
-                a(1:19, :, :) = SC.T/2*(b1 + c1 + d1 + e1);
-                a(20, :, :) = 1/SC.T*(d2 + e2 - b2 - c2);
-                a(21, :, :) = 1/SC.T*(d3 + e3 - b3 - c3);
-                a(22:23, :, :) = zeros(2, model.numStates, model.numParams);
+                a2 = conts({d2gdx2_plus, dxdzo_plus, dxdzo_plus}, {[2 1], [3 1]}, []);
+                b2 = conts({dgdx_plus, d2xdzo2_plus}, {[2 1]}, []);
+                c2 = conts({d2gdx2, dxdzo, dxdzo}, {[2 1], [3 1]}, []);
+                d2 = conts({dgdx, d2xdzo2}, {[2 1]}, []);
+                d2y12dzo2_plus = 1/SC.T*(a2 + b2 - c2 - d2);
+                d2y34dzo2_plus = 1/SC.T*(d2y12dzo2_plus - d2y12dzo2);
 
-                f = [SC.T/2*dfdx; -1/SC.T*dthetarefdx; -1/SC.T*dphirefdx; zeros(2, model.numStates) ];
-                g = [SC.T/2*dfdx_plus; 1/SC.T*dthetarefdx_plus; 1/SC.T*dphirefdx_plus; zeros(2, model.numStates) ];
+                d2ydzo2_plus = [d2y12dzo2_plus; d2y34dzo2_plus];
 
-                h = conts({f, d2xdxodp}, {[2 1]}, []);
-                d2TrajSens(:, :, :, i) = conts({inv(I - g), (a+h)}, {[2 1]}, []);
+                d2xdzodp_plus = zeros(numX, n, m);
+                d2ydzodp_plus = zeros(numY, n, m);
+
+                d2TrajSens(1:numX,   1:n, 1:n,     i)   = d2xdzo2_plus;
+                d2TrajSens(1:numX,   1:n, n+1:n+m, i) = d2xdzodp_plus;
+                d2TrajSens(numX+1:n, 1:n, 1:n,     i) = d2ydzo2_plus;
+                d2TrajSens(numX+1:n, 1:n, n+1:n+m, i) = d2ydzodp_plus;
             end
         end
     end

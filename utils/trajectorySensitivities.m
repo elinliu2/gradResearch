@@ -99,45 +99,39 @@ classdef trajectorySensitivities
         
         function secondTrajSensTest = calculateSecondOrderTrajectorySensitivitiesTest(model, SC, initialState, numSteps)
             delta = 1e-5;
-            tjs = trajectorySensitivities;
-
             secondTrajSensTest = zeros(model.numStates, model.numStates, model.numStates, numSteps);
-
-            fns = fieldnames(initialState);
-
-            for index = 1:model.numParams
-                state = initialState;
-                state.(fns{index}) = initialState.(fns{index}) + delta;
-                [~, state_index_plus] = trajectory(model, SC, state, false);
-                trajSens_plus = tjs.calculateTrajectorySensitivities(state_index_plus, model);
-            
-                state.(fns{index}) = initialState.(fns{index}) - delta;
-                [~, state_index_minus]  = trajectory(model, SC, state, false);
-                trajSens_minus = tjs.calculateTrajectorySensitivities(state_index_minus, model);
-                
-                trajSens1 = (trajSens_plus - trajSens_minus)/(2*delta);
-                secondTrajSensTest(:, :, index, :) = trajSens1;
-            end 
-        end
-
-        function secondTrajSensTest = calculateSecondOrderTrajectorySensitivitiesTestParams(model, SC, initialState, numSteps, ref)
-            delta = 1e-5;
-            secondTrajSensTest = zeros(model.numStates, model.numStates, model.numParams, numSteps);
             oldmodel = model;
-            for index = 1:model.numParams
-                model = model.nudgeParams(model, delta, index);
-                [~, state_index_plus] = trajectory(model, SC, initialState, false, ref);
+            for index = 1:model.numStates
+                [model, state] = model.nudgeParams(oldmodel, initialState, delta, index);
+                [~, state_index_plus] = trajectory(model, SC, state, false, ref);
                 trajSens_plus = droneTrajectorySensitivitiesHybrid.calculateTrajectorySensitivities(model, SC, state_index_plus, ref);
-                model = oldmodel;
-
-                model = model.nudgeParams(model, -1*delta, index);
-                [~, state_index_minus] = trajectory(model, SC, initialState, false, ref);
+               
+                [model, state] = model.nudgeParams(oldmodel, initialState, -1*delta, index);
+                [~, state_index_minus] = trajectory(model, SC, state, false, ref);
                 trajSens_minus = droneTrajectorySensitivitiesHybrid.calculateTrajectorySensitivities(model, SC, state_index_minus, ref);
-                model = oldmodel;
 
                 dtrajSens = (trajSens_plus - trajSens_minus)/(2*delta);
 
                 secondTrajSensTest(:, :, index, :) = dtrajSens;
+            end
+        end
+
+        function secondTrajSensTestParams = calculateSecondOrderTrajectorySensitivitiesTestParams(model, SC, initialState, numSteps, ref)
+            delta = 1e-5;
+            secondTrajSensTestParams = zeros(model.numStates, model.numStates, model.numStates + model.numParams, numSteps);
+            oldmodel = model;
+            for index = 1:model.numStates + model.numParams
+                [model, state] = model.nudgeParams(oldmodel, initialState, delta, index);
+                [~, state_index_plus] = trajectory(model, SC, state, false, ref);
+                trajSens_plus = droneTrajectorySensitivitiesHybrid.calculateTrajectorySensitivities(model, SC, state_index_plus, ref);
+               
+                [model, state] = model.nudgeParams(oldmodel, initialState, -1*delta, index);
+                [~, state_index_minus] = trajectory(model, SC, state, false, ref);
+                trajSens_minus = droneTrajectorySensitivitiesHybrid.calculateTrajectorySensitivities(model, SC, state_index_minus, ref);
+
+                dtrajSens = (trajSens_plus - trajSens_minus)/(2*delta);
+
+                secondTrajSensTestParams(:, :, index, :) = dtrajSens;
             end
         end
         

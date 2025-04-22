@@ -14,7 +14,6 @@ U_z = x19;
 e9 = refx - x1;
 e10 = c9*e9 + refxdot + lambda5*x17 - x4;
 theta_ref = m/U_z*((1-c9^2  + lambda5)*e9 + (c9 +c10)*e10 + refxddot - c9*lambda5*x17);
-
 e11 = refy - x2;
 e12 = c11*e11 + refydot + lambda6*x18 - x5;
 phi_ref =   m/U_z*( -(1-c11^2 + lambda6)*e11 - (c11+c12)*e12 - refyddot + c11*lambda6*x18);
@@ -70,25 +69,26 @@ f19 = U_zdot;
   vars = [x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16 x17 x18 x19 x20 x21 x22 x23];
   params = [c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 c11 c12 lambda1 lambda2 lambda3 lambda4 lambda5 lambda6];
 
+  
 filename = "C:\Users\elinl\OneDrive - University of Waterloo\research\derivatives.txt";
 
 % for i = 1:23
-%     derivative = diff(phi_ref, vars(i));
+%     derivative = diff(theta_ref, vars(i));
 %     if(derivative ~= 0)
-%         disp(strcat("           dphirefdx(", string(i) ,")=", string(derivative),";"))
+%         disp(strcat("           dthetarefdx(", string(i) ,")=", string(derivative),";"))
 %         % lines = strcat("           df24dx(", string(i) ,")=", string(derivative),";");
 %         % writelines(lines,filename,WriteMode="append")
 %     end
 % end
  
-for i = 1:18
-    derivative = diff(phi_ref, params(i));
-    if(derivative ~= 0)
-        disp(strcat("           dphirefdp(", string(i) ,")=", string(derivative),";"))
-        % lines = strcat("           df1dp(", string(i) ,")=", string(derivative),";");
-        % writelines(lines,filename,WriteMode="append")
-    end
-end
+% for i = 1:18
+%     derivative = diff(phi_ref, params(i));
+%     if(derivative ~= 0)
+%         disp(strcat("           dphirefdp(", string(i) ,")=", string(derivative),";"))
+%         % lines = strcat("           df1dp(", string(i) ,")=", string(derivative),";");
+%         % writelines(lines,filename,WriteMode="append")
+%     end
+% end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% calc d2fdx2
 
@@ -173,44 +173,44 @@ end
 % dfunc = [df19dx_3 df19dx_6 df19dx_7 df19dx_8 df19dx_10 df19dx_11 df19dx_16 df19dx_19];
 % dfunc_indicies = [3;6;7;8;10;11;16;19];
 
-% dthetarefdx_1=-(m*(lambda5 - c9^2 + c9*(c9 + c10) + 1))/x19;
-% dthetarefdx_4=-(m*(c9 + c10))/x19;
-% dthetarefdx_17=-(m*(c9*lambda5 - lambda5*(c9 + c10)))/x19;
-% dthetarefdx_19=-(m*(refxddot + (c9 + c10)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)) + (refx - x1)*(lambda5 - c9^2 + 1) - c9*lambda5*x17))/x19^2;
+dthetarefdx_1=-(m*(lambda5 - c9^2 + c9*(c9 + c10) + 1))/x19;
+dthetarefdx_4=-(m*(c9 + c10))/x19;
+dthetarefdx_17=-(m*(c9*lambda5 - lambda5*(c9 + c10)))/x19;
+dthetarefdx_19=-(m*(refxddot + (c9 + c10)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)) + (refx - x1)*(lambda5 - c9^2 + 1) - c9*lambda5*x17))/x19^2;
+
+dfunc = [dthetarefdx_1 dthetarefdx_4 dthetarefdx_17 dthetarefdx_19 ];
+dfunc_indicies = [1;4;17;19];
+
+% dphirefdx_2=(m*(lambda6 - c11^2 + c11*(c11 + c12) + 1))/x19;
+% dphirefdx_5=(m*(c11 + c12))/x19;
+% dphirefdx_18=(m*(c11*lambda6 - lambda6*(c11 + c12)))/x19;
+% dphirefdx_19=(m*(refyddot + (c11 + c12)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)) + (refy - x2)*(lambda6 - c11^2 + 1) - c11*lambda6*x18))/x19^2;
 % 
-% dfunc = [dthetarefdx_1 dthetarefdx_4 dthetarefdx_17 dthetarefdx_19 ];
-% dfunc_indicies = [1;4;17;19];
+% dfunc = [dphirefdx_2 dphirefdx_5 dphirefdx_18 dphirefdx_19 ];
+% dfunc_indicies = [2; 5; 18; 19];
 
-dphirefdx_2=(m*(lambda6 - c11^2 + c11*(c11 + c12) + 1))/x19;
-dphirefdx_5=(m*(c11 + c12))/x19;
-dphirefdx_18=(m*(c11*lambda6 - lambda6*(c11 + c12)))/x19;
-dphirefdx_19=(m*(refyddot + (c11 + c12)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)) + (refy - x2)*(lambda6 - c11^2 + 1) - c11*lambda6*x18))/x19^2;
 
-dfunc = [dphirefdx_2 dphirefdx_5 dphirefdx_18 dphirefdx_19 ];
-dfunc_indicies = [2; 5; 18; 19];
+for i = 1:length(dfunc_indicies)
+    index = dfunc_indicies(i);
+    for j = 1:19
+        derivative = diff(dfunc(i), vars(j));
+        if(derivative ~= 0)
+            disp(strcat("           d2thetarefdx2(", num2str(index), ",", num2str(j), ")=", string(derivative),";"));
+        end
+    end
+end
 
 
 % for i = 1:length(dfunc_indicies)
 %     index = dfunc_indicies(i);
-%     for j = 1:23
-%         derivative = diff(dfunc(i), vars(j));
-%         if(derivative ~= 0)
-%             disp(strcat("           d2phirefdx2(", num2str(index), ",", num2str(j), ")=", string(derivative),";"));
-%         end
-%     end
-% end
-
-% 
-% for i = 1:length(dfunc_indicies)
-%     index = dfunc_indicies(i);
-%     for j = 1:41
+%     for j = 1:18
 %         derivative = diff(dfunc(i), params(j));
 %         if(derivative ~= 0)
 %             disp(strcat("           d2phirefdxdp(", num2str(index), ",", num2str(j), ")=", string(derivative),";"))
 %         end
 %     end
 % end
-% 
+
 
 
 

@@ -7,7 +7,7 @@ tjs = trajectorySensitivities;
 
 % Sim Constants
 SC.T = 1e-3;
-SC.t_final = 5e-3;
+SC.t_final = 2e-3;
 SC.start = -pi/2;
 SC.stop = pi/2;
 SC.step = 0.1;
@@ -112,24 +112,19 @@ initialState(19) = U_z;
 trajSens = droneTrajectorySensitivitiesHybrid.calculateTrajectorySensitivities(drone, SC, stateProgression, ref);
 trajSensTest = tjs.calculateTrajectorySensitivitiesTest(drone, SC, initialState, size(stateProgression, 1), ref);
 disp("traj sens diff")
-disp(norms.supremum(trajSens-trajSensTest));
+disp(norms.supremum(abs(trajSens-trajSensTest)));
 
 trajSensParam = droneTrajectorySensitivitiesHybrid.calculateTrajectorySensitivitiesParameters(drone, SC, stateProgression, trajSens, ref);
 trajSensTestParam = tjs.calculateTrajectorySensitivitiesTestParams(drone, SC, initialState, size(stateProgression, 1), ref);
 disp("traj sens param diff")
-disp(norms.supremum(trajSensParam-trajSensTestParam));
+disp(norms.supremum(abs(trajSensParam-trajSensTestParam)));
 
-secondTrajSensParam = droneTrajectorySensitivitiesHybrid.calculateSecondOrderTrajectorySensitivitiesParams(drone, SC, stateProgression, trajSens, trajSensParam, ref);
 secondTrajSensTestParam = tjs.calculateSecondOrderTrajectorySensitivitiesTestParams(drone, SC, initialState, size(stateProgression, 1), ref);
-disp("2nd traj sens param diff")
-disp(norms.secondOrderMax(secondTrajSensParam-secondTrajSensTestParam));
-second_param_diff = abs(secondTrajSensParam(1:19, :, :, 3:length(time))-secondTrajSensTestParam(1:19, :, :, 3:length(time)));
-disp("2nd traj sens param diff starting from 3rd timestep")
-disp(norms.secondOrderMax(second_param_diff));
-disp("inf norm of diff starting from 3rd timestep")
-disp(max(second_param_diff,[],"all"));
-disp("timestep")
-disp(tjs.findMaxTime(second_param_diff));
+secondTrajSensParam = droneTrajectorySensitivitiesHybrid.calculateSecondOrderTrajectorySensitivitiesParams(drone, SC, stateProgression, trajSens, trajSensParam, secondTrajSensTestParam, ref);
+disp("2nd traj sens param diff 1-19")
+disp(norms.secondOrderMax(abs(secondTrajSensParam(1:19,1:23,1:23,2)-secondTrajSensTestParam(1:19,1:23,1:23,2))));
+disp("2nd traj sens param diff 20-23")
+disp(norms.secondOrderMax(abs(secondTrajSensParam(20:23,1:23,1:23,2)-secondTrajSensTestParam(20:23,1:23,1:23,2))));
 
 % splotting.trajectoryPlot3d(time, stateProgression(:, 1), stateProgression(:, 2), stateProgression(:, 3), 1, "State Progression");
 

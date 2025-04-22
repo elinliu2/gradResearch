@@ -497,7 +497,7 @@ classdef derivativesDroneIBHybrid
         end
         
         function d2fdx2 = d2fdx2(model, state, ref)
-            d2fdx2 = zeros(19, model.numStates, model.numStates);
+            d2fdx2 = zeros(model.numX, model.numX, model.numX);
 
             d2fdx2(4, :, :) = derivativesDroneIBHybrid.d2f4dx2(model, state, ref);
             d2fdx2(5, :, :) = derivativesDroneIBHybrid.d2f5dx2(model, state, ref);
@@ -512,8 +512,17 @@ classdef derivativesDroneIBHybrid
 
         end
 
+        function d2fdy2 = d2fdy2(model, ~, ~)
+            d2fdy2 = zeros(model.numX, model.numY, model.numY);
+            d2fdy2(10, 1, 1)=1;
+            d2fdy2(10, 1, 2)=1;
+       
+            d2fdy2(11, 2, 3)=1;
+            d2fdy2(11, 2, 4)=1;
+        end
+
         function d2f4dx2 = d2f4dx2(model, state, ~)
-            d2f4dx2 = zeros(model.numStates, model.numStates);
+            d2f4dx2 = zeros(model.numX, model.numX);
 
             x7 = state(7);
             x8 = state(8);
@@ -541,7 +550,7 @@ classdef derivativesDroneIBHybrid
         end
 
         function d2f5dx2 = d2f5dx2(model, state, ~)
-            d2f5dx2 = zeros(model.numStates, model.numStates);
+            d2f5dx2 = zeros(model.numX, model.numX);
 
             x7 = state(7);
             x8 = state(8);
@@ -569,7 +578,7 @@ classdef derivativesDroneIBHybrid
         end
         
         function d2f6dx2 = d2f6dx2(model, state, ~)
-            d2f6dx2 = zeros(model.numStates, model.numStates);
+            d2f6dx2 = zeros(model.numX, model.numX);
 
             x7 = state(7);
             x8 = state(8);
@@ -589,7 +598,7 @@ classdef derivativesDroneIBHybrid
         end
         
         function d2f10dx2 = d2f10dx2(model, state, ref)
-            d2f10dx2 = zeros(model.numStates, model.numStates);
+            d2f10dx2 = zeros(model.numX, model.numX);
 
             refx = ref.x;
             refxdot = ref.x_dot;
@@ -616,11 +625,10 @@ classdef derivativesDroneIBHybrid
            d2f10dx2(19,17)=(m*(c9*lambda5 - lambda5*(c9 + c10))*(lambda1 - c1^2 + 1))/x19^2 + (c1*m*(c1 + c2)*(c9*lambda5 - lambda5*(c9 + c10)))/x19^2;
            d2f10dx2(19,19)=(2*m*(lambda1 - c1^2 + 1)*(refxddot + (c9 + c10)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)) + (refx - x1)*(lambda5 - c9^2 + 1) - c9*lambda5*x17))/x19^3 + (2*c1*m*(c1 + c2)*(refxddot + (c9 + c10)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)) + (refx - x1)*(lambda5 - c9^2 + 1) - c9*lambda5*x17))/x19^3;
 
-
         end
 
         function d2f11dx2 = d2f11dx2(model, state, ref)
-            d2f11dx2 = zeros(model.numStates, model.numStates);
+            d2f11dx2 = zeros(model.numX, model.numX);
 
             refy = ref.y;
             refydot = ref.y_dot;
@@ -650,7 +658,7 @@ classdef derivativesDroneIBHybrid
         end
 
         function d2f13dx2 = d2f13dx2(model, state, ref)
-            d2f13dx2 = zeros(model.numStates, model.numStates);
+            d2f13dx2 = zeros(model.numX, model.numX);
 
             refx = ref.x;
             refxdot = ref.x_dot;
@@ -677,7 +685,7 @@ classdef derivativesDroneIBHybrid
         end
 
         function d2f14dx2 = d2f14dx2(model, state, ref)
-            d2f14dx2 = zeros(model.numStates, model.numStates);
+            d2f14dx2 = zeros(model.numX, model.numX);
 
             refy = ref.y;
             refydot = ref.y_dot;
@@ -704,7 +712,7 @@ classdef derivativesDroneIBHybrid
         end
 
         function d2f19dx2 = d2f19dx2(model, state, ref)
-            d2f19dx2 = zeros(model.numStates, model.numStates);
+            d2f19dx2 = zeros(model.numX, model.numX);
 
             refz = ref.z;
             refzdot = ref.z_dot;
@@ -765,7 +773,7 @@ classdef derivativesDroneIBHybrid
         end
 
         function d2thetarefdx2 = d2thetarefdx2(model, state, ref)
-            d2thetarefdx2 = zeros(model.numStates, model.numStates);
+            d2thetarefdx2 = zeros(model.numX, model.numX);
 
             refx = ref.x;
             refxdot = ref.x_dot;
@@ -789,11 +797,10 @@ classdef derivativesDroneIBHybrid
            d2thetarefdx2(19,4)=(m*(c9 + c10))/x19^2;
            d2thetarefdx2(19,17)=(m*(c9*lambda5 - lambda5*(c9 + c10)))/x19^2;
            d2thetarefdx2(19,19)=(2*m*(refxddot + (c9 + c10)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)) + (refx - x1)*(lambda5 - c9^2 + 1) - c9*lambda5*x17))/x19^3;
-
         end
 
         function d2phirefdx2 = d2phirefdx2(model, state, ref)
-            d2phirefdx2 = zeros(model.numStates, model.numStates);
+            d2phirefdx2 = zeros(model.numX, model.numX);
 
             refy = ref.y;
             refydot = ref.y_dot;
@@ -819,11 +826,7 @@ classdef derivativesDroneIBHybrid
         end
         
         function d2fdxdp = d2fdxdp(model, state, ref)
-            d2fdxdp = zeros(19, model.numStates, model.numParams);
-
-            d2fdxdp(4, :, :) = derivativesDroneIBHybrid.d2f4dxdp(model, state, ref);
-            d2fdxdp(5, :, :) = derivativesDroneIBHybrid.d2f5dxdp(model, state, ref);
-            d2fdxdp(6, :, :) = derivativesDroneIBHybrid.d2f6dxdp(model, state, ref);
+            d2fdxdp = zeros(model.numX, model.numStates, model.numParams);
 
             d2fdxdp(10, :, :) = derivativesDroneIBHybrid.d2f10dxdp(model, state, ref);
             d2fdxdp(11, :, :) = derivativesDroneIBHybrid.d2f11dxdp(model, state, ref);
@@ -832,82 +835,6 @@ classdef derivativesDroneIBHybrid
             d2fdxdp(13, :, :) = derivativesDroneIBHybrid.d2f13dxdp(model, state, ref);
             d2fdxdp(14, :, :) = derivativesDroneIBHybrid.d2f14dxdp(model, state, ref);
             d2fdxdp(19, :, :) = derivativesDroneIBHybrid.d2f19dxdp(model, state, ref);
-
-        end
-
-        function d2f4dxdp = d2f4dxdp(model, state, ~)
-            d2f4dxdp = zeros(model.numStates, model.numParams);
-
-            x7 = state(7);
-            x8 = state(8);
-            x9 = state(9);
-            x19 = state(19);
-
-            m = model.m;
-
-            d2f4dxdp(7,7)=-(4*x19*cos(x8)*cos(x9)*sin(x7))/m;
-           d2f4dxdp(7,8)=-(4*x19*cos(x7)*cos(x9)*sin(x8))/m;
-           d2f4dxdp(7,9)=-(4*x19*cos(x7)*cos(x8)*sin(x9))/m;
-           d2f4dxdp(7,19)=(4*cos(x7)*cos(x8)*cos(x9))/m;
-           d2f4dxdp(8,7)=-(4*x19*cos(x7)*cos(x9)*sin(x8))/m;
-           d2f4dxdp(8,8)=-(4*x19*(sin(x8)*sin(x9) + cos(x8)*cos(x9)*sin(x7)))/m;
-           d2f4dxdp(8,9)=(4*x19*(cos(x8)*cos(x9) + sin(x7)*sin(x8)*sin(x9)))/m;
-           d2f4dxdp(8,19)=(4*(cos(x8)*sin(x9) - cos(x9)*sin(x7)*sin(x8)))/m;
-           d2f4dxdp(9,7)=-(4*x19*cos(x7)*cos(x8)*sin(x9))/m;
-           d2f4dxdp(9,8)=(4*x19*(cos(x8)*cos(x9) + sin(x7)*sin(x8)*sin(x9)))/m;
-           d2f4dxdp(9,9)=-(4*x19*(sin(x8)*sin(x9) + cos(x8)*cos(x9)*sin(x7)))/m;
-           d2f4dxdp(9,19)=(4*(cos(x9)*sin(x8) - cos(x8)*sin(x7)*sin(x9)))/m;
-           d2f4dxdp(19,7)=(4*cos(x7)*cos(x8)*cos(x9))/m;
-           d2f4dxdp(19,8)=(4*cos(x8)*sin(x9) - 4*cos(x9)*sin(x7)*sin(x8))/m;
-           d2f4dxdp(19,9)=(4*cos(x9)*sin(x8) - 4*cos(x8)*sin(x7)*sin(x9))/m;
-
-        end
-
-        function d2f5dxdp = d2f5dxdp(model, state, ~)
-            d2f5dxdp = zeros(model.numStates, model.numParams);
-
-            x7 = state(7);
-            x8 = state(8);
-            x9 = state(9);
-            x19 = state(19);
-
-            m = model.m;
-
-            d2f5dxdp(7,7)=-(4*x19*cos(x8)*sin(x7)*sin(x9))/m;
-           d2f5dxdp(7,8)=-(4*x19*cos(x7)*sin(x8)*sin(x9))/m;
-           d2f5dxdp(7,9)=(4*x19*cos(x7)*cos(x8)*cos(x9))/m;
-           d2f5dxdp(7,19)=(4*cos(x7)*cos(x8)*sin(x9))/m;
-           d2f5dxdp(8,7)=-(4*x19*cos(x7)*sin(x8)*sin(x9))/m;
-           d2f5dxdp(8,8)=(4*x19*(cos(x9)*sin(x8) - cos(x8)*sin(x7)*sin(x9)))/m;
-           d2f5dxdp(8,9)=(4*x19*(cos(x8)*sin(x9) - cos(x9)*sin(x7)*sin(x8)))/m;
-           d2f5dxdp(8,19)=-(4*(cos(x8)*cos(x9) + sin(x7)*sin(x8)*sin(x9)))/m;
-           d2f5dxdp(9,7)=(4*x19*cos(x7)*cos(x8)*cos(x9))/m;
-           d2f5dxdp(9,8)=(4*x19*(cos(x8)*sin(x9) - cos(x9)*sin(x7)*sin(x8)))/m;
-           d2f5dxdp(9,9)=(4*x19*(cos(x9)*sin(x8) - cos(x8)*sin(x7)*sin(x9)))/m;
-           d2f5dxdp(9,19)=(4*(sin(x8)*sin(x9) + cos(x8)*cos(x9)*sin(x7)))/m;
-           d2f5dxdp(19,7)=(4*cos(x7)*cos(x8)*sin(x9))/m;
-           d2f5dxdp(19,8)=-(4*cos(x8)*cos(x9) + 4*sin(x7)*sin(x8)*sin(x9))/m;
-           d2f5dxdp(19,9)=(4*sin(x8)*sin(x9) + 4*cos(x8)*cos(x9)*sin(x7))/m;
-
-        end
-        
-        function d2f6dxdp = d2f6dxdp(model, state, ~)
-            d2f6dxdp = zeros(model.numStates, model.numParams);
-
-            x7 = state(7);
-            x8 = state(8);
-            x19 = state(19);
-
-            m = model.m;
-
-           d2f6dxdp(7,7)=-(4*x19*cos(x7)*cos(x8))/m;
-           d2f6dxdp(7,8)=(4*x19*sin(x7)*sin(x8))/m;
-           d2f6dxdp(7,19)=-(4*cos(x8)*sin(x7))/m;
-           d2f6dxdp(8,7)=(4*x19*sin(x7)*sin(x8))/m;
-           d2f6dxdp(8,8)=-(4*x19*cos(x7)*cos(x8))/m;
-           d2f6dxdp(8,19)=-(4*cos(x7)*sin(x8))/m;
-           d2f6dxdp(19,7)=-(4*cos(x8)*sin(x7))/m;
-           d2f6dxdp(19,8)=-(4*cos(x7)*sin(x8))/m;
 
         end
         
@@ -931,44 +858,37 @@ classdef derivativesDroneIBHybrid
             x17 = state(17);
             x19 = state(19);
 
-           d2f10dxdp(1,19)=(m*(lambda1 - c1^2 + 1)*(lambda5 - c9^2 + c9*(c9 + c10) + 1))/x19^2 + (c1*m*(c1 + c2)*(lambda5 - c9^2 + c9*(c9 + c10) + 1))/x19^2;
-           d2f10dxdp(1,24)=(c1*m*(lambda5 - c9^2 + c9*(c9 + c10) + 1))/x19 - (m*(c1 + c2)*(lambda5 - c9^2 + c9*(c9 + c10) + 1))/x19;
-           d2f10dxdp(1,25)=-(c1*m*(lambda5 - c9^2 + c9*(c9 + c10) + 1))/x19;
-           d2f10dxdp(1,32)=- (c10*m*(lambda1 - c1^2 + 1))/x19 - (c1*c10*m*(c1 + c2))/x19;
-           d2f10dxdp(1,33)=- (c9*m*(lambda1 - c1^2 + 1))/x19 - (c1*c9*m*(c1 + c2))/x19;
-           d2f10dxdp(1,36)=-(m*(lambda5 - c9^2 + c9*(c9 + c10) + 1))/x19;
-           d2f10dxdp(1,40)=- (m*(lambda1 - c1^2 + 1))/x19 - (c1*m*(c1 + c2))/x19;
-           d2f10dxdp(4,19)=(m*(c9 + c10)*(lambda1 - c1^2 + 1))/x19^2 + (c1*m*(c1 + c2)*(c9 + c10))/x19^2;
-           d2f10dxdp(4,24)=(c1*m*(c9 + c10))/x19 - (m*(c1 + c2)*(c9 + c10))/x19;
-           d2f10dxdp(4,25)=-(c1*m*(c9 + c10))/x19;
-           d2f10dxdp(4,32)=- (m*(lambda1 - c1^2 + 1))/x19 - (c1*m*(c1 + c2))/x19;
-           d2f10dxdp(4,33)=- (m*(lambda1 - c1^2 + 1))/x19 - (c1*m*(c1 + c2))/x19;
-           d2f10dxdp(4,36)=-(m*(c9 + c10))/x19;
-           d2f10dxdp(7,24)=-c2;
-           d2f10dxdp(7,25)=-c1;
-           d2f10dxdp(7,36)=-1;
-           d2f10dxdp(10,24)=-1;
-           d2f10dxdp(10,25)=-1;
-           d2f10dxdp(13,25)=lambda1;
-           d2f10dxdp(13,36)=c2;
-           d2f10dxdp(17,19)=(m*(c9*lambda5 - lambda5*(c9 + c10))*(lambda1 - c1^2 + 1))/x19^2 + (c1*m*(c1 + c2)*(c9*lambda5 - lambda5*(c9 + c10)))/x19^2;
-           d2f10dxdp(17,24)=(c1*m*(c9*lambda5 - lambda5*(c9 + c10)))/x19 - (m*(c1 + c2)*(c9*lambda5 - lambda5*(c9 + c10)))/x19;
-           d2f10dxdp(17,25)=-(c1*m*(c9*lambda5 - lambda5*(c9 + c10)))/x19;
-           d2f10dxdp(17,33)=(lambda5*m*(lambda1 - c1^2 + 1))/x19 + (c1*lambda5*m*(c1 + c2))/x19;
-           d2f10dxdp(17,36)=-(m*(c9*lambda5 - lambda5*(c9 + c10)))/x19;
-           d2f10dxdp(17,40)=(c10*m*(lambda1 - c1^2 + 1))/x19 + (c1*c10*m*(c1 + c2))/x19;
-           d2f10dxdp(19,1)=(m*(lambda1 - c1^2 + 1)*(lambda5 - c9^2 + c9*(c9 + c10) + 1))/x19^2 + (c1*m*(c1 + c2)*(lambda5 - c9^2 + c9*(c9 + c10) + 1))/x19^2;
-           d2f10dxdp(19,4)=(m*(c9 + c10)*(lambda1 - c1^2 + 1))/x19^2 + (c1*m*(c1 + c2)*(c9 + c10))/x19^2;
-           d2f10dxdp(19,17)=(m*(c9*lambda5 - lambda5*(c9 + c10))*(lambda1 - c1^2 + 1))/x19^2 + (c1*m*(c1 + c2)*(c9*lambda5 - lambda5*(c9 + c10)))/x19^2;
-           d2f10dxdp(19,19)=(2*m*(lambda1 - c1^2 + 1)*(refxddot + (c9 + c10)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)) + (refx - x1)*(lambda5 - c9^2 + 1) - c9*lambda5*x17))/x19^3 + (2*c1*m*(c1 + c2)*(refxddot + (c9 + c10)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)) + (refx - x1)*(lambda5 - c9^2 + 1) - c9*lambda5*x17))/x19^3;
-           d2f10dxdp(19,24)=(c1*m*(refxddot + (c9 + c10)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)) + (refx - x1)*(lambda5 - c9^2 + 1) - c9*lambda5*x17))/x19^2 - (m*(c1 + c2)*(refxddot + (c9 + c10)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)) + (refx - x1)*(lambda5 - c9^2 + 1) - c9*lambda5*x17))/x19^2;
-           d2f10dxdp(19,25)=-(c1*m*(refxddot + (c9 + c10)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)) + (refx - x1)*(lambda5 - c9^2 + 1) - c9*lambda5*x17))/x19^2;
-           d2f10dxdp(19,32)=- (m*(lambda1 - c1^2 + 1)*(refxdot - x4 + (c9 + c10)*(refx - x1) - c9*(refx - x1)))/x19^2 - (c1*m*(c1 + c2)*(refxdot - x4 + (c9 + c10)*(refx - x1) - c9*(refx - x1)))/x19^2;
-           d2f10dxdp(19,33)=- (m*(lambda1 - c1^2 + 1)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)))/x19^2 - (c1*m*(c1 + c2)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)))/x19^2;
-           d2f10dxdp(19,36)=-(m*(refxddot + (c9 + c10)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)) + (refx - x1)*(lambda5 - c9^2 + 1) - c9*lambda5*x17))/x19^2;
-           d2f10dxdp(19,40)=- (m*(lambda1 - c1^2 + 1)*(refx - x1 - c9*x17 + x17*(c9 + c10)))/x19^2 - (c1*m*(c1 + c2)*(refx - x1 - c9*x17 + x17*(c9 + c10)))/x19^2;
-           d2f10dxdp(20,24)=1;
-           d2f10dxdp(20,25)=1;
+           d2f10dxdp(1,1)=(c1*m*(lambda5 - c9^2 + c9*(c9 + c10) + 1))/x19 - (m*(c1 + c2)*(lambda5 - c9^2 + c9*(c9 + c10) + 1))/x19;
+           d2f10dxdp(1,2)=-(c1*m*(lambda5 - c9^2 + c9*(c9 + c10) + 1))/x19;
+           d2f10dxdp(1,9)=- (c10*m*(lambda1 - c1^2 + 1))/x19 - (c1*c10*m*(c1 + c2))/x19;
+           d2f10dxdp(1,10)=- (c9*m*(lambda1 - c1^2 + 1))/x19 - (c1*c9*m*(c1 + c2))/x19;
+           d2f10dxdp(1,13)=-(m*(lambda5 - c9^2 + c9*(c9 + c10) + 1))/x19;
+           d2f10dxdp(1,17)=- (m*(lambda1 - c1^2 + 1))/x19 - (c1*m*(c1 + c2))/x19;
+           d2f10dxdp(4,1)=(c1*m*(c9 + c10))/x19 - (m*(c1 + c2)*(c9 + c10))/x19;
+           d2f10dxdp(4,2)=-(c1*m*(c9 + c10))/x19;
+           d2f10dxdp(4,9)=- (m*(lambda1 - c1^2 + 1))/x19 - (c1*m*(c1 + c2))/x19;
+           d2f10dxdp(4,10)=- (m*(lambda1 - c1^2 + 1))/x19 - (c1*m*(c1 + c2))/x19;
+           d2f10dxdp(4,13)=-(m*(c9 + c10))/x19;
+           d2f10dxdp(7,1)=-c2;
+           d2f10dxdp(7,2)=-c1;
+           d2f10dxdp(7,13)=-1;
+           d2f10dxdp(10,1)=-1;
+           d2f10dxdp(10,2)=-1;
+           d2f10dxdp(13,2)=lambda1;
+           d2f10dxdp(13,13)=c2;
+           d2f10dxdp(17,1)=(c1*m*(c9*lambda5 - lambda5*(c9 + c10)))/x19 - (m*(c1 + c2)*(c9*lambda5 - lambda5*(c9 + c10)))/x19;
+           d2f10dxdp(17,2)=-(c1*m*(c9*lambda5 - lambda5*(c9 + c10)))/x19;
+           d2f10dxdp(17,10)=(lambda5*m*(lambda1 - c1^2 + 1))/x19 + (c1*lambda5*m*(c1 + c2))/x19;
+           d2f10dxdp(17,13)=-(m*(c9*lambda5 - lambda5*(c9 + c10)))/x19;
+           d2f10dxdp(17,17)=(c10*m*(lambda1 - c1^2 + 1))/x19 + (c1*c10*m*(c1 + c2))/x19;
+           d2f10dxdp(19,1)=(c1*m*(refxddot + (c9 + c10)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)) + (refx - x1)*(lambda5 - c9^2 + 1) - c9*lambda5*x17))/x19^2 - (m*(c1 + c2)*(refxddot + (c9 + c10)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)) + (refx - x1)*(lambda5 - c9^2 + 1) - c9*lambda5*x17))/x19^2;
+           d2f10dxdp(19,2)=-(c1*m*(refxddot + (c9 + c10)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)) + (refx - x1)*(lambda5 - c9^2 + 1) - c9*lambda5*x17))/x19^2;
+           d2f10dxdp(19,9)=- (m*(lambda1 - c1^2 + 1)*(refxdot - x4 + (c9 + c10)*(refx - x1) - c9*(refx - x1)))/x19^2 - (c1*m*(c1 + c2)*(refxdot - x4 + (c9 + c10)*(refx - x1) - c9*(refx - x1)))/x19^2;
+           d2f10dxdp(19,10)=- (m*(lambda1 - c1^2 + 1)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)))/x19^2 - (c1*m*(c1 + c2)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)))/x19^2;
+           d2f10dxdp(19,13)=-(m*(refxddot + (c9 + c10)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)) + (refx - x1)*(lambda5 - c9^2 + 1) - c9*lambda5*x17))/x19^2;
+           d2f10dxdp(19,17)=- (m*(lambda1 - c1^2 + 1)*(refx - x1 - c9*x17 + x17*(c9 + c10)))/x19^2 - (c1*m*(c1 + c2)*(refx - x1 - c9*x17 + x17*(c9 + c10)))/x19^2;
+           d2f10dxdp(20,1)=1;
+           d2f10dxdp(20,2)=1;
         end
 
         function d2f11dxdp = d2f11dxdp(model, state, ref)
@@ -991,44 +911,39 @@ classdef derivativesDroneIBHybrid
             x18 = state(18);
             x19 = state(19);
 
-                      d2f11dxdp(2,19)=- (m*(lambda2 - c3^2 + 1)*(lambda6 - c11^2 + c11*(c11 + c12) + 1))/x19^2 - (c3*m*(c3 + c4)*(lambda6 - c11^2 + c11*(c11 + c12) + 1))/x19^2;
-           d2f11dxdp(2,26)=(m*(c3 + c4)*(lambda6 - c11^2 + c11*(c11 + c12) + 1))/x19 - (c3*m*(lambda6 - c11^2 + c11*(c11 + c12) + 1))/x19;
-           d2f11dxdp(2,27)=(c3*m*(lambda6 - c11^2 + c11*(c11 + c12) + 1))/x19;
-           d2f11dxdp(2,34)=(c12*m*(lambda2 - c3^2 + 1))/x19 + (c3*c12*m*(c3 + c4))/x19;
-           d2f11dxdp(2,35)=(c11*m*(lambda2 - c3^2 + 1))/x19 + (c3*c11*m*(c3 + c4))/x19;
-           d2f11dxdp(2,37)=(m*(lambda6 - c11^2 + c11*(c11 + c12) + 1))/x19;
-           d2f11dxdp(2,41)=(m*(lambda2 - c3^2 + 1))/x19 + (c3*m*(c3 + c4))/x19;
-           d2f11dxdp(5,19)=- (m*(c11 + c12)*(lambda2 - c3^2 + 1))/x19^2 - (c3*m*(c3 + c4)*(c11 + c12))/x19^2;
-           d2f11dxdp(5,26)=(m*(c3 + c4)*(c11 + c12))/x19 - (c3*m*(c11 + c12))/x19;
-           d2f11dxdp(5,27)=(c3*m*(c11 + c12))/x19;
-           d2f11dxdp(5,34)=(m*(lambda2 - c3^2 + 1))/x19 + (c3*m*(c3 + c4))/x19;
-           d2f11dxdp(5,35)=(m*(lambda2 - c3^2 + 1))/x19 + (c3*m*(c3 + c4))/x19;
-           d2f11dxdp(5,37)=(m*(c11 + c12))/x19;
-           d2f11dxdp(8,26)=-c4;
-           d2f11dxdp(8,27)=-c3;
-           d2f11dxdp(8,37)=-1;
-           d2f11dxdp(11,26)=-1;
-           d2f11dxdp(11,27)=-1;
-           d2f11dxdp(14,27)=lambda2;
-           d2f11dxdp(14,37)=c4;
-           d2f11dxdp(18,19)=- (m*(c11*lambda6 - lambda6*(c11 + c12))*(lambda2 - c3^2 + 1))/x19^2 - (c3*m*(c3 + c4)*(c11*lambda6 - lambda6*(c11 + c12)))/x19^2;
-           d2f11dxdp(18,26)=(m*(c3 + c4)*(c11*lambda6 - lambda6*(c11 + c12)))/x19 - (c3*m*(c11*lambda6 - lambda6*(c11 + c12)))/x19;
-           d2f11dxdp(18,27)=(c3*m*(c11*lambda6 - lambda6*(c11 + c12)))/x19;
-           d2f11dxdp(18,35)=- (lambda6*m*(lambda2 - c3^2 + 1))/x19 - (c3*lambda6*m*(c3 + c4))/x19;
-           d2f11dxdp(18,37)=(m*(c11*lambda6 - lambda6*(c11 + c12)))/x19;
-           d2f11dxdp(18,41)=- (c12*m*(lambda2 - c3^2 + 1))/x19 - (c3*c12*m*(c3 + c4))/x19;
-           d2f11dxdp(19,2)=- (m*(lambda2 - c3^2 + 1)*(lambda6 - c11^2 + c11*(c11 + c12) + 1))/x19^2 - (c3*m*(c3 + c4)*(lambda6 - c11^2 + c11*(c11 + c12) + 1))/x19^2;
-           d2f11dxdp(19,5)=- (m*(c11 + c12)*(lambda2 - c3^2 + 1))/x19^2 - (c3*m*(c3 + c4)*(c11 + c12))/x19^2;
-           d2f11dxdp(19,18)=- (m*(c11*lambda6 - lambda6*(c11 + c12))*(lambda2 - c3^2 + 1))/x19^2 - (c3*m*(c3 + c4)*(c11*lambda6 - lambda6*(c11 + c12)))/x19^2;
-           d2f11dxdp(19,19)=- (2*m*(lambda2 - c3^2 + 1)*(refyddot + (c11 + c12)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)) + (refy - x2)*(lambda6 - c11^2 + 1) - c11*lambda6*x18))/x19^3 - (2*c3*m*(c3 + c4)*(refyddot + (c11 + c12)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)) + (refy - x2)*(lambda6 - c11^2 + 1) - c11*lambda6*x18))/x19^3;
-           d2f11dxdp(19,26)=(m*(c3 + c4)*(refyddot + (c11 + c12)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)) + (refy - x2)*(lambda6 - c11^2 + 1) - c11*lambda6*x18))/x19^2 - (c3*m*(refyddot + (c11 + c12)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)) + (refy - x2)*(lambda6 - c11^2 + 1) - c11*lambda6*x18))/x19^2;
-           d2f11dxdp(19,27)=(c3*m*(refyddot + (c11 + c12)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)) + (refy - x2)*(lambda6 - c11^2 + 1) - c11*lambda6*x18))/x19^2;
-           d2f11dxdp(19,34)=(m*(lambda2 - c3^2 + 1)*(refydot - x5 + (c11 + c12)*(refy - x2) - c11*(refy - x2)))/x19^2 + (c3*m*(c3 + c4)*(refydot - x5 + (c11 + c12)*(refy - x2) - c11*(refy - x2)))/x19^2;
-           d2f11dxdp(19,35)=(m*(lambda2 - c3^2 + 1)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)))/x19^2 + (c3*m*(c3 + c4)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)))/x19^2;
-           d2f11dxdp(19,37)=(m*(refyddot + (c11 + c12)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)) + (refy - x2)*(lambda6 - c11^2 + 1) - c11*lambda6*x18))/x19^2;
-           d2f11dxdp(19,41)=(m*(lambda2 - c3^2 + 1)*(refy - x2 - c11*x18 + x18*(c11 + c12)))/x19^2 + (c3*m*(c3 + c4)*(refy - x2 - c11*x18 + x18*(c11 + c12)))/x19^2;
-           d2f11dxdp(21,26)=1;
-           d2f11dxdp(21,27)=1;
+           d2f11dxdp(2,3)=(m*(c3 + c4)*(lambda6 - c11^2 + c11*(c11 + c12) + 1))/x19 - (c3*m*(lambda6 - c11^2 + c11*(c11 + c12) + 1))/x19;
+           d2f11dxdp(2,4)=(c3*m*(lambda6 - c11^2 + c11*(c11 + c12) + 1))/x19;
+           d2f11dxdp(2,11)=(c12*m*(lambda2 - c3^2 + 1))/x19 + (c3*c12*m*(c3 + c4))/x19;
+           d2f11dxdp(2,12)=(c11*m*(lambda2 - c3^2 + 1))/x19 + (c3*c11*m*(c3 + c4))/x19;
+           d2f11dxdp(2,14)=(m*(lambda6 - c11^2 + c11*(c11 + c12) + 1))/x19;
+           d2f11dxdp(2,18)=(m*(lambda2 - c3^2 + 1))/x19 + (c3*m*(c3 + c4))/x19;
+           d2f11dxdp(5,3)=(m*(c3 + c4)*(c11 + c12))/x19 - (c3*m*(c11 + c12))/x19;
+           d2f11dxdp(5,4)=(c3*m*(c11 + c12))/x19;
+           d2f11dxdp(5,11)=(m*(lambda2 - c3^2 + 1))/x19 + (c3*m*(c3 + c4))/x19;
+           d2f11dxdp(5,12)=(m*(lambda2 - c3^2 + 1))/x19 + (c3*m*(c3 + c4))/x19;
+           d2f11dxdp(5,14)=(m*(c11 + c12))/x19;
+           d2f11dxdp(8,3)=-c4;
+           d2f11dxdp(8,4)=-c3;
+           d2f11dxdp(8,14)=-1;
+           d2f11dxdp(11,3)=-1;
+           d2f11dxdp(11,4)=-1;
+           d2f11dxdp(14,4)=lambda2;
+           d2f11dxdp(14,14)=c4;
+           d2f11dxdp(18,3)=(m*(c3 + c4)*(c11*lambda6 - lambda6*(c11 + c12)))/x19 - (c3*m*(c11*lambda6 - lambda6*(c11 + c12)))/x19;
+           d2f11dxdp(18,4)=(c3*m*(c11*lambda6 - lambda6*(c11 + c12)))/x19;
+           d2f11dxdp(18,12)=- (lambda6*m*(lambda2 - c3^2 + 1))/x19 - (c3*lambda6*m*(c3 + c4))/x19;
+           d2f11dxdp(18,14)=(m*(c11*lambda6 - lambda6*(c11 + c12)))/x19;
+           d2f11dxdp(18,18)=- (c12*m*(lambda2 - c3^2 + 1))/x19 - (c3*c12*m*(c3 + c4))/x19;
+           d2f11dxdp(19,3)=(m*(c3 + c4)*(refyddot + (c11 + c12)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)) + (refy - x2)*(lambda6 - c11^2 + 1) - c11*lambda6*x18))/x19^2 - (c3*m*(refyddot + (c11 + c12)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)) + (refy - x2)*(lambda6 - c11^2 + 1) - c11*lambda6*x18))/x19^2;
+           d2f11dxdp(19,4)=(c3*m*(refyddot + (c11 + c12)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)) + (refy - x2)*(lambda6 - c11^2 + 1) - c11*lambda6*x18))/x19^2;
+           d2f11dxdp(19,11)=(m*(lambda2 - c3^2 + 1)*(refydot - x5 + (c11 + c12)*(refy - x2) - c11*(refy - x2)))/x19^2 + (c3*m*(c3 + c4)*(refydot - x5 + (c11 + c12)*(refy - x2) - c11*(refy - x2)))/x19^2;
+           d2f11dxdp(19,12)=(m*(lambda2 - c3^2 + 1)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)))/x19^2 + (c3*m*(c3 + c4)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)))/x19^2;
+           d2f11dxdp(19,14)=(m*(refyddot + (c11 + c12)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)) + (refy - x2)*(lambda6 - c11^2 + 1) - c11*lambda6*x18))/x19^2;
+           d2f11dxdp(19,18)=(m*(lambda2 - c3^2 + 1)*(refy - x2 - c11*x18 + x18*(c11 + c12)))/x19^2 + (c3*m*(c3 + c4)*(refy - x2 - c11*x18 + x18*(c11 + c12)))/x19^2;
+           d2f11dxdp(21,3)=1;
+           d2f11dxdp(21,4)=1;
+
+
         end
 
         function d2f12dxdp = d2f12dxdp(model, ~, ~)
@@ -1038,13 +953,13 @@ classdef derivativesDroneIBHybrid
             c6 = model.c6;
             lambda3 = model.lambda3;
 
-                       d2f12dxdp(9,28)=-c6;
-           d2f12dxdp(9,29)=-c5;
-           d2f12dxdp(9,38)=-1;
-           d2f12dxdp(12,28)=-1;
-           d2f12dxdp(12,29)=-1;
-           d2f12dxdp(15,29)=lambda3;
-           d2f12dxdp(15,38)=c6;
+           d2f12dxdp(9,5)=-c6;
+           d2f12dxdp(9,6)=-c5;
+           d2f12dxdp(9,15)=-1;
+           d2f12dxdp(12,5)=-1;
+           d2f12dxdp(12,6)=-1;
+           d2f12dxdp(15,6)=lambda3;
+           d2f12dxdp(15,15)=c6;
 
         end
 
@@ -1053,7 +968,6 @@ classdef derivativesDroneIBHybrid
 
             refx = ref.x;
             refxdot = ref.x_dot;
-            refxddot = ref.x_ddot;
            
             m = model.m;
             c9 = model.c9;
@@ -1065,23 +979,16 @@ classdef derivativesDroneIBHybrid
             x17 = state(17);
             x19 = state(19);
 
-                       d2f13dxdp(1,19)=(m*(lambda5 - c9^2 + c9*(c9 + c10) + 1))/x19^2;
-           d2f13dxdp(1,32)=-(c10*m)/x19;
-           d2f13dxdp(1,33)=-(c9*m)/x19;
-           d2f13dxdp(1,40)=-m/x19;
-           d2f13dxdp(4,19)=(m*(c9 + c10))/x19^2;
-           d2f13dxdp(4,32)=-m/x19;
-           d2f13dxdp(4,33)=-m/x19;
-           d2f13dxdp(17,19)=(m*(c9*lambda5 - lambda5*(c9 + c10)))/x19^2;
-           d2f13dxdp(17,33)=(lambda5*m)/x19;
-           d2f13dxdp(17,40)=(c10*m)/x19;
-           d2f13dxdp(19,1)=(m*(lambda5 - c9^2 + c9*(c9 + c10) + 1))/x19^2;
-           d2f13dxdp(19,4)=(m*(c9 + c10))/x19^2;
-           d2f13dxdp(19,17)=(m*(c9*lambda5 - lambda5*(c9 + c10)))/x19^2;
-           d2f13dxdp(19,19)=(2*m*(refxddot + (c9 + c10)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)) + (refx - x1)*(lambda5 - c9^2 + 1) - c9*lambda5*x17))/x19^3;
-           d2f13dxdp(19,32)=-(m*(refxdot - x4 + (c9 + c10)*(refx - x1) - c9*(refx - x1)))/x19^2;
-           d2f13dxdp(19,33)=-(m*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)))/x19^2;
-           d2f13dxdp(19,40)=-(m*(refx - x1 - c9*x17 + x17*(c9 + c10)))/x19^2;
+           d2f13dxdp(1,9)=-(c10*m)/x19;
+           d2f13dxdp(1,10)=-(c9*m)/x19;
+           d2f13dxdp(1,17)=-m/x19;
+           d2f13dxdp(4,9)=-m/x19;
+           d2f13dxdp(4,10)=-m/x19;
+           d2f13dxdp(17,10)=(lambda5*m)/x19;
+           d2f13dxdp(17,17)=(c10*m)/x19;
+           d2f13dxdp(19,9)=-(m*(refxdot - x4 + (c9 + c10)*(refx - x1) - c9*(refx - x1)))/x19^2;
+           d2f13dxdp(19,10)=-(m*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)))/x19^2;
+           d2f13dxdp(19,17)=-(m*(refx - x1 - c9*x17 + x17*(c9 + c10)))/x19^2;
         end
 
         function d2f14dxdp = d2f14dxdp(model, state, ref)
@@ -1089,7 +996,6 @@ classdef derivativesDroneIBHybrid
 
             refy = ref.y;
             refydot = ref.y_dot;
-            refyddot = ref.y_ddot;
 
             m = model.m;
             c11 = model.c11;
@@ -1101,23 +1007,17 @@ classdef derivativesDroneIBHybrid
             x18 = state(18);
             x19 = state(19);
 
-           d2f14dxdp(2,19)=-(m*(lambda6 - c11^2 + c11*(c11 + c12) + 1))/x19^2;
-           d2f14dxdp(2,34)=(c12*m)/x19;
-           d2f14dxdp(2,35)=(c11*m)/x19;
-           d2f14dxdp(2,41)=m/x19;
-           d2f14dxdp(5,19)=-(m*(c11 + c12))/x19^2;
-           d2f14dxdp(5,34)=m/x19;
-           d2f14dxdp(5,35)=m/x19;
-           d2f14dxdp(18,19)=-(m*(c11*lambda6 - lambda6*(c11 + c12)))/x19^2;
-           d2f14dxdp(18,35)=-(lambda6*m)/x19;
-           d2f14dxdp(18,41)=-(c12*m)/x19;
-           d2f14dxdp(19,2)=-(m*(lambda6 - c11^2 + c11*(c11 + c12) + 1))/x19^2;
-           d2f14dxdp(19,5)=-(m*(c11 + c12))/x19^2;
-           d2f14dxdp(19,18)=-(m*(c11*lambda6 - lambda6*(c11 + c12)))/x19^2;
-           d2f14dxdp(19,19)=-(2*m*(refyddot + (c11 + c12)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)) + (refy - x2)*(lambda6 - c11^2 + 1) - c11*lambda6*x18))/x19^3;
-           d2f14dxdp(19,34)=(m*(refydot - x5 + (c11 + c12)*(refy - x2) - c11*(refy - x2)))/x19^2;
-           d2f14dxdp(19,35)=(m*(refydot - x5 + lambda6*x18 + c11*(refy - x2)))/x19^2;
-           d2f14dxdp(19,41)=(m*(refy - x2 - c11*x18 + x18*(c11 + c12)))/x19^2;
+                      d2f14dxdp(2,11)=(c12*m)/x19;
+           d2f14dxdp(2,12)=(c11*m)/x19;
+           d2f14dxdp(2,18)=m/x19;
+           d2f14dxdp(5,11)=m/x19;
+           d2f14dxdp(5,12)=m/x19;
+           d2f14dxdp(18,12)=-(lambda6*m)/x19;
+           d2f14dxdp(18,18)=-(c12*m)/x19;
+           d2f14dxdp(19,11)=(m*(refydot - x5 + (c11 + c12)*(refy - x2) - c11*(refy - x2)))/x19^2;
+           d2f14dxdp(19,12)=(m*(refydot - x5 + lambda6*x18 + c11*(refy - x2)))/x19^2;
+           d2f14dxdp(19,18)=(m*(refy - x2 - c11*x18 + x18*(c11 + c12)))/x19^2;
+
         end
 
         function d2f19dxdp = d2f19dxdp(model, state, ref)
@@ -1142,73 +1042,36 @@ classdef derivativesDroneIBHybrid
             x16 = state(16);
             x19 = state(19);
 
-                      d2f19dxdp(3,7)=(m*((x10*cos(x7)*cos(x8) - x11*sin(x7)*sin(x8))*(lambda4 - c7^2 + c7*(c7 + c8) + 1) - cos(x8)*sin(x7)*(c7*lambda4 - lambda4*(c7 + c8))))/(4*cos(x7)^2*cos(x8)^2) + (m*sin(x7)*((x10*cos(x8)*sin(x7) + x11*cos(x7)*sin(x8))*(lambda4 - c7^2 + c7*(c7 + c8) + 1) + cos(x7)*cos(x8)*(c7*lambda4 - lambda4*(c7 + c8))))/(2*cos(x7)^3*cos(x8)^2);
-           d2f19dxdp(3,8)=(m*((x11*cos(x7)*cos(x8) - x10*sin(x7)*sin(x8))*(lambda4 - c7^2 + c7*(c7 + c8) + 1) - cos(x7)*sin(x8)*(c7*lambda4 - lambda4*(c7 + c8))))/(4*cos(x7)^2*cos(x8)^2) + (m*sin(x8)*((x10*cos(x8)*sin(x7) + x11*cos(x7)*sin(x8))*(lambda4 - c7^2 + c7*(c7 + c8) + 1) + cos(x7)*cos(x8)*(c7*lambda4 - lambda4*(c7 + c8))))/(2*cos(x7)^2*cos(x8)^3);
-           d2f19dxdp(3,10)=(m*sin(x7)*(lambda4 - c7^2 + c7*(c7 + c8) + 1))/(4*cos(x7)^2*cos(x8));
-           d2f19dxdp(3,11)=(m*sin(x8)*(lambda4 - c7^2 + c7*(c7 + c8) + 1))/(4*cos(x7)*cos(x8)^2);
-           d2f19dxdp(3,30)=(c8*m*(x10*cos(x8)*sin(x7) + x11*cos(x7)*sin(x8)))/(4*cos(x7)^2*cos(x8)^2);
-           d2f19dxdp(3,31)=(m*(c7*(x10*cos(x8)*sin(x7) + x11*cos(x7)*sin(x8)) - lambda4*cos(x7)*cos(x8)))/(4*cos(x7)^2*cos(x8)^2);
-           d2f19dxdp(3,39)=(m*(x10*cos(x8)*sin(x7) - c8*cos(x7)*cos(x8) + x11*cos(x7)*sin(x8)))/(4*cos(x7)^2*cos(x8)^2);
-           d2f19dxdp(6,7)=(m*((c7 + c8)*(x10*cos(x7)*cos(x8) - x11*sin(x7)*sin(x8)) + cos(x8)*sin(x7)*(lambda4 - c7^2 + c7*(c7 + c8) + 1)))/(4*cos(x7)^2*cos(x8)^2) + (m*sin(x7)*((c7 + c8)*(x10*cos(x8)*sin(x7) + x11*cos(x7)*sin(x8)) - cos(x7)*cos(x8)*(lambda4 - c7^2 + c7*(c7 + c8) + 1)))/(2*cos(x7)^3*cos(x8)^2);
-           d2f19dxdp(6,8)=(m*((c7 + c8)*(x11*cos(x7)*cos(x8) - x10*sin(x7)*sin(x8)) + cos(x7)*sin(x8)*(lambda4 - c7^2 + c7*(c7 + c8) + 1)))/(4*cos(x7)^2*cos(x8)^2) + (m*sin(x8)*((c7 + c8)*(x10*cos(x8)*sin(x7) + x11*cos(x7)*sin(x8)) - cos(x7)*cos(x8)*(lambda4 - c7^2 + c7*(c7 + c8) + 1)))/(2*cos(x7)^2*cos(x8)^3);
-           d2f19dxdp(6,10)=(m*sin(x7)*(c7 + c8))/(4*cos(x7)^2*cos(x8));
-           d2f19dxdp(6,11)=(m*sin(x8)*(c7 + c8))/(4*cos(x7)*cos(x8)^2);
-           d2f19dxdp(6,30)=(m*(x10*cos(x8)*sin(x7) - c8*cos(x7)*cos(x8) + x11*cos(x7)*sin(x8)))/(4*cos(x7)^2*cos(x8)^2);
-           d2f19dxdp(6,31)=(m*(x10*cos(x8)*sin(x7) - c7*cos(x7)*cos(x8) + x11*cos(x7)*sin(x8)))/(4*cos(x7)^2*cos(x8)^2);
-           d2f19dxdp(6,39)=-m/(4*cos(x7)*cos(x8));
-           d2f19dxdp(7,3)=(m*((x10*cos(x7)*cos(x8) - x11*sin(x7)*sin(x8))*(lambda4 - c7^2 + c7*(c7 + c8) + 1) - cos(x8)*sin(x7)*(c7*lambda4 - lambda4*(c7 + c8))))/(4*cos(x7)^2*cos(x8)^2) + (m*sin(x7)*((x10*cos(x8)*sin(x7) + x11*cos(x7)*sin(x8))*(lambda4 - c7^2 + c7*(c7 + c8) + 1) + cos(x7)*cos(x8)*(c7*lambda4 - lambda4*(c7 + c8))))/(2*cos(x7)^3*cos(x8)^2);
-           d2f19dxdp(7,6)=(m*((c7 + c8)*(x10*cos(x7)*cos(x8) - x11*sin(x7)*sin(x8)) + cos(x8)*sin(x7)*(lambda4 - c7^2 + c7*(c7 + c8) + 1)))/(4*cos(x7)^2*cos(x8)^2) + (m*sin(x7)*((c7 + c8)*(x10*cos(x8)*sin(x7) + x11*cos(x7)*sin(x8)) - cos(x7)*cos(x8)*(lambda4 - c7^2 + c7*(c7 + c8) + 1)))/(2*cos(x7)^3*cos(x8)^2);
-           d2f19dxdp(7,7)=(m*((x10*cos(x8)*sin(x7) + x11*cos(x7)*sin(x8))*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16) - cos(x7)*cos(x8)*((refzdot - x6)*(lambda4 - c7^2 + 1) + (c7 + c8)*(g + refzddot + c7*(refzdot - x6) + lambda4*(refz - x3) - (4*x19*cos(x7)*cos(x8))/m) - c7*lambda4*(refz - x3)) + (4*x19*cos(x7)^2*cos(x8)^2*(c7 + c8))/m - (8*x19*cos(x8)^2*sin(x7)^2*(c7 + c8))/m))/(4*cos(x7)^2*cos(x8)^2) - (m*((x10*cos(x8)*sin(x7) + x11*cos(x7)*sin(x8))*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16) - cos(x7)*cos(x8)*((refzdot - x6)*(lambda4 - c7^2 + 1) + (c7 + c8)*(g + refzddot + c7*(refzdot - x6) + lambda4*(refz - x3) - (4*x19*cos(x7)*cos(x8))/m) - c7*lambda4*(refz - x3))))/(2*cos(x7)^2*cos(x8)^2) - (3*m*sin(x7)^2*((x10*cos(x8)*sin(x7) + x11*cos(x7)*sin(x8))*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16) - cos(x7)*cos(x8)*((refzdot - x6)*(lambda4 - c7^2 + 1) + (c7 + c8)*(g + refzddot + c7*(refzdot - x6) + lambda4*(refz - x3) - (4*x19*cos(x7)*cos(x8))/m) - c7*lambda4*(refz - x3))))/(2*cos(x7)^4*cos(x8)^2) - (m*sin(x7)*((x10*cos(x7)*cos(x8) - x11*sin(x7)*sin(x8))*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16) + cos(x8)*sin(x7)*((refzdot - x6)*(lambda4 - c7^2 + 1) + (c7 + c8)*(g + refzddot + c7*(refzdot - x6) + lambda4*(refz - x3) - (4*x19*cos(x7)*cos(x8))/m) - c7*lambda4*(refz - x3)) - (4*x19*cos(x7)*cos(x8)^2*sin(x7)*(c7 + c8))/m))/(cos(x7)^3*cos(x8)^2);
-           d2f19dxdp(7,8)=(m*((x10*cos(x7)*sin(x8) + x11*cos(x8)*sin(x7))*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16) + sin(x7)*sin(x8)*((refzdot - x6)*(lambda4 - c7^2 + 1) + (c7 + c8)*(g + refzddot + c7*(refzdot - x6) + lambda4*(refz - x3) - (4*x19*cos(x7)*cos(x8))/m) - c7*lambda4*(refz - x3)) - (12*x19*cos(x7)*cos(x8)*sin(x7)*sin(x8)*(c7 + c8))/m))/(4*cos(x7)^2*cos(x8)^2) - (m*sin(x8)*((x10*cos(x7)*cos(x8) - x11*sin(x7)*sin(x8))*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16) + cos(x8)*sin(x7)*((refzdot - x6)*(lambda4 - c7^2 + 1) + (c7 + c8)*(g + refzddot + c7*(refzdot - x6) + lambda4*(refz - x3) - (4*x19*cos(x7)*cos(x8))/m) - c7*lambda4*(refz - x3)) - (4*x19*cos(x7)*cos(x8)^2*sin(x7)*(c7 + c8))/m))/(2*cos(x7)^2*cos(x8)^3) - (m*sin(x7)*((x11*cos(x7)*cos(x8) - x10*sin(x7)*sin(x8))*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16) + cos(x7)*sin(x8)*((refzdot - x6)*(lambda4 - c7^2 + 1) + (c7 + c8)*(g + refzddot + c7*(refzdot - x6) + lambda4*(refz - x3) - (4*x19*cos(x7)*cos(x8))/m) - c7*lambda4*(refz - x3)) - (4*x19*cos(x7)^2*cos(x8)*sin(x8)*(c7 + c8))/m))/(2*cos(x7)^3*cos(x8)^2) - (m*sin(x7)*sin(x8)*((x10*cos(x8)*sin(x7) + x11*cos(x7)*sin(x8))*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16) - cos(x7)*cos(x8)*((refzdot - x6)*(lambda4 - c7^2 + 1) + (c7 + c8)*(g + refzddot + c7*(refzdot - x6) + lambda4*(refz - x3) - (4*x19*cos(x7)*cos(x8))/m) - c7*lambda4*(refz - x3))))/(cos(x7)^3*cos(x8)^3);
-           d2f19dxdp(7,10)=- (m*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16))/(4*cos(x7)*cos(x8)) - (m*sin(x7)^2*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16))/(2*cos(x7)^3*cos(x8));
-           d2f19dxdp(7,11)=-(m*sin(x7)*sin(x8)*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16))/(4*cos(x7)^2*cos(x8)^2);
-           d2f19dxdp(7,16)=(m*(c7*lambda4 - lambda4*(c7 + c8))*(x10*cos(x7)*cos(x8) - x11*sin(x7)*sin(x8)))/(4*cos(x7)^2*cos(x8)^2) + (m*sin(x7)*(c7*lambda4 - lambda4*(c7 + c8))*(x10*cos(x8)*sin(x7) + x11*cos(x7)*sin(x8)))/(2*cos(x7)^3*cos(x8)^2);
-           d2f19dxdp(7,30)=- (m*((x10*cos(x7)*cos(x8) - x11*sin(x7)*sin(x8))*(refzdot - x6 + (c7 + c8)*(refz - x3) - c7*(refz - x3)) + cos(x8)*sin(x7)*(g + refzddot + (c7 + c8)*(refzdot - x6) - c7*(refzdot - x6) - (4*x19*cos(x7)*cos(x8))/m) - (4*x19*cos(x7)*cos(x8)^2*sin(x7))/m))/(4*cos(x7)^2*cos(x8)^2) - (m*sin(x7)*((x10*cos(x8)*sin(x7) + x11*cos(x7)*sin(x8))*(refzdot - x6 + (c7 + c8)*(refz - x3) - c7*(refz - x3)) - cos(x7)*cos(x8)*(g + refzddot + (c7 + c8)*(refzdot - x6) - c7*(refzdot - x6) - (4*x19*cos(x7)*cos(x8))/m)))/(2*cos(x7)^3*cos(x8)^2);
-           d2f19dxdp(7,31)=- (m*((x10*cos(x7)*cos(x8) - x11*sin(x7)*sin(x8))*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + cos(x8)*sin(x7)*(g + refzddot + c7*(refzdot - x6) + lambda4*(refz - x3) - (4*x19*cos(x7)*cos(x8))/m) - (4*x19*cos(x7)*cos(x8)^2*sin(x7))/m))/(4*cos(x7)^2*cos(x8)^2) - (m*sin(x7)*((x10*cos(x8)*sin(x7) + x11*cos(x7)*sin(x8))*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) - cos(x7)*cos(x8)*(g + refzddot + c7*(refzdot - x6) + lambda4*(refz - x3) - (4*x19*cos(x7)*cos(x8))/m)))/(2*cos(x7)^3*cos(x8)^2);
-           d2f19dxdp(7,39)=- (m*((x10*cos(x7)*cos(x8) - x11*sin(x7)*sin(x8))*(refz - x3 - c7*x16 + x16*(c7 + c8)) + cos(x8)*sin(x7)*(refzdot - x6 + (c7 + c8)*(refz - x3) - c7*(refz - x3))))/(4*cos(x7)^2*cos(x8)^2) - (m*sin(x7)*((x10*cos(x8)*sin(x7) + x11*cos(x7)*sin(x8))*(refz - x3 - c7*x16 + x16*(c7 + c8)) - cos(x7)*cos(x8)*(refzdot - x6 + (c7 + c8)*(refz - x3) - c7*(refz - x3))))/(2*cos(x7)^3*cos(x8)^2);
-           d2f19dxdp(8,3)=(m*((x11*cos(x7)*cos(x8) - x10*sin(x7)*sin(x8))*(lambda4 - c7^2 + c7*(c7 + c8) + 1) - cos(x7)*sin(x8)*(c7*lambda4 - lambda4*(c7 + c8))))/(4*cos(x7)^2*cos(x8)^2) + (m*sin(x8)*((x10*cos(x8)*sin(x7) + x11*cos(x7)*sin(x8))*(lambda4 - c7^2 + c7*(c7 + c8) + 1) + cos(x7)*cos(x8)*(c7*lambda4 - lambda4*(c7 + c8))))/(2*cos(x7)^2*cos(x8)^3);
-           d2f19dxdp(8,6)=(m*((c7 + c8)*(x11*cos(x7)*cos(x8) - x10*sin(x7)*sin(x8)) + cos(x7)*sin(x8)*(lambda4 - c7^2 + c7*(c7 + c8) + 1)))/(4*cos(x7)^2*cos(x8)^2) + (m*sin(x8)*((c7 + c8)*(x10*cos(x8)*sin(x7) + x11*cos(x7)*sin(x8)) - cos(x7)*cos(x8)*(lambda4 - c7^2 + c7*(c7 + c8) + 1)))/(2*cos(x7)^2*cos(x8)^3);
-           d2f19dxdp(8,7)=(m*((x10*cos(x7)*sin(x8) + x11*cos(x8)*sin(x7))*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16) + sin(x7)*sin(x8)*((refzdot - x6)*(lambda4 - c7^2 + 1) + (c7 + c8)*(g + refzddot + c7*(refzdot - x6) + lambda4*(refz - x3) - (4*x19*cos(x7)*cos(x8))/m) - c7*lambda4*(refz - x3)) - (12*x19*cos(x7)*cos(x8)*sin(x7)*sin(x8)*(c7 + c8))/m))/(4*cos(x7)^2*cos(x8)^2) - (m*sin(x8)*((x10*cos(x7)*cos(x8) - x11*sin(x7)*sin(x8))*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16) + cos(x8)*sin(x7)*((refzdot - x6)*(lambda4 - c7^2 + 1) + (c7 + c8)*(g + refzddot + c7*(refzdot - x6) + lambda4*(refz - x3) - (4*x19*cos(x7)*cos(x8))/m) - c7*lambda4*(refz - x3)) - (4*x19*cos(x7)*cos(x8)^2*sin(x7)*(c7 + c8))/m))/(2*cos(x7)^2*cos(x8)^3) - (m*sin(x7)*((x11*cos(x7)*cos(x8) - x10*sin(x7)*sin(x8))*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16) + cos(x7)*sin(x8)*((refzdot - x6)*(lambda4 - c7^2 + 1) + (c7 + c8)*(g + refzddot + c7*(refzdot - x6) + lambda4*(refz - x3) - (4*x19*cos(x7)*cos(x8))/m) - c7*lambda4*(refz - x3)) - (4*x19*cos(x7)^2*cos(x8)*sin(x8)*(c7 + c8))/m))/(2*cos(x7)^3*cos(x8)^2) - (m*sin(x7)*sin(x8)*((x10*cos(x8)*sin(x7) + x11*cos(x7)*sin(x8))*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16) - cos(x7)*cos(x8)*((refzdot - x6)*(lambda4 - c7^2 + 1) + (c7 + c8)*(g + refzddot + c7*(refzdot - x6) + lambda4*(refz - x3) - (4*x19*cos(x7)*cos(x8))/m) - c7*lambda4*(refz - x3))))/(cos(x7)^3*cos(x8)^3);
-           d2f19dxdp(8,8)=(m*((x10*cos(x8)*sin(x7) + x11*cos(x7)*sin(x8))*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16) - cos(x7)*cos(x8)*((refzdot - x6)*(lambda4 - c7^2 + 1) + (c7 + c8)*(g + refzddot + c7*(refzdot - x6) + lambda4*(refz - x3) - (4*x19*cos(x7)*cos(x8))/m) - c7*lambda4*(refz - x3)) + (4*x19*cos(x7)^2*cos(x8)^2*(c7 + c8))/m - (8*x19*cos(x7)^2*sin(x8)^2*(c7 + c8))/m))/(4*cos(x7)^2*cos(x8)^2) - (m*((x10*cos(x8)*sin(x7) + x11*cos(x7)*sin(x8))*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16) - cos(x7)*cos(x8)*((refzdot - x6)*(lambda4 - c7^2 + 1) + (c7 + c8)*(g + refzddot + c7*(refzdot - x6) + lambda4*(refz - x3) - (4*x19*cos(x7)*cos(x8))/m) - c7*lambda4*(refz - x3))))/(2*cos(x7)^2*cos(x8)^2) - (3*m*sin(x8)^2*((x10*cos(x8)*sin(x7) + x11*cos(x7)*sin(x8))*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16) - cos(x7)*cos(x8)*((refzdot - x6)*(lambda4 - c7^2 + 1) + (c7 + c8)*(g + refzddot + c7*(refzdot - x6) + lambda4*(refz - x3) - (4*x19*cos(x7)*cos(x8))/m) - c7*lambda4*(refz - x3))))/(2*cos(x7)^2*cos(x8)^4) - (m*sin(x8)*((x11*cos(x7)*cos(x8) - x10*sin(x7)*sin(x8))*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16) + cos(x7)*sin(x8)*((refzdot - x6)*(lambda4 - c7^2 + 1) + (c7 + c8)*(g + refzddot + c7*(refzdot - x6) + lambda4*(refz - x3) - (4*x19*cos(x7)*cos(x8))/m) - c7*lambda4*(refz - x3)) - (4*x19*cos(x7)^2*cos(x8)*sin(x8)*(c7 + c8))/m))/(cos(x7)^2*cos(x8)^3);
-           d2f19dxdp(8,10)=-(m*sin(x7)*sin(x8)*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16))/(4*cos(x7)^2*cos(x8)^2);
-           d2f19dxdp(8,11)=- (m*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16))/(4*cos(x7)*cos(x8)) - (m*sin(x8)^2*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16))/(2*cos(x7)*cos(x8)^3);
-           d2f19dxdp(8,16)=(m*(c7*lambda4 - lambda4*(c7 + c8))*(x11*cos(x7)*cos(x8) - x10*sin(x7)*sin(x8)))/(4*cos(x7)^2*cos(x8)^2) + (m*sin(x8)*(c7*lambda4 - lambda4*(c7 + c8))*(x10*cos(x8)*sin(x7) + x11*cos(x7)*sin(x8)))/(2*cos(x7)^2*cos(x8)^3);
-           d2f19dxdp(8,30)=- (m*((x11*cos(x7)*cos(x8) - x10*sin(x7)*sin(x8))*(refzdot - x6 + (c7 + c8)*(refz - x3) - c7*(refz - x3)) + cos(x7)*sin(x8)*(g + refzddot + (c7 + c8)*(refzdot - x6) - c7*(refzdot - x6) - (4*x19*cos(x7)*cos(x8))/m) - (4*x19*cos(x7)^2*cos(x8)*sin(x8))/m))/(4*cos(x7)^2*cos(x8)^2) - (m*sin(x8)*((x10*cos(x8)*sin(x7) + x11*cos(x7)*sin(x8))*(refzdot - x6 + (c7 + c8)*(refz - x3) - c7*(refz - x3)) - cos(x7)*cos(x8)*(g + refzddot + (c7 + c8)*(refzdot - x6) - c7*(refzdot - x6) - (4*x19*cos(x7)*cos(x8))/m)))/(2*cos(x7)^2*cos(x8)^3);
-           d2f19dxdp(8,31)=- (m*((x11*cos(x7)*cos(x8) - x10*sin(x7)*sin(x8))*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + cos(x7)*sin(x8)*(g + refzddot + c7*(refzdot - x6) + lambda4*(refz - x3) - (4*x19*cos(x7)*cos(x8))/m) - (4*x19*cos(x7)^2*cos(x8)*sin(x8))/m))/(4*cos(x7)^2*cos(x8)^2) - (m*sin(x8)*((x10*cos(x8)*sin(x7) + x11*cos(x7)*sin(x8))*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) - cos(x7)*cos(x8)*(g + refzddot + c7*(refzdot - x6) + lambda4*(refz - x3) - (4*x19*cos(x7)*cos(x8))/m)))/(2*cos(x7)^2*cos(x8)^3);
-           d2f19dxdp(8,39)=- (m*((x11*cos(x7)*cos(x8) - x10*sin(x7)*sin(x8))*(refz - x3 - c7*x16 + x16*(c7 + c8)) + cos(x7)*sin(x8)*(refzdot - x6 + (c7 + c8)*(refz - x3) - c7*(refz - x3))))/(4*cos(x7)^2*cos(x8)^2) - (m*sin(x8)*((x10*cos(x8)*sin(x7) + x11*cos(x7)*sin(x8))*(refz - x3 - c7*x16 + x16*(c7 + c8)) - cos(x7)*cos(x8)*(refzdot - x6 + (c7 + c8)*(refz - x3) - c7*(refz - x3))))/(2*cos(x7)^2*cos(x8)^3);
-           d2f19dxdp(10,3)=(m*sin(x7)*(lambda4 - c7^2 + c7*(c7 + c8) + 1))/(4*cos(x7)^2*cos(x8));
-           d2f19dxdp(10,6)=(m*sin(x7)*(c7 + c8))/(4*cos(x7)^2*cos(x8));
-           d2f19dxdp(10,7)=- (m*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16))/(4*cos(x7)*cos(x8)) - (m*sin(x7)^2*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16))/(2*cos(x7)^3*cos(x8));
-           d2f19dxdp(10,8)=-(m*sin(x7)*sin(x8)*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16))/(4*cos(x7)^2*cos(x8)^2);
-           d2f19dxdp(10,16)=(m*sin(x7)*(c7*lambda4 - lambda4*(c7 + c8)))/(4*cos(x7)^2*cos(x8));
-           d2f19dxdp(10,30)=-(m*sin(x7)*(refzdot - x6 + (c7 + c8)*(refz - x3) - c7*(refz - x3)))/(4*cos(x7)^2*cos(x8));
-           d2f19dxdp(10,31)=-(m*sin(x7)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)))/(4*cos(x7)^2*cos(x8));
-           d2f19dxdp(10,39)=-(m*sin(x7)*(refz - x3 - c7*x16 + x16*(c7 + c8)))/(4*cos(x7)^2*cos(x8));
-           d2f19dxdp(11,3)=(m*sin(x8)*(lambda4 - c7^2 + c7*(c7 + c8) + 1))/(4*cos(x7)*cos(x8)^2);
-           d2f19dxdp(11,6)=(m*sin(x8)*(c7 + c8))/(4*cos(x7)*cos(x8)^2);
-           d2f19dxdp(11,7)=-(m*sin(x7)*sin(x8)*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16))/(4*cos(x7)^2*cos(x8)^2);
-           d2f19dxdp(11,8)=- (m*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16))/(4*cos(x7)*cos(x8)) - (m*sin(x8)^2*(g + (c7 + c8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + (refz - x3)*(lambda4 - c7^2 + 1) - c7*lambda4*x16))/(2*cos(x7)*cos(x8)^3);
-           d2f19dxdp(11,16)=(m*sin(x8)*(c7*lambda4 - lambda4*(c7 + c8)))/(4*cos(x7)*cos(x8)^2);
-           d2f19dxdp(11,30)=-(m*sin(x8)*(refzdot - x6 + (c7 + c8)*(refz - x3) - c7*(refz - x3)))/(4*cos(x7)*cos(x8)^2);
-           d2f19dxdp(11,31)=-(m*sin(x8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)))/(4*cos(x7)*cos(x8)^2);
-           d2f19dxdp(11,39)=-(m*sin(x8)*(refz - x3 - c7*x16 + x16*(c7 + c8)))/(4*cos(x7)*cos(x8)^2);
-           d2f19dxdp(16,7)=(m*(c7*lambda4 - lambda4*(c7 + c8))*(x10*cos(x7)*cos(x8) - x11*sin(x7)*sin(x8)))/(4*cos(x7)^2*cos(x8)^2) + (m*sin(x7)*(c7*lambda4 - lambda4*(c7 + c8))*(x10*cos(x8)*sin(x7) + x11*cos(x7)*sin(x8)))/(2*cos(x7)^3*cos(x8)^2);
-           d2f19dxdp(16,8)=(m*(c7*lambda4 - lambda4*(c7 + c8))*(x11*cos(x7)*cos(x8) - x10*sin(x7)*sin(x8)))/(4*cos(x7)^2*cos(x8)^2) + (m*sin(x8)*(c7*lambda4 - lambda4*(c7 + c8))*(x10*cos(x8)*sin(x7) + x11*cos(x7)*sin(x8)))/(2*cos(x7)^2*cos(x8)^3);
-           d2f19dxdp(16,10)=(m*sin(x7)*(c7*lambda4 - lambda4*(c7 + c8)))/(4*cos(x7)^2*cos(x8));
-           d2f19dxdp(16,11)=(m*sin(x8)*(c7*lambda4 - lambda4*(c7 + c8)))/(4*cos(x7)*cos(x8)^2);
-           d2f19dxdp(16,31)=-(lambda4*m*(x10*cos(x8)*sin(x7) + x11*cos(x7)*sin(x8)))/(4*cos(x7)^2*cos(x8)^2);
-           d2f19dxdp(16,39)=-(c8*m*(x10*cos(x8)*sin(x7) + x11*cos(x7)*sin(x8)))/(4*cos(x7)^2*cos(x8)^2);
-           d2f19dxdp(19,30)=-1;
-           d2f19dxdp(19,31)=-1;
+           d2f19dxdp(3,7)=(c8*m*(x10*cos(x8)*sin(x7) + x11*cos(x7)*sin(x8)))/(4*cos(x7)^2*cos(x8)^2);
+           d2f19dxdp(3,8)=(m*(c7*(x10*cos(x8)*sin(x7) + x11*cos(x7)*sin(x8)) - lambda4*cos(x7)*cos(x8)))/(4*cos(x7)^2*cos(x8)^2);
+           d2f19dxdp(3,16)=(m*(x10*cos(x8)*sin(x7) - c8*cos(x7)*cos(x8) + x11*cos(x7)*sin(x8)))/(4*cos(x7)^2*cos(x8)^2);
+           d2f19dxdp(6,7)=(m*(x10*cos(x8)*sin(x7) - c8*cos(x7)*cos(x8) + x11*cos(x7)*sin(x8)))/(4*cos(x7)^2*cos(x8)^2);
+           d2f19dxdp(6,8)=(m*(x10*cos(x8)*sin(x7) - c7*cos(x7)*cos(x8) + x11*cos(x7)*sin(x8)))/(4*cos(x7)^2*cos(x8)^2);
+           d2f19dxdp(6,16)=-m/(4*cos(x7)*cos(x8));
+           d2f19dxdp(7,7)=- (m*((x10*cos(x7)*cos(x8) - x11*sin(x7)*sin(x8))*(refzdot - x6 + (c7 + c8)*(refz - x3) - c7*(refz - x3)) + cos(x8)*sin(x7)*(g + refzddot + (c7 + c8)*(refzdot - x6) - c7*(refzdot - x6) - (4*x19*cos(x7)*cos(x8))/m) - (4*x19*cos(x7)*cos(x8)^2*sin(x7))/m))/(4*cos(x7)^2*cos(x8)^2) - (m*sin(x7)*((x10*cos(x8)*sin(x7) + x11*cos(x7)*sin(x8))*(refzdot - x6 + (c7 + c8)*(refz - x3) - c7*(refz - x3)) - cos(x7)*cos(x8)*(g + refzddot + (c7 + c8)*(refzdot - x6) - c7*(refzdot - x6) - (4*x19*cos(x7)*cos(x8))/m)))/(2*cos(x7)^3*cos(x8)^2);
+           d2f19dxdp(7,8)=- (m*((x10*cos(x7)*cos(x8) - x11*sin(x7)*sin(x8))*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + cos(x8)*sin(x7)*(g + refzddot + c7*(refzdot - x6) + lambda4*(refz - x3) - (4*x19*cos(x7)*cos(x8))/m) - (4*x19*cos(x7)*cos(x8)^2*sin(x7))/m))/(4*cos(x7)^2*cos(x8)^2) - (m*sin(x7)*((x10*cos(x8)*sin(x7) + x11*cos(x7)*sin(x8))*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) - cos(x7)*cos(x8)*(g + refzddot + c7*(refzdot - x6) + lambda4*(refz - x3) - (4*x19*cos(x7)*cos(x8))/m)))/(2*cos(x7)^3*cos(x8)^2);
+           d2f19dxdp(7,16)=- (m*((x10*cos(x7)*cos(x8) - x11*sin(x7)*sin(x8))*(refz - x3 - c7*x16 + x16*(c7 + c8)) + cos(x8)*sin(x7)*(refzdot - x6 + (c7 + c8)*(refz - x3) - c7*(refz - x3))))/(4*cos(x7)^2*cos(x8)^2) - (m*sin(x7)*((x10*cos(x8)*sin(x7) + x11*cos(x7)*sin(x8))*(refz - x3 - c7*x16 + x16*(c7 + c8)) - cos(x7)*cos(x8)*(refzdot - x6 + (c7 + c8)*(refz - x3) - c7*(refz - x3))))/(2*cos(x7)^3*cos(x8)^2);
+           d2f19dxdp(8,7)=- (m*((x11*cos(x7)*cos(x8) - x10*sin(x7)*sin(x8))*(refzdot - x6 + (c7 + c8)*(refz - x3) - c7*(refz - x3)) + cos(x7)*sin(x8)*(g + refzddot + (c7 + c8)*(refzdot - x6) - c7*(refzdot - x6) - (4*x19*cos(x7)*cos(x8))/m) - (4*x19*cos(x7)^2*cos(x8)*sin(x8))/m))/(4*cos(x7)^2*cos(x8)^2) - (m*sin(x8)*((x10*cos(x8)*sin(x7) + x11*cos(x7)*sin(x8))*(refzdot - x6 + (c7 + c8)*(refz - x3) - c7*(refz - x3)) - cos(x7)*cos(x8)*(g + refzddot + (c7 + c8)*(refzdot - x6) - c7*(refzdot - x6) - (4*x19*cos(x7)*cos(x8))/m)))/(2*cos(x7)^2*cos(x8)^3);
+           d2f19dxdp(8,8)=- (m*((x11*cos(x7)*cos(x8) - x10*sin(x7)*sin(x8))*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) + cos(x7)*sin(x8)*(g + refzddot + c7*(refzdot - x6) + lambda4*(refz - x3) - (4*x19*cos(x7)*cos(x8))/m) - (4*x19*cos(x7)^2*cos(x8)*sin(x8))/m))/(4*cos(x7)^2*cos(x8)^2) - (m*sin(x8)*((x10*cos(x8)*sin(x7) + x11*cos(x7)*sin(x8))*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) - cos(x7)*cos(x8)*(g + refzddot + c7*(refzdot - x6) + lambda4*(refz - x3) - (4*x19*cos(x7)*cos(x8))/m)))/(2*cos(x7)^2*cos(x8)^3);
+           d2f19dxdp(8,16)=- (m*((x11*cos(x7)*cos(x8) - x10*sin(x7)*sin(x8))*(refz - x3 - c7*x16 + x16*(c7 + c8)) + cos(x7)*sin(x8)*(refzdot - x6 + (c7 + c8)*(refz - x3) - c7*(refz - x3))))/(4*cos(x7)^2*cos(x8)^2) - (m*sin(x8)*((x10*cos(x8)*sin(x7) + x11*cos(x7)*sin(x8))*(refz - x3 - c7*x16 + x16*(c7 + c8)) - cos(x7)*cos(x8)*(refzdot - x6 + (c7 + c8)*(refz - x3) - c7*(refz - x3))))/(2*cos(x7)^2*cos(x8)^3);
+           d2f19dxdp(10,7)=-(m*sin(x7)*(refzdot - x6 + (c7 + c8)*(refz - x3) - c7*(refz - x3)))/(4*cos(x7)^2*cos(x8));
+           d2f19dxdp(10,8)=-(m*sin(x7)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)))/(4*cos(x7)^2*cos(x8));
+           d2f19dxdp(10,16)=-(m*sin(x7)*(refz - x3 - c7*x16 + x16*(c7 + c8)))/(4*cos(x7)^2*cos(x8));
+           d2f19dxdp(11,7)=-(m*sin(x8)*(refzdot - x6 + (c7 + c8)*(refz - x3) - c7*(refz - x3)))/(4*cos(x7)*cos(x8)^2);
+           d2f19dxdp(11,8)=-(m*sin(x8)*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)))/(4*cos(x7)*cos(x8)^2);
+           d2f19dxdp(11,16)=-(m*sin(x8)*(refz - x3 - c7*x16 + x16*(c7 + c8)))/(4*cos(x7)*cos(x8)^2);
+           d2f19dxdp(16,8)=-(lambda4*m*(x10*cos(x8)*sin(x7) + x11*cos(x7)*sin(x8)))/(4*cos(x7)^2*cos(x8)^2);
+           d2f19dxdp(16,16)=-(c8*m*(x10*cos(x8)*sin(x7) + x11*cos(x7)*sin(x8)))/(4*cos(x7)^2*cos(x8)^2);
+           d2f19dxdp(19,7)=-1;
+           d2f19dxdp(19,8)=-1;
 
         end
 
         function d2thetarefdxdp = d2thetarefdxdp(model, state, ref)
-            d2thetarefdxdp = zeros(model.numStates, model.numParams);
+            d2thetarefdxdp = zeros(model.numX, model.numParams);
 
             refx = ref.x;
             refxdot = ref.x_dot;
-            refxddot = ref.x_ddot;
         
             m = model.m;
             c9 = model.c9;
@@ -1220,31 +1083,24 @@ classdef derivativesDroneIBHybrid
             x17 = state(17);
             x19 = state(19);
 
-                       d2thetarefdxdp(1,19)=(m*(lambda5 - c9^2 + c9*(c9 + c10) + 1))/x19^2;
-           d2thetarefdxdp(1,32)=-(c10*m)/x19;
-           d2thetarefdxdp(1,33)=-(c9*m)/x19;
-           d2thetarefdxdp(1,40)=-m/x19;
-           d2thetarefdxdp(4,19)=(m*(c9 + c10))/x19^2;
-           d2thetarefdxdp(4,32)=-m/x19;
-           d2thetarefdxdp(4,33)=-m/x19;
-           d2thetarefdxdp(17,19)=(m*(c9*lambda5 - lambda5*(c9 + c10)))/x19^2;
-           d2thetarefdxdp(17,33)=(lambda5*m)/x19;
-           d2thetarefdxdp(17,40)=(c10*m)/x19;
-           d2thetarefdxdp(19,1)=(m*(lambda5 - c9^2 + c9*(c9 + c10) + 1))/x19^2;
-           d2thetarefdxdp(19,4)=(m*(c9 + c10))/x19^2;
-           d2thetarefdxdp(19,17)=(m*(c9*lambda5 - lambda5*(c9 + c10)))/x19^2;
-           d2thetarefdxdp(19,19)=(2*m*(refxddot + (c9 + c10)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)) + (refx - x1)*(lambda5 - c9^2 + 1) - c9*lambda5*x17))/x19^3;
-           d2thetarefdxdp(19,32)=-(m*(refxdot - x4 + (c9 + c10)*(refx - x1) - c9*(refx - x1)))/x19^2;
-           d2thetarefdxdp(19,33)=-(m*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)))/x19^2;
-           d2thetarefdxdp(19,40)=-(m*(refx - x1 - c9*x17 + x17*(c9 + c10)))/x19^2;
+           d2thetarefdxdp(1,9)=-(c10*m)/x19;
+           d2thetarefdxdp(1,10)=-(c9*m)/x19;
+           d2thetarefdxdp(1,17)=-m/x19;
+           d2thetarefdxdp(4,9)=-m/x19;
+           d2thetarefdxdp(4,10)=-m/x19;
+           d2thetarefdxdp(17,10)=(lambda5*m)/x19;
+           d2thetarefdxdp(17,17)=(c10*m)/x19;
+           d2thetarefdxdp(19,9)=-(m*(refxdot - x4 + (c9 + c10)*(refx - x1) - c9*(refx - x1)))/x19^2;
+           d2thetarefdxdp(19,10)=-(m*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)))/x19^2;
+           d2thetarefdxdp(19,17)=-(m*(refx - x1 - c9*x17 + x17*(c9 + c10)))/x19^2;
+
         end
 
         function d2phirefdxdp = d2phirefdxdp(model, state, ref)
-            d2phirefdxdp = zeros(model.numStates, model.numParams);
+            d2phirefdxdp = zeros(model.numX, model.numParams);
 
             refy = ref.y;
             refydot = ref.y_dot;
-            refyddot = ref.y_ddot;
         
             m = model.m;
             c11 = model.c11;
@@ -1256,23 +1112,17 @@ classdef derivativesDroneIBHybrid
             x18 = state(18);
             x19 = state(19);
 
-           d2phirefdxdp(2,19)=-(m*(lambda6 - c11^2 + c11*(c11 + c12) + 1))/x19^2;
-           d2phirefdxdp(2,34)=(c12*m)/x19;
-           d2phirefdxdp(2,35)=(c11*m)/x19;
-           d2phirefdxdp(2,41)=m/x19;
-           d2phirefdxdp(5,19)=-(m*(c11 + c12))/x19^2;
-           d2phirefdxdp(5,34)=m/x19;
-           d2phirefdxdp(5,35)=m/x19;
-           d2phirefdxdp(18,19)=-(m*(c11*lambda6 - lambda6*(c11 + c12)))/x19^2;
-           d2phirefdxdp(18,35)=-(lambda6*m)/x19;
-           d2phirefdxdp(18,41)=-(c12*m)/x19;
-           d2phirefdxdp(19,2)=-(m*(lambda6 - c11^2 + c11*(c11 + c12) + 1))/x19^2;
-           d2phirefdxdp(19,5)=-(m*(c11 + c12))/x19^2;
-           d2phirefdxdp(19,18)=-(m*(c11*lambda6 - lambda6*(c11 + c12)))/x19^2;
-           d2phirefdxdp(19,19)=-(2*m*(refyddot + (c11 + c12)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)) + (refy - x2)*(lambda6 - c11^2 + 1) - c11*lambda6*x18))/x19^3;
-           d2phirefdxdp(19,34)=(m*(refydot - x5 + (c11 + c12)*(refy - x2) - c11*(refy - x2)))/x19^2;
-           d2phirefdxdp(19,35)=(m*(refydot - x5 + lambda6*x18 + c11*(refy - x2)))/x19^2;
-           d2phirefdxdp(19,41)=(m*(refy - x2 - c11*x18 + x18*(c11 + c12)))/x19^2;
+           d2phirefdxdp(2,11)=(c12*m)/x19;
+           d2phirefdxdp(2,12)=(c11*m)/x19;
+           d2phirefdxdp(2,18)=m/x19;
+           d2phirefdxdp(5,11)=m/x19;
+           d2phirefdxdp(5,12)=m/x19;
+           d2phirefdxdp(18,12)=-(lambda6*m)/x19;
+           d2phirefdxdp(18,18)=-(c12*m)/x19;
+           d2phirefdxdp(19,11)=(m*(refydot - x5 + (c11 + c12)*(refy - x2) - c11*(refy - x2)))/x19^2;
+           d2phirefdxdp(19,12)=(m*(refydot - x5 + lambda6*x18 + c11*(refy - x2)))/x19^2;
+           d2phirefdxdp(19,18)=(m*(refy - x2 - c11*x18 + x18*(c11 + c12)))/x19^2;
+
         end
         
         function [model, state] = nudgeParams(model, state, delta, index)
