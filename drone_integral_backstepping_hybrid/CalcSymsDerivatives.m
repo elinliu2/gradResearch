@@ -1,7 +1,7 @@
 clc;
 syms c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 c11 c12 lambda1 lambda2 lambda3 lambda4 lambda5 lambda6 
 syms m g Jtheta Jphi Jpsi K_psi l
-syms x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16 x17 x18 x19 x20 x21 x22 x23
+syms x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16 x17 x18 x19 y1 y2 y3 y4
 syms refx refxdot refxddot refxdddot refxddddot
 syms refy refydot refyddot refydddot refyddddot
 syms refz refzdot refzddot refzdddot refzddddot
@@ -18,10 +18,10 @@ e11 = refy - x2;
 e12 = c11*e11 + refydot + lambda6*x18 - x5;
 phi_ref =   m/U_z*( -(1-c11^2 + lambda6)*e11 - (c11+c12)*e12 - refyddot + c11*lambda6*x18);
 
-theta_ref_dot = x20;
-phi_ref_dot = x21;
-theta_ref_ddot = x22;
-phi_ref_ddot = x23;
+theta_ref_dot = y1;
+phi_ref_dot = y2;
+theta_ref_ddot = y3;
+phi_ref_ddot = y4;
 
 e1 = theta_ref - x7;
 e2 = c1*e1 + theta_ref_dot + lambda1*x13 - x10;
@@ -66,13 +66,14 @@ f18 = refy - x2;
 f19 = U_zdot;
 
   func = [f1; f2; f3; f4; f5; f6; f7; f8; f9; f10; f11; f12; f13; f14; f15; f16; f17; f18; f19; theta_ref; phi_ref];
-  vars = [x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16 x17 x18 x19 x20 x21 x22 x23];
+  x = [x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16 x17 x18 x19];
+  y = [y1 y2 y3 y4];
   params = [c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 c11 c12 lambda1 lambda2 lambda3 lambda4 lambda5 lambda6];
   
 filename = "C:\Users\elinl\OneDrive - University of Waterloo\research\derivatives.txt";
 
-% for i = 1:23
-%     derivative = diff(f19, vars(i));
+% for i = 1:length(x)
+%     derivative = diff(f19, x(i));
 %     if(derivative ~= 0)
 %         disp(strcat("           dfdx(", string(i) ,")=", string(derivative),";"))
 %         % lines = strcat("           df24dx(", string(i) ,")=", string(derivative),";");
@@ -80,7 +81,7 @@ filename = "C:\Users\elinl\OneDrive - University of Waterloo\research\derivative
 %     end
 % end
  
-for i = 1:18
+for i = 1:length(params)
     derivative = diff(phi_ref, params(i));
     if(derivative ~= 0)
         disp(strcat("           dgdq(2,", string(23+i) ,")=", string(derivative),";"))
@@ -189,18 +190,28 @@ end
 
 % for i = 1:length(dfunc_indicies)
 %     index = dfunc_indicies(i);
-%     for j = 1:19
-%         derivative = diff(dfunc(i), vars(j));
+%     for j = 1:length(x)
+%         derivative = diff(dfunc(i), x(j));
 %         if(derivative ~= 0)
 %             disp(strcat("           d2f11dx2(", num2str(index), ",", num2str(j), ")=", string(derivative),";"));
 %         end
 %     end
 % end
 
+for i = 1:length(dfunc_indicies)
+    index = dfunc_indicies(i);
+    for j = 1:length(y)
+        derivative = diff(dfunc(i), y(j));
+        if(derivative ~= 0)
+            disp(strcat("           d2fdxdy(", num2str(index), ",", num2str(j), ")=", string(derivative),";"))
+        end
+    end
+end
+
 
 % for i = 1:length(dfunc_indicies)
 %     index = dfunc_indicies(i);
-%     for j = 1:18
+%     for j = 1:length(params)
 %         derivative = diff(dfunc(i), params(j));
 %         if(derivative ~= 0)
 %             disp(strcat("           d2thetarefdxdp(", num2str(index), ",", num2str(j), ")=", string(derivative),";"))

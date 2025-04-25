@@ -1,5 +1,6 @@
 classdef derivativesDroneIBHybrid
     methods (Static)
+        %% First Order Derivatives
         function dfdx = dfdx(model, state, ref)
             dfdx = zeros(model.numX, model.numX);
             dfdx(1, 4) = 1;
@@ -473,6 +474,8 @@ classdef derivativesDroneIBHybrid
            dgdq(2,41)=-(m*(refy - x2 - c11*x18 + x18*(c11 + c12)))/x19;
         end
 
+        %% Second Order Derivatives
+
         function d2fdx2 = d2fdx2(model, state, ref)
             d2fdx2 = zeros(model.numX, model.numX, model.numX);
 
@@ -740,6 +743,11 @@ classdef derivativesDroneIBHybrid
 
         end
 
+        function d2fdxdy = d2fdxdy(model, state, ref)
+            d2fdxdy = zeros(model.numX, model.numX, model.numY);
+        end
+        
+        
         function d2thetarefdx2 = d2thetarefdx2(model, state, ref)
             d2thetarefdx2 = zeros(model.numX, model.numX);
 
