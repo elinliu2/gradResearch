@@ -512,15 +512,6 @@ classdef derivativesDroneIBHybrid
 
         end
 
-        function d2fdy2 = d2fdy2(model, ~, ~)
-            d2fdy2 = zeros(model.numX, model.numY, model.numY);
-            d2fdy2(10, 1, 1)=1;
-            d2fdy2(10, 1, 2)=1;
-       
-            d2fdy2(11, 2, 3)=1;
-            d2fdy2(11, 2, 4)=1;
-        end
-
         function d2f4dx2 = d2f4dx2(model, state, ~)
             d2f4dx2 = zeros(model.numX, model.numX);
 
@@ -617,7 +608,7 @@ classdef derivativesDroneIBHybrid
             x17 = state(17);
             x19 = state(19);
 
-            d2f10dx2(1,19)=(m*(lambda1 - c1^2 + 1)*(lambda5 - c9^2 + c9*(c9 + c10) + 1))/x19^2 + (c1*m*(c1 + c2)*(lambda5 - c9^2 + c9*(c9 + c10) + 1))/x19^2;
+           d2f10dx2(1,19)=(m*(lambda1 - c1^2 + 1)*(lambda5 - c9^2 + c9*(c9 + c10) + 1))/x19^2 + (c1*m*(c1 + c2)*(lambda5 - c9^2 + c9*(c9 + c10) + 1))/x19^2;
            d2f10dx2(4,19)=(m*(c9 + c10)*(lambda1 - c1^2 + 1))/x19^2 + (c1*m*(c1 + c2)*(c9 + c10))/x19^2;
            d2f10dx2(17,19)=(m*(c9*lambda5 - lambda5*(c9 + c10))*(lambda1 - c1^2 + 1))/x19^2 + (c1*m*(c1 + c2)*(c9*lambda5 - lambda5*(c9 + c10)))/x19^2;
            d2f10dx2(19,1)=(m*(lambda1 - c1^2 + 1)*(lambda5 - c9^2 + c9*(c9 + c10) + 1))/x19^2 + (c1*m*(c1 + c2)*(lambda5 - c9^2 + c9*(c9 + c10) + 1))/x19^2;
@@ -647,7 +638,7 @@ classdef derivativesDroneIBHybrid
             x18 = state(18);
             x19 = state(19);
 
-            d2f11dx2(2,19)=- (m*(lambda2 - c3^2 + 1)*(lambda6 - c11^2 + c11*(c11 + c12) + 1))/x19^2 - (c3*m*(c3 + c4)*(lambda6 - c11^2 + c11*(c11 + c12) + 1))/x19^2;
+           d2f11dx2(2,19)=- (m*(lambda2 - c3^2 + 1)*(lambda6 - c11^2 + c11*(c11 + c12) + 1))/x19^2 - (c3*m*(c3 + c4)*(lambda6 - c11^2 + c11*(c11 + c12) + 1))/x19^2;
            d2f11dx2(5,19)=- (m*(c11 + c12)*(lambda2 - c3^2 + 1))/x19^2 - (c3*m*(c3 + c4)*(c11 + c12))/x19^2;
            d2f11dx2(18,19)=- (m*(c11*lambda6 - lambda6*(c11 + c12))*(lambda2 - c3^2 + 1))/x19^2 - (c3*m*(c3 + c4)*(c11*lambda6 - lambda6*(c11 + c12)))/x19^2;
            d2f11dx2(19,2)=- (m*(lambda2 - c3^2 + 1)*(lambda6 - c11^2 + c11*(c11 + c12) + 1))/x19^2 - (c3*m*(c3 + c4)*(lambda6 - c11^2 + c11*(c11 + c12) + 1))/x19^2;
@@ -826,7 +817,7 @@ classdef derivativesDroneIBHybrid
         end
         
         function d2fdxdp = d2fdxdp(model, state, ref)
-            d2fdxdp = zeros(model.numX, model.numStates, model.numParams);
+            d2fdxdp = zeros(model.numX, model.numX, model.numParams);
 
             d2fdxdp(10, :, :) = derivativesDroneIBHybrid.d2f10dxdp(model, state, ref);
             d2fdxdp(11, :, :) = derivativesDroneIBHybrid.d2f11dxdp(model, state, ref);
@@ -839,7 +830,7 @@ classdef derivativesDroneIBHybrid
         end
         
         function d2f10dxdp = d2f10dxdp(model, state, ref)
-            d2f10dxdp = zeros(model.numStates, model.numParams);
+            d2f10dxdp = zeros(model.numX, model.numParams);
 
             refx = ref.x;
             refxdot = ref.x_dot;
@@ -887,12 +878,10 @@ classdef derivativesDroneIBHybrid
            d2f10dxdp(19,10)=- (m*(lambda1 - c1^2 + 1)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)))/x19^2 - (c1*m*(c1 + c2)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)))/x19^2;
            d2f10dxdp(19,13)=-(m*(refxddot + (c9 + c10)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)) + (refx - x1)*(lambda5 - c9^2 + 1) - c9*lambda5*x17))/x19^2;
            d2f10dxdp(19,17)=- (m*(lambda1 - c1^2 + 1)*(refx - x1 - c9*x17 + x17*(c9 + c10)))/x19^2 - (c1*m*(c1 + c2)*(refx - x1 - c9*x17 + x17*(c9 + c10)))/x19^2;
-           d2f10dxdp(20,1)=1;
-           d2f10dxdp(20,2)=1;
         end
 
         function d2f11dxdp = d2f11dxdp(model, state, ref)
-            d2f11dxdp = zeros(model.numStates, model.numParams);
+            d2f11dxdp = zeros(model.numX, model.numParams);
 
             refy = ref.y;
             refydot = ref.y_dot;
@@ -940,14 +929,10 @@ classdef derivativesDroneIBHybrid
            d2f11dxdp(19,12)=(m*(lambda2 - c3^2 + 1)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)))/x19^2 + (c3*m*(c3 + c4)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)))/x19^2;
            d2f11dxdp(19,14)=(m*(refyddot + (c11 + c12)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)) + (refy - x2)*(lambda6 - c11^2 + 1) - c11*lambda6*x18))/x19^2;
            d2f11dxdp(19,18)=(m*(lambda2 - c3^2 + 1)*(refy - x2 - c11*x18 + x18*(c11 + c12)))/x19^2 + (c3*m*(c3 + c4)*(refy - x2 - c11*x18 + x18*(c11 + c12)))/x19^2;
-           d2f11dxdp(21,3)=1;
-           d2f11dxdp(21,4)=1;
-
-
         end
 
         function d2f12dxdp = d2f12dxdp(model, ~, ~)
-            d2f12dxdp = zeros(model.numStates, model.numParams);
+            d2f12dxdp = zeros(model.numX, model.numParams);
 
              c5 = model.c5;
             c6 = model.c6;
@@ -964,7 +949,7 @@ classdef derivativesDroneIBHybrid
         end
 
         function d2f13dxdp = d2f13dxdp(model, state, ref)
-            d2f13dxdp = zeros(model.numStates, model.numParams);
+            d2f13dxdp = zeros(model.numX, model.numParams);
 
             refx = ref.x;
             refxdot = ref.x_dot;
@@ -992,7 +977,7 @@ classdef derivativesDroneIBHybrid
         end
 
         function d2f14dxdp = d2f14dxdp(model, state, ref)
-            d2f14dxdp = zeros(model.numStates, model.numParams);
+            d2f14dxdp = zeros(model.numX, model.numParams);
 
             refy = ref.y;
             refydot = ref.y_dot;
@@ -1021,7 +1006,7 @@ classdef derivativesDroneIBHybrid
         end
 
         function d2f19dxdp = d2f19dxdp(model, state, ref)
-            d2f19dxdp = zeros(model.numStates, model.numParams);
+            d2f19dxdp = zeros(model.numX, model.numParams);
 
             refz = ref.z;
             refzdot = ref.z_dot;
@@ -1067,6 +1052,15 @@ classdef derivativesDroneIBHybrid
 
         end
 
+        function d2fdydp = d2fdydp(model, ~, ~)
+            d2fdydp = zeros(model.numX, model.numY, model.numParams);
+            d2fdydp(10, 1, 1)=1;
+            d2fdydp(10, 1, 2)=1;
+       
+            d2fdydp(11, 2, 3)=1;
+            d2fdydp(11, 2, 4)=1;
+        end
+        
         function d2thetarefdxdp = d2thetarefdxdp(model, state, ref)
             d2thetarefdxdp = zeros(model.numX, model.numParams);
 
@@ -1093,6 +1087,7 @@ classdef derivativesDroneIBHybrid
            d2thetarefdxdp(19,9)=-(m*(refxdot - x4 + (c9 + c10)*(refx - x1) - c9*(refx - x1)))/x19^2;
            d2thetarefdxdp(19,10)=-(m*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)))/x19^2;
            d2thetarefdxdp(19,17)=-(m*(refx - x1 - c9*x17 + x17*(c9 + c10)))/x19^2;
+
 
         end
 
@@ -1122,6 +1117,7 @@ classdef derivativesDroneIBHybrid
            d2phirefdxdp(19,11)=(m*(refydot - x5 + (c11 + c12)*(refy - x2) - c11*(refy - x2)))/x19^2;
            d2phirefdxdp(19,12)=(m*(refydot - x5 + lambda6*x18 + c11*(refy - x2)))/x19^2;
            d2phirefdxdp(19,18)=(m*(refy - x2 - c11*x18 + x18*(c11 + c12)))/x19^2;
+
 
         end
         

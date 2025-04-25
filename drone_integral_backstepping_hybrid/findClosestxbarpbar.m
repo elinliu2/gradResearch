@@ -1,4 +1,4 @@
-addpath('./../utils/')  
+addpath('./utils/')  
 tjs = trajectorySensitivities;
 
 % Sim Constants
@@ -74,9 +74,10 @@ for i = 1:2
     [time, stateProgression, drone] = trajectory(drone, SC, xk, false, ref);
     
     trajSens = droneTrajectorySensitivitiesHybrid.calculateTrajectorySensitivities(drone, SC, stateProgression, ref);
-    trajSensParam = droneTrajectorySensitivitiesHybrid.calculateTrajectorySensitivitiesParameters(drone, SC, stateProgression, ref);
-    secondTrajSensParam = droneTrajectorySensitivitiesHybrid.calculateSecondOrderTrajectorySensitivitiesParams(drone, SC, stateProgression, trajSens, trajSensParam, ref);
-    
+    trajSensParam = droneTrajectorySensitivitiesHybrid.calculateTrajectorySensitivitiesParameters(drone, SC, stateProgression, trajSens, ref);
+    secondTrajSensTestParam = tjs.calculateSecondOrderTrajectorySensitivitiesTestParams(drone, SC, xk, size(stateProgression, 1), ref);
+    secondTrajSensParam = droneTrajectorySensitivitiesHybrid.calculateSecondOrderTrajectorySensitivitiesParams(drone, SC, stateProgression, trajSens, trajSensParam, secondTrajSensTestParam, ref);
+
     G = norms.infimumOfReciprocalOfElementOneNorm(trajSens);
     tp = tjs.findtp(trajSens);
     dGp = tjs.calculate_dG(G, trajSens, secondTrajSensParam, tp, drone)*1e15;
