@@ -234,68 +234,21 @@ classdef derivativesDroneIBHybrid
             dfdy(11, 4)=1;
         end
         
-        function dthetarefdx = dthetarefdx(model, state, ref)
-            dthetarefdx = zeros(1, model.numX);
+        function dfdq = dfdq(model, state, ref)
+            dfdq = zeros(model.numX, model.numStates + model.numParams);
 
-            refx = ref.x;
-            refxdot = ref.x_dot;
-            refxddot = ref.x_ddot;
-            
-        
-            m = model.m;
-            c9 = model.c9;
-            c10 = model.c10;
-            lambda5 = model.lambda5; 
-        
-            x1 = state(1);
-            x4 = state(4);
-            x17 = state(17);
-            x19 = state(19);
-            
-            dthetarefdx(1)=-(m*(lambda5 - c9^2 + c9*(c9 + c10) + 1))/x19;
-           dthetarefdx(4)=-(m*(c9 + c10))/x19;
-           dthetarefdx(17)=-(m*(c9*lambda5 - lambda5*(c9 + c10)))/x19;
-           dthetarefdx(19)=-(m*(refxddot + (c9 + c10)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)) + (refx - x1)*(lambda5 - c9^2 + 1) - c9*lambda5*x17))/x19^2;
+            dfdq(10, :) = derivativesDroneIBHybrid.df10dq(model, state, ref);
+            dfdq(11, :) = derivativesDroneIBHybrid.df11dq(model, state, ref);
+            dfdq(12, :) = derivativesDroneIBHybrid.df12dq(model, state, ref);
+
+            dfdq(13, :) = derivativesDroneIBHybrid.df13dq(model, state, ref);
+            dfdq(14, :) = derivativesDroneIBHybrid.df14dq(model, state, ref);
+
+            dfdq(19, :) = derivativesDroneIBHybrid.df19dq(model, state, ref);
         end
 
-        function dphirefdx = dphirefdx(model, state, ref)
-            dphirefdx = zeros(1, model.numX);
-
-            refy = ref.y;
-            refydot = ref.y_dot;
-            refyddot = ref.y_ddot;
-        
-            m = model.m;
-            c11 = model.c11;
-            c12 = model.c12;
-            lambda6 = model.lambda6; 
-        
-            x2 = state(2);
-            x5 = state(5);
-            x18 = state(18);
-            x19 = state(19);
-
-            dphirefdx(2)=(m*(lambda6 - c11^2 + c11*(c11 + c12) + 1))/x19;
-           dphirefdx(5)=(m*(c11 + c12))/x19;
-           dphirefdx(18)=(m*(c11*lambda6 - lambda6*(c11 + c12)))/x19;
-           dphirefdx(19)=(m*(refyddot + (c11 + c12)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)) + (refy - x2)*(lambda6 - c11^2 + 1) - c11*lambda6*x18))/x19^2;
-        end
-        
-        function dfdp = dfdp(model, state, ref)
-            dfdp = zeros(model.numX, model.numParams);
-
-            dfdp(10, :) = derivativesDroneIBHybrid.df10dp(model, state, ref);
-            dfdp(11, :) = derivativesDroneIBHybrid.df11dp(model, state, ref);
-            dfdp(12, :) = derivativesDroneIBHybrid.df12dp(model, state, ref);
-
-            dfdp(13, :) = derivativesDroneIBHybrid.df13dp(model, state, ref);
-            dfdp(14, :) = derivativesDroneIBHybrid.df14dp(model, state, ref);
-
-            dfdp(19, :) = derivativesDroneIBHybrid.df19dp(model, state, ref);
-        end
-
-        function df10dp = df10dp(model, state, ref)
-            df10dp = zeros(1, model.numParams);
+        function df10dq = df10dq(model, state, ref)
+            df10dq = zeros(1, model.numStates + model.numParams);
 
             refx = ref.x;
             refxdot = ref.x_dot;
@@ -318,17 +271,16 @@ classdef derivativesDroneIBHybrid
             x19 = state(19);
             x20 = state(20);
 
-           df10dp(1)=x20 - x10 - (c1 + c2)*(x7 - (m*(refxddot + (c9 + c10)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)) + (refx - x1)*(lambda5 - c9^2 + 1) - c9*lambda5*x17))/x19) + c1*(x7 - (m*(refxddot + (c9 + c10)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)) + (refx - x1)*(lambda5 - c9^2 + 1) - c9*lambda5*x17))/x19);
-           df10dp(2)=x20 - x10 + lambda1*x13 - c1*(x7 - (m*(refxddot + (c9 + c10)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)) + (refx - x1)*(lambda5 - c9^2 + 1) - c9*lambda5*x17))/x19);
-           df10dp(9)=(m*(lambda1 - c1^2 + 1)*(refxdot - x4 + (c9 + c10)*(refx - x1) - c9*(refx - x1)))/x19 + (c1*m*(c1 + c2)*(refxdot - x4 + (c9 + c10)*(refx - x1) - c9*(refx - x1)))/x19;
-           df10dp(10)=(m*(lambda1 - c1^2 + 1)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)))/x19 + (c1*m*(c1 + c2)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)))/x19;
-           df10dp(13)=x13*(c1 + c2) - c1*x13 - x7 + (m*(refxddot + (c9 + c10)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)) + (refx - x1)*(lambda5 - c9^2 + 1) - c9*lambda5*x17))/x19;
-           df10dp(17)=(m*(lambda1 - c1^2 + 1)*(refx - x1 - c9*x17 + x17*(c9 + c10)))/x19 + (c1*m*(c1 + c2)*(refx - x1 - c9*x17 + x17*(c9 + c10)))/x19;
-
+           df10dq(24)=x20 - x10 - (c1 + c2)*(x7 - (m*(refxddot + (c9 + c10)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)) + (refx - x1)*(lambda5 - c9^2 + 1) - c9*lambda5*x17))/x19) + c1*(x7 - (m*(refxddot + (c9 + c10)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)) + (refx - x1)*(lambda5 - c9^2 + 1) - c9*lambda5*x17))/x19);
+           df10dq(25)=x20 - x10 + lambda1*x13 - c1*(x7 - (m*(refxddot + (c9 + c10)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)) + (refx - x1)*(lambda5 - c9^2 + 1) - c9*lambda5*x17))/x19);
+           df10dq(32)=(m*(lambda1 - c1^2 + 1)*(refxdot - x4 + (c9 + c10)*(refx - x1) - c9*(refx - x1)))/x19 + (c1*m*(c1 + c2)*(refxdot - x4 + (c9 + c10)*(refx - x1) - c9*(refx - x1)))/x19;
+           df10dq(33)=(m*(lambda1 - c1^2 + 1)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)))/x19 + (c1*m*(c1 + c2)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)))/x19;
+           df10dq(36)=x13*(c1 + c2) - c1*x13 - x7 + (m*(refxddot + (c9 + c10)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)) + (refx - x1)*(lambda5 - c9^2 + 1) - c9*lambda5*x17))/x19;
+           df10dq(40)=(m*(lambda1 - c1^2 + 1)*(refx - x1 - c9*x17 + x17*(c9 + c10)))/x19 + (c1*m*(c1 + c2)*(refx - x1 - c9*x17 + x17*(c9 + c10)))/x19;
         end
 
-        function df11dp = df11dp(model, state, ref)
-            df11dp = zeros(1, model.numParams);
+        function df11dq = df11dq(model, state, ref)
+            df11dq = zeros(1, model.numStates + model.numParams);
 
             refy = ref.y;
             refydot = ref.y_dot;
@@ -351,22 +303,21 @@ classdef derivativesDroneIBHybrid
             x19 = state(19);
             x21 = state(21);
 
-                      df11dp(3)=x21 - x11 - (c3 + c4)*(x8 + (m*(refyddot + (c11 + c12)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)) + (refy - x2)*(lambda6 - c11^2 + 1) - c11*lambda6*x18))/x19) + c3*(x8 + (m*(refyddot + (c11 + c12)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)) + (refy - x2)*(lambda6 - c11^2 + 1) - c11*lambda6*x18))/x19);
-           df11dp(4)=x21 - x11 + lambda2*x14 - c3*(x8 + (m*(refyddot + (c11 + c12)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)) + (refy - x2)*(lambda6 - c11^2 + 1) - c11*lambda6*x18))/x19);
-           df11dp(11)=- (m*(lambda2 - c3^2 + 1)*(refydot - x5 + (c11 + c12)*(refy - x2) - c11*(refy - x2)))/x19 - (c3*m*(c3 + c4)*(refydot - x5 + (c11 + c12)*(refy - x2) - c11*(refy - x2)))/x19;
-           df11dp(12)=- (m*(lambda2 - c3^2 + 1)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)))/x19 - (c3*m*(c3 + c4)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)))/x19;
-           df11dp(14)=x14*(c3 + c4) - c3*x14 - x8 - (m*(refyddot + (c11 + c12)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)) + (refy - x2)*(lambda6 - c11^2 + 1) - c11*lambda6*x18))/x19;
-           df11dp(18)=- (m*(lambda2 - c3^2 + 1)*(refy - x2 - c11*x18 + x18*(c11 + c12)))/x19 - (c3*m*(c3 + c4)*(refy - x2 - c11*x18 + x18*(c11 + c12)))/x19;
-
+           df11dq(26)=x21 - x11 - (c3 + c4)*(x8 + (m*(refyddot + (c11 + c12)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)) + (refy - x2)*(lambda6 - c11^2 + 1) - c11*lambda6*x18))/x19) + c3*(x8 + (m*(refyddot + (c11 + c12)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)) + (refy - x2)*(lambda6 - c11^2 + 1) - c11*lambda6*x18))/x19);
+           df11dq(27)=x21 - x11 + lambda2*x14 - c3*(x8 + (m*(refyddot + (c11 + c12)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)) + (refy - x2)*(lambda6 - c11^2 + 1) - c11*lambda6*x18))/x19);
+           df11dq(34)=- (m*(lambda2 - c3^2 + 1)*(refydot - x5 + (c11 + c12)*(refy - x2) - c11*(refy - x2)))/x19 - (c3*m*(c3 + c4)*(refydot - x5 + (c11 + c12)*(refy - x2) - c11*(refy - x2)))/x19;
+           df11dq(35)=- (m*(lambda2 - c3^2 + 1)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)))/x19 - (c3*m*(c3 + c4)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)))/x19;
+           df11dq(37)=x14*(c3 + c4) - c3*x14 - x8 - (m*(refyddot + (c11 + c12)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)) + (refy - x2)*(lambda6 - c11^2 + 1) - c11*lambda6*x18))/x19;
+           df11dq(41)=- (m*(lambda2 - c3^2 + 1)*(refy - x2 - c11*x18 + x18*(c11 + c12)))/x19 - (c3*m*(c3 + c4)*(refy - x2 - c11*x18 + x18*(c11 + c12)))/x19;
         end
 
-        function df12dp = df12dp(model, state, ref)
-            df12dp = zeros(1, model.numParams);
+        function df12dq = df12dq(model, state, ref)
+            df12dq = zeros(1, model.numStates + model.numParams);
 
             refpsi = ref.psi;
             refpsidot = ref.psi_dot;
 
-             c5 = model.c5;
+            c5 = model.c5;
             c6 = model.c6;
             lambda3 = model.lambda3;
                    
@@ -374,14 +325,13 @@ classdef derivativesDroneIBHybrid
             x12 = state(12);
             x15 = state(15);
 
-           df12dp(5)=refpsidot - x12 + (c5 + c6)*(refpsi - x9) - c5*(refpsi - x9);
-           df12dp(6)=refpsidot - x12 + lambda3*x15 + c5*(refpsi - x9);
-           df12dp(15)=refpsi - x9 - c5*x15 + x15*(c5 + c6);
-
+           df12dq(28)=refpsidot - x12 + (c5 + c6)*(refpsi - x9) - c5*(refpsi - x9);
+           df12dq(29)=refpsidot - x12 + lambda3*x15 + c5*(refpsi - x9);
+           df12dq(38)=refpsi - x9 - c5*x15 + x15*(c5 + c6);
         end
 
-        function df13dp = df13dp(model, state, ref)
-            df13dp = zeros(1, model.numParams);
+        function df13dq = df13dq(model, state, ref)
+            df13dq = zeros(1, model.numStates + model.numParams);
 
             refx = ref.x;
             refxdot = ref.x_dot;
@@ -396,14 +346,13 @@ classdef derivativesDroneIBHybrid
             x17 = state(17);
             x19 = state(19);
 
-           df13dp(9)=(m*(refxdot - x4 + (c9 + c10)*(refx - x1) - c9*(refx - x1)))/x19;
-           df13dp(10)=(m*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)))/x19;
-           df13dp(17)=(m*(refx - x1 - c9*x17 + x17*(c9 + c10)))/x19;
-
+           df13dq(32)=(m*(refxdot - x4 + (c9 + c10)*(refx - x1) - c9*(refx - x1)))/x19;
+           df13dq(33)=(m*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)))/x19;
+           df13dq(40)=(m*(refx - x1 - c9*x17 + x17*(c9 + c10)))/x19;
         end
 
-        function df14dp = df14dp(model, state, ref)
-            df14dp = zeros(1, model.numParams);
+        function df14dq = df14dq(model, state, ref)
+            df14dq = zeros(1, model.numStates + model.numParams);
 
             refy = ref.y;
             refydot = ref.y_dot;
@@ -418,14 +367,14 @@ classdef derivativesDroneIBHybrid
             x18 = state(18);
             x19 = state(19);
 
-                      df14dp(11)=-(m*(refydot - x5 + (c11 + c12)*(refy - x2) - c11*(refy - x2)))/x19;
-           df14dp(12)=-(m*(refydot - x5 + lambda6*x18 + c11*(refy - x2)))/x19;
-           df14dp(18)=-(m*(refy - x2 - c11*x18 + x18*(c11 + c12)))/x19;
+           df14dq(34)=-(m*(refydot - x5 + (c11 + c12)*(refy - x2) - c11*(refy - x2)))/x19;
+           df14dq(35)=-(m*(refydot - x5 + lambda6*x18 + c11*(refy - x2)))/x19;
+           df14dq(41)=-(m*(refy - x2 - c11*x18 + x18*(c11 + c12)))/x19;
 
         end
         
-        function df19dp = df19dp(model, state, ref)
-            df19dp = zeros(1, model.numParams);
+        function df19dq = df19dq(model, state, ref)
+            df19dq = zeros(1, model.numStates + model.numParams);
            
             refz = ref.z;
             refzdot = ref.z_dot;
@@ -446,56 +395,84 @@ classdef derivativesDroneIBHybrid
             x16 = state(16);
             x19 = state(19);
 
-                      df19dp(7)=-(m*((x10*cos(x8)*sin(x7) + x11*cos(x7)*sin(x8))*(refzdot - x6 + (c7 + c8)*(refz - x3) - c7*(refz - x3)) - cos(x7)*cos(x8)*(g + refzddot + (c7 + c8)*(refzdot - x6) - c7*(refzdot - x6) - (4*x19*cos(x7)*cos(x8))/m)))/(4*cos(x7)^2*cos(x8)^2);
-           df19dp(8)=-(m*((x10*cos(x8)*sin(x7) + x11*cos(x7)*sin(x8))*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) - cos(x7)*cos(x8)*(g + refzddot + c7*(refzdot - x6) + lambda4*(refz - x3) - (4*x19*cos(x7)*cos(x8))/m)))/(4*cos(x7)^2*cos(x8)^2);
-           df19dp(16)=-(m*((x10*cos(x8)*sin(x7) + x11*cos(x7)*sin(x8))*(refz - x3 - c7*x16 + x16*(c7 + c8)) - cos(x7)*cos(x8)*(refzdot - x6 + (c7 + c8)*(refz - x3) - c7*(refz - x3))))/(4*cos(x7)^2*cos(x8)^2);  
+           df19dq(30)=-(m*((x10*cos(x8)*sin(x7) + x11*cos(x7)*sin(x8))*(refzdot - x6 + (c7 + c8)*(refz - x3) - c7*(refz - x3)) - cos(x7)*cos(x8)*(g + refzddot + (c7 + c8)*(refzdot - x6) - c7*(refzdot - x6) - (4*x19*cos(x7)*cos(x8))/m)))/(4*cos(x7)^2*cos(x8)^2);
+           df19dq(31)=-(m*((x10*cos(x8)*sin(x7) + x11*cos(x7)*sin(x8))*(refzdot - x6 + lambda4*x16 + c7*(refz - x3)) - cos(x7)*cos(x8)*(g + refzddot + c7*(refzdot - x6) + lambda4*(refz - x3) - (4*x19*cos(x7)*cos(x8))/m)))/(4*cos(x7)^2*cos(x8)^2);
+           df19dq(39)=-(m*((x10*cos(x8)*sin(x7) + x11*cos(x7)*sin(x8))*(refz - x3 - c7*x16 + x16*(c7 + c8)) - cos(x7)*cos(x8)*(refzdot - x6 + (c7 + c8)*(refz - x3) - c7*(refz - x3))))/(4*cos(x7)^2*cos(x8)^2);
         end
         
-        function dthetarefdp = dthetarefdp(model, state, ref)
-            dthetarefdp = zeros(1, model.numParams);
+        function dgdx = dgdx(model, state, ref)
+            dgdx = zeros(2, model.numX);
 
             refx = ref.x;
             refxdot = ref.x_dot;
-                    
+            refxddot = ref.x_ddot;
+
+            refy = ref.y;
+            refydot = ref.y_dot;
+            refyddot = ref.y_ddot;
+        
             m = model.m;
             c9 = model.c9;
             c10 = model.c10;
             lambda5 = model.lambda5; 
+            c11 = model.c11;
+            c12 = model.c12;
+            lambda6 = model.lambda6;
         
             x1 = state(1);
             x4 = state(4);
             x17 = state(17);
-            x19 = state(19);
-            
-           dthetarefdp(9)=(m*(refxdot - x4 + (c9 + c10)*(refx - x1) - c9*(refx - x1)))/x19;
-           dthetarefdp(10)=(m*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)))/x19;
-           dthetarefdp(17)=(m*(refx - x1 - c9*x17 + x17*(c9 + c10)))/x19;
 
-
-        end
-
-        function dphirefdp = dphirefdp(model, state, ref)
-            dphirefdp = zeros(1, model.numParams);
-
-            refy = ref.y;
-            refydot = ref.y_dot;
-        
-            m = model.m;
-            c11 = model.c11;
-            c12 = model.c12;
-            lambda6 = model.lambda6; 
-        
             x2 = state(2);
             x5 = state(5);
             x18 = state(18);
             x19 = state(19);
 
-            dphirefdp(11)=-(m*(refydot - x5 + (c11 + c12)*(refy - x2) - c11*(refy - x2)))/x19;
-           dphirefdp(12)=-(m*(refydot - x5 + lambda6*x18 + c11*(refy - x2)))/x19;
-           dphirefdp(18)=-(m*(refy - x2 - c11*x18 + x18*(c11 + c12)))/x19;
+           dgdx(1,1)=-(m*(lambda5 - c9^2 + c9*(c9 + c10) + 1))/x19;
+           dgdx(1,4)=-(m*(c9 + c10))/x19;
+           dgdx(1,17)=-(m*(c9*lambda5 - lambda5*(c9 + c10)))/x19;
+           dgdx(1,19)=-(m*(refxddot + (c9 + c10)*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)) + (refx - x1)*(lambda5 - c9^2 + 1) - c9*lambda5*x17))/x19^2;
+
+           dgdx(2,2)=(m*(lambda6 - c11^2 + c11*(c11 + c12) + 1))/x19;
+           dgdx(2,5)=(m*(c11 + c12))/x19;
+           dgdx(2,18)=(m*(c11*lambda6 - lambda6*(c11 + c12)))/x19;
+           dgdx(2,19)=(m*(refyddot + (c11 + c12)*(refydot - x5 + lambda6*x18 + c11*(refy - x2)) + (refy - x2)*(lambda6 - c11^2 + 1) - c11*lambda6*x18))/x19^2;
 
         end
+
+        function dgdq = dgdq(model, state, ref)
+            dgdq = zeros(2, model.numStates + model.numParams);
+
+            refx = ref.x;
+            refxdot = ref.x_dot;
+            refy = ref.y;
+            refydot = ref.y_dot;
+
+            m = model.m;
+            c9 = model.c9;
+            c10 = model.c10;
+            lambda5 = model.lambda5; 
+            c11 = model.c11;
+            c12 = model.c12;
+            lambda6 = model.lambda6; 
         
+            x1 = state(1);
+            x2 = state(2);
+            x4 = state(4);
+            x5 = state(5);
+            x17 = state(17);
+            x18 = state(18);
+            x19 = state(19);
+            
+           dgdq(1,32)=(m*(refxdot - x4 + (c9 + c10)*(refx - x1) - c9*(refx - x1)))/x19;
+           dgdq(1,33)=(m*(refxdot - x4 + lambda5*x17 + c9*(refx - x1)))/x19;
+           dgdq(1,40)=(m*(refx - x1 - c9*x17 + x17*(c9 + c10)))/x19;
+           
+           dgdq(2,34)=-(m*(refydot - x5 + (c11 + c12)*(refy - x2) - c11*(refy - x2)))/x19;
+           dgdq(2,35)=-(m*(refydot - x5 + lambda6*x18 + c11*(refy - x2)))/x19;
+           dgdq(2,41)=-(m*(refy - x2 - c11*x18 + x18*(c11 + c12)))/x19;
+        end
+
         function d2fdx2 = d2fdx2(model, state, ref)
             d2fdx2 = zeros(model.numX, model.numX, model.numX);
 
