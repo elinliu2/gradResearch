@@ -31,11 +31,8 @@ classdef droneModelIBHybrid
         Jpsi;
 
         disturbance;
-
-        dfdx;
-        dfdp;
-        d2fdx2;
-        d2fdxdp;
+        modelTrajectory;
+        calculateTrajectorySensitivitiesParams;
         nudgeParams;
 
         numX;
@@ -82,12 +79,10 @@ classdef droneModelIBHybrid
 
             obj.disturbance = 0;
             
-            obj.dfdx = @derivativesDroneIBHybrid.dfdx;
-            obj.dfdp = @derivativesDroneIBHybrid.dfdp; 
-            obj.d2fdx2 = @derivativesDroneIBHybrid.d2fdx2;
-            obj.d2fdxdp = @derivativesDroneIBHybrid.d2fdxdp;
+            obj.modelTrajectory = @trajectory;
+            obj.calculateTrajectorySensitivitiesParams = @droneTrajectorySensitivitiesHybrid.calculateTrajectorySensitivitiesParams;
             obj.nudgeParams = @derivativesDroneIBHybrid.nudgeParams;
-    
+
             obj.numX = 19;
             obj.numY = 4;
             obj.numStates = obj.numX + obj.numY;

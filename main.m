@@ -23,16 +23,11 @@ trajSensTest =    trajectorySensitivitiesTest.calculateTrajectorySensitivitiesPa
 disp("traj sens diff")
 disp(norms.supremum(abs(trajSens-trajSensTest)));
 
-% secondTrajSensTestParam = tjs.calculateSecondOrderTrajectorySensitivitiesTestParams(drone, SC, initialState, size(stateProgression, 1), ref);
-% secondTrajSensParam = droneTrajectorySensitivitiesHybrid.calculateSecondOrderTrajectorySensitivitiesParams(drone, SC, stateProgression, trajSens, trajSensParam, secondTrajSensTestParam, ref);
-% disp("2nd traj sens param diff 1-19 2nd timestamp")
-% disp(norms.secondOrderMax(abs(secondTrajSensParam(1:19,:,:,2)-secondTrajSensTestParam(1:19,:,:,2))));
-% disp("2nd traj sens param diff 20-23 2nd timestamp")
-% disp(norms.secondOrderMax(abs(secondTrajSensParam(20:23,:,:,2)-secondTrajSensTestParam(20:23,:,:,2))));
-% disp("2nd traj sens param max diff 2nd timestamp")
-% disp(max(abs(secondTrajSensParam(:,:,:,2)-secondTrajSensTestParam(:,:,:,2)), [], "all"));
-% disp("2nd traj sens param max diff")
-% disp(max(abs(secondTrajSensParam(1:19,:,:,3)-secondTrajSensTestParam(1:19,:,:,3)), [], "all"));
+secondTrajSensParam = droneTrajectorySensitivitiesHybrid.calculateSecondOrderTrajectorySensitivitiesParams(drone, SC, stateProgression, trajSens, ref);
+secondTrajSensParamTest =    trajectorySensitivitiesTest.calculateSecondOrderTrajectorySensitivitiesParams(drone, SC, initialState, size(stateProgression, 1), ref);
+disp("2nd traj sens param max diff")
+disp(max(abs(secondTrajSensParam - secondTrajSensParamTest), [], "all"));
+
 
 % splotting.trajectoryPlot3d(time, stateProgression(:, 1), stateProgression(:, 2), stateProgression(:, 3), 1, "State Progression");
 

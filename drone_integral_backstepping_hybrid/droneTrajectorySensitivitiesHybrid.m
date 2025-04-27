@@ -36,17 +36,19 @@ classdef droneTrajectorySensitivitiesHybrid
             end
         end
     
-        function secondTrajSens = calculate2ndOrderTrajectorySensitivitiesParams(model, SC, stateProgression, trajSens, ref)
+        function secondTrajSens = calculateSecondOrderTrajectorySensitivitiesParams(model, SC, stateProgression, trajSens, ref)
             numX = model.numX;
             n = model.numStates;
             m = model.numParams;
             secondTrajSens =  zeros(n, n, n+m, size(stateProgression, 1));
             
-            for i = 1:size(stateProgression, 1)
+            for i = 2:size(stateProgression, 1)
                 d2fdx2 = derivativesDroneIBHybrid.d2fdx2(model, stateProgression(i-1, :), ref);
                 d2fdx2_plus = derivativesDroneIBHybrid.d2fdx2(model, stateProgression(i, :), ref);
+                
                 d2fdxdy = derivativesDroneIBHybrid.d2fdxdy(model, stateProgression(i-1, :), ref);
                 d2fdxdy_plus = derivativesDroneIBHybrid.d2fdxdy(model, stateProgression(i, :), ref);
+                
                 d2fdxdq = derivativesDroneIBHybrid.d2fdxdq(model, stateProgression(i-1, :), ref);
                 d2fdxdq_plus = derivativesDroneIBHybrid.d2fdxdq(model, stateProgression(i, :), ref);
 
@@ -86,7 +88,7 @@ classdef droneTrajectorySensitivitiesHybrid
                 k1 = conts({dfdy, d2ydz0dq}, {[2 1]}, []);
 
                 l1 = d2xdz0dq + SC.T/2*(a1+b1+c1 + d1+e1+f1+g1 + 2*(h1+i1+j1+k1));
-                m1 = inv(eye(numX) - dfdx_plus);
+                m1 = inv(eye(numX) - SC.T/2*dfdx_plus);
 
                 d2xdz0dq_plus = conts({m1, l1}, {[2 1]}, []);
 
@@ -98,6 +100,7 @@ classdef droneTrajectorySensitivitiesHybrid
                 dgdx = derivativesDroneIBHybrid.dgdx(model, stateProgression(i-1, :), ref);
                 dgdx_plus = derivativesDroneIBHybrid.dgdx(model, stateProgression(i, :), ref);
 
+                
                 a2 = conts({d2gdx2_plus, dxdq_plus, dxdz0_plus}, {[3 1],[2 1]}, []);
                 b2 = conts({d2gdxdq_plus, dxdz0_plus}, {[2 1]}, []);
                 c2 = conts({dgdx_plus, d2xdz0dq_plus}, {[2 1]}, []);

@@ -65,7 +65,7 @@ f18 = refy - x2;
 
 f19 = U_zdot;
 
-  func = [f1; f2; f3; f4; f5; f6; f7; f8; f9; f10; f11; f12; f13; f14; f15; f16; f17; f18; f19; theta_ref; phi_ref];
+  funcs = [f1; f2; f3; f4; f5; f6; f7; f8; f9; f10; f11; f12; f13; f14; f15; f16; f17; f18; f19; theta_ref; phi_ref];
   x = [x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16 x17 x18 x19];
   y = [y1 y2 y3 y4];
   params = [c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 c11 c12 lambda1 lambda2 lambda3 lambda4 lambda5 lambda6];
@@ -81,14 +81,25 @@ filename = "C:\Users\elinl\OneDrive - University of Waterloo\research\derivative
 %     end
 % end
  
-for i = 1:length(params)
-    derivative = diff(phi_ref, params(i));
+% for i = 1:length(params)
+%     derivative = diff(phi_ref, params(i));
+%     if(derivative ~= 0)
+%         disp(strcat("           dgdq(2,", string(23+i) ,")=", string(derivative),";"))
+%         % lines = strcat("           df1dp(", string(i) ,")=", string(derivative),";");
+%         % writelines(lines,filename,WriteMode="append")
+%     end
+% end
+
+
+for i = 1:length(y)
+    derivative = diff(f11, y(i));
     if(derivative ~= 0)
-        disp(strcat("           dgdq(2,", string(23+i) ,")=", string(derivative),";"))
-        % lines = strcat("           df1dp(", string(i) ,")=", string(derivative),";");
-        % writelines(lines,filename,WriteMode="append")
+        
+        disp(strcat("           d2f11dy(", string(i) , ")=", string(derivative),";"))
+        
     end
 end
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% calc d2fdx2
 
@@ -193,20 +204,20 @@ end
 %     for j = 1:length(x)
 %         derivative = diff(dfunc(i), x(j));
 %         if(derivative ~= 0)
-%             disp(strcat("           d2f11dx2(", num2str(index), ",", num2str(j), ")=", string(derivative),";"));
+%             disp(strcat("           d2gdx2(2,", num2str(index), ",", num2str(j), ")=", string(derivative),";"));
 %         end
 %     end
 % end
 
-for i = 1:length(dfunc_indicies)
-    index = dfunc_indicies(i);
-    for j = 1:length(y)
-        derivative = diff(dfunc(i), y(j));
-        if(derivative ~= 0)
-            disp(strcat("           d2fdxdy(", num2str(index), ",", num2str(j), ")=", string(derivative),";"))
-        end
-    end
-end
+% for i = 1:length(dfunc_indicies)
+%     index = dfunc_indicies(i);
+%     for j = 1:length(y)
+%         derivative = diff(dfunc(i), y(j));
+%         if(derivative ~= 0)
+%             disp(strcat("           d2f10dxdy(", num2str(index), ",", num2str(j), ")=", string(derivative),";"))
+%         end
+%     end
+% end
 
 
 % for i = 1:length(dfunc_indicies)
@@ -214,7 +225,7 @@ end
 %     for j = 1:length(params)
 %         derivative = diff(dfunc(i), params(j));
 %         if(derivative ~= 0)
-%             disp(strcat("           d2thetarefdxdp(", num2str(index), ",", num2str(j), ")=", string(derivative),";"))
+%             disp(strcat("           d2gdxdq(2,", num2str(index), ",", num2str(j+23), ")=", string(derivative),";"))
 %         end
 %     end
 % end
