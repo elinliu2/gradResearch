@@ -13,7 +13,7 @@ n = drone.numStates;
 p = drone.numParams-drone.numStates;
 
 for i = 1:2
-    [time, stateProgression, drone] = trajectory(drone, SC, xk, false, ref);
+    [time, stateProgression, drone, stable] = trajectory(drone, SC, xk, false, ref);
     
     trajSens = droneTrajectorySensitivitiesHybrid.calculateTrajectorySensitivitiesParams(drone, SC, stateProgression, ref);
     secondTrajSensParam = droneTrajectorySensitivitiesHybrid.calculateSecondOrderTrajectorySensitivitiesParams(drone, SC, stateProgression, trajSens, ref);
@@ -29,6 +29,4 @@ for i = 1:2
     xk = kp1(1:23);
     lambdak = kp1(24);
 end
-
-splotting.trajectoryPlot3d(time, stateProgression(:, 1), stateProgression(:, 2), stateProgression(:, 3), 1, "State Progression");
 

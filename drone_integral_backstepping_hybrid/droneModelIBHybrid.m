@@ -92,7 +92,7 @@ classdef droneModelIBHybrid
             obj.disturbanceSignal = @DroneControllers.dummyD;
         end
 
-        function [t_span, stateProgression, model] = trajectory(model, SC, state, shouldPlot, ref)
+        function [t_span, stateProgression, model, stable] = trajectory(model, SC, state, shouldPlot, ref)
             % Initialization
             t_span = 0:SC.T:SC.t_final; % amount of time we will simulate for; fixed step sizes
             tol = 1e-12; 
@@ -108,9 +108,12 @@ classdef droneModelIBHybrid
                 state_guess(20:23) = stateProgression(i-1, 20:23);
 
                 state_prev = stateProgression(i-1, :);
-                while abs(norm(F(state_prev, state_guess, model, SC, ref))) > tol
+                count = 0;
+                while abs(norm(F(state_prev, state_guess, model, SC, ref))) > tol & count < 2000
                     state_guess(1:19) = state_guess(1:19) - transpose(DF(state_guess, model, SC, ref)\transpose(F(state_prev, state_guess, model, SC, ref)));
+                    count = count + 1;
                 end
+                stable = count < 2000;
                 stateProgression(i, 1:19) = state_guess(1:19);
                 stateProgression(i, 20) = 1/SC.T * (theta_ref(model, state_guess, ref) - theta_ref(model, state_prev, ref));
                 stateProgression(i, 21) = 1/SC.T * (phi_ref(model, state_guess, ref) - phi_ref(model, state_prev, ref));
