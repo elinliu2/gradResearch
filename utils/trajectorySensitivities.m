@@ -66,64 +66,29 @@ classdef trajectorySensitivities
         end
 
         function tp = findtp(trajSens)
-            min = 1/norm(trajSens(:,:,1), 1);
+            trajSens = abs(trajSens);
+            min = 1/sum(trajSens(:, :, 1), 'all');
             tp = 1;
             for i = 2:size(trajSens,3)
-                if (1/norm(trajSens(:,:,i), 1) < min)
-                    min = 1./norm(trajSens(:,:,i), 1);
+                if (1/sum(trajSens(:, :, i), 'all') < min)
+                    min = 1/sum(trajSens(:, :, i), 'all');
                     tp = i;
                 end
             end
         end
 
-        function tp = findMaxTime(trajSens)
-            infnorm = max(trajSens, [],"all");
-            vecTrajSens = reshape(trajSens,[],1);
-            tp = 0;
-            itemsPerTimestamp = 1;
-            for i = 1:ndims(trajSens)-1
-                itemsPerTimestamp = itemsPerTimestamp * size(trajSens, i);
-            end
-            for i=1:length(vecTrajSens)
-                if vecTrajSens(i) == infnorm
-                    tp = idivide(length(vecTrajSens),int16(itemsPerTimestamp));
-                    return
+        function dG = calculate_dG(G, trajSens, secondTrajSensParam, tp, model)
+            sum = zeros(1,model.numStates + model.numParams);
+
+            for j = 1:model.numStates + model.numParams
+                for i = 1:model.numStates
+                   sum(j) = sum(j) + transpose(sign(trajSens(:, i,tp))) * secondTrajSensParam(:,i,j,tp);
                 end
             end
+
+            dG = -1 .* G^2 .* sum;
         end
 
-        function dG = calculate_dG(G, trajSens, d2xdxodp, tp, model)
-            sum = zeros(1,model.numParams);
-            for k = 1:model.numStates
-                for l = 1:model.numStates
-                    for i = 1:model.numParams
-                        sum(i) = sum(i) + sign(trajSens(k,l,tp)) * d2xdxodp(k,l,i,tp);
-                    end
-                end
-            end
-            dG = -1 * G^2 * sum;
-        end
-
-        function dGTest = calculate_dGTest(model, SC, initialState)
-            delta = 1e-5;
-            oldmodel = model;
-            tjs = trajectorySensitivities;
-            dGTest = zeros(1, model.numParams);
-            for index = 1:model.numParams
-                model = model.nudgeParams(model, delta, index);
-                [~, state_index_plus] = trajectory(model, SC, initialState, false);
-                trajSens_plus = tjs.calculateTrajectorySensitivities(model, SC, state_index_plus);
-                Gplus = norms.infimumOfReciprocalOfElementOneNorm(trajSens_plus);
-                model = oldmodel;
-
-                model = model.nudgeParams(model, -1*delta, index);
-                [~, state_index_minus] = trajectory(model, SC, initialState, false);
-                trajSens_minus = tjs.calculateTrajectorySensitivities(model, SC, state_index_minus);
-                Gminus = norms.infimumOfReciprocalOfElementOneNorm(trajSens_minus);
-                model = oldmodel;
-
-                dGTest(index) = (Gplus-Gminus)/(2*delta);
-            end
-        end
+        
     end
 end
