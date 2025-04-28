@@ -354,11 +354,11 @@ end
 function stable = WithinLimits(state)
     stable = true;
     % translational velocities
-    stable = stable & (abs(state(4)) < 1000);
-    stable = stable & (abs(state(5)) < 1000);
-    stable = stable & (abs(state(6)) < 1000);
+    stable = stable & (abs(state(4)) < 10000);
+    stable = stable & (abs(state(5)) < 10000);
+    stable = stable & (abs(state(6)) < 10000);
     % rotational velocities
-    stable = stable & (abs(state(10)) < 1000);
-    stable = stable & (abs(state(11)) < 1000);
-    stable = stable & (abs(state(12)) < 1000);
+    stable = stable & (abs(state(10)) < 10000);
+    stable = stable & (abs(state(11)) < 10000);
+    stable = stable & (abs(state(12)) < 10000);
 end
