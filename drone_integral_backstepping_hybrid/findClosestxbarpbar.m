@@ -11,22 +11,25 @@ lambdak = 1/2;
 
 n = drone.numStates;
 p = drone.numParams-drone.numStates;
-
-for i = 1:2
+stable = true;
+while stable
     [time, stateProgression, drone, stable] = trajectory(drone, SC, xk, false, ref);
     
-    trajSens = droneTrajectorySensitivitiesHybrid.calculateTrajectorySensitivitiesParams(drone, SC, stateProgression, ref);
-    secondTrajSensParam = droneTrajectorySensitivitiesHybrid.calculateSecondOrderTrajectorySensitivitiesParams(drone, SC, stateProgression, trajSens, ref);
-
-    G = norms.infimumOfReciprocalOfOneNorm(trajSens);
-    tp = trajectorySensitivities.findtp(trajSens);
-    DG = trajectorySensitivities.calculate_dG(G, trajSens, secondTrajSensParam, tp, drone);
+    if stable
+        trajSens = droneTrajectorySensitivitiesHybrid.calculateTrajectorySensitivitiesParams(drone, SC, stateProgression, ref);
+        secondTrajSensParam = droneTrajectorySensitivitiesHybrid.calculateSecondOrderTrajectorySensitivitiesParams(drone, SC, stateProgression, trajSens, ref);
     
-    A = [eye(n)                       transpose(DG*[eye(n); zeros(p+n, n)]); 
-         DG*[eye(n); zeros(p+n, n)]     0];
-
-    kp1 = A\[x0; DG*[xk; zeros(p+n, 1)] - G];
-    xk = kp1(1:23);
-    lambdak = kp1(24);
+        G = norms.infimumOfReciprocalOfOneNorm(trajSens);
+        tp = trajectorySensitivities.findtp(trajSens);
+        DG = trajectorySensitivities.calculate_dG(G, trajSens, secondTrajSensParam, tp, drone);
+        
+        A = [eye(n)                       transpose(DG*[eye(n); zeros(p+n, n)]); 
+             DG*[eye(n); zeros(p+n, n)]     0];
+    
+        kp1 = A\[x0; DG*[xk; zeros(p+n, 1)] - G];
+        xk = kp1(1:23);
+        disp("xk: " + string(xk))
+        lambdak = kp1(24);
+    end
 end
 

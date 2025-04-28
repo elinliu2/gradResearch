@@ -98,9 +98,10 @@ classdef droneModelIBHybrid
             tol = 1e-12; 
             stateProgression = zeros(length(t_span), model.numStates);
             stateProgression(1, :) = state;
-
+            stable = WithinLimits(state);
             % Drone Simulation
-            for i = 2:length(t_span)
+            i = 2;
+            while(stable & (i <= length(t_span)))
                 state_guess = zeros(1, model.numStates);
                 x3 = 100; % Drone starts 100 m in the air
                 state_guess(3) = x3; 
@@ -109,16 +110,17 @@ classdef droneModelIBHybrid
 
                 state_prev = stateProgression(i-1, :);
                 count = 0;
-                while abs(norm(F(state_prev, state_guess, model, SC, ref))) > tol & count < 2000
+                while abs(norm(F(state_prev, state_guess, model, SC, ref))) > tol & count < 5000
                     state_guess(1:19) = state_guess(1:19) - transpose(DF(state_guess, model, SC, ref)\transpose(F(state_prev, state_guess, model, SC, ref)));
                     count = count + 1;
                 end
-                stable = count < 2000;
+                stable = stable & (count < 5000) & WithinLimits(state_guess);
                 stateProgression(i, 1:19) = state_guess(1:19);
                 stateProgression(i, 20) = 1/SC.T * (theta_ref(model, state_guess, ref) - theta_ref(model, state_prev, ref));
                 stateProgression(i, 21) = 1/SC.T * (phi_ref(model, state_guess, ref) - phi_ref(model, state_prev, ref));
                 stateProgression(i, 22) = 1/SC.T * (stateProgression(i, 20) - state_prev(20));
                 stateProgression(i, 23) = 1/SC.T * (stateProgression(i, 21) - state_prev(21));
+                i = i + 1;
             end
 
             % Plot
@@ -347,4 +349,16 @@ function [] = PlotDrone(stateProgression)
         drawnow
         pause(0);
     end
+end
+
+function stable = WithinLimits(state)
+    stable = true;
+    % translational velocities
+    stable = stable & (abs(state(4)) < 1000);
+    stable = stable & (abs(state(5)) < 1000);
+    stable = stable & (abs(state(6)) < 1000);
+    % rotational velocities
+    stable = stable & (abs(state(10)) < 1000);
+    stable = stable & (abs(state(11)) < 1000);
+    stable = stable & (abs(state(12)) < 1000);
 end

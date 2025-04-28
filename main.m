@@ -16,21 +16,21 @@ SC.ref = 0;
 
 
 [drone, initialState, ref] = initializeDrone();
-[time, stateProgression, drone] = trajectory(drone, SC, initialState, false, ref);
+[time, stateProgression, drone, stable] = trajectory(drone, SC, initialState, false, ref);
 
 trajSens = droneTrajectorySensitivitiesHybrid.calculateTrajectorySensitivitiesParams(drone, SC, stateProgression, ref);
-trajSensTest =    trajectorySensitivitiesTest.calculateTrajectorySensitivitiesParams(drone, SC, initialState, size(stateProgression, 1), ref);
-disp("traj sens param diff")
-disp(norms.supremum(abs(trajSens-trajSensTest)));
-disp("traj sens param individual diff")
-disp(max(abs(trajSens-trajSensTest), [], "all"));
+% trajSensTest =    trajectorySensitivitiesTest.calculateTrajectorySensitivitiesParams(drone, SC, initialState, size(stateProgression, 1), ref);
+% disp("traj sens param diff")
+% disp(norms.supremum(abs(trajSens-trajSensTest)));
+% disp("traj sens param individual diff")
+% disp(max(abs(trajSens-trajSensTest), [], "all"));
 
 secondTrajSensParam = droneTrajectorySensitivitiesHybrid.calculateSecondOrderTrajectorySensitivitiesParams(drone, SC, stateProgression, trajSens, ref);
-secondTrajSensParamTest =    trajectorySensitivitiesTest.calculateSecondOrderTrajectorySensitivitiesParams(drone, SC, initialState, size(stateProgression, 1), ref);
-disp("2nd traj sens param diff")
-disp(norms.secondOrderMax(abs(secondTrajSensParam-secondTrajSensParamTest)));
-disp("2nd traj sens param individual diff")
-disp(max(abs(secondTrajSensParam-secondTrajSensParamTest), [], "all"));
+% secondTrajSensParamTest =    trajectorySensitivitiesTest.calculateSecondOrderTrajectorySensitivitiesParams(drone, SC, initialState, size(stateProgression, 1), ref);
+% disp("2nd traj sens param diff")
+% disp(norms.secondOrderMax(abs(secondTrajSensParam-secondTrajSensParamTest)));
+% disp("2nd traj sens param individual diff")
+% disp(max(abs(secondTrajSensParam-secondTrajSensParamTest), [], "all"));
 
 G = norms.infimumOfReciprocalOfOneNorm(trajSens);
 tp = trajectorySensitivities.findtp(trajSens);
