@@ -354,11 +354,17 @@ end
 function stable = WithinLimits(state)
     stable = true;
     % translational velocities
-    stable = stable & (abs(state(4)) < 10000);
-    stable = stable & (abs(state(5)) < 10000);
-    stable = stable & (abs(state(6)) < 10000);
+    stable = stable & (abs(state(4)) < 1e6);
+    stable = stable & (abs(state(5)) < 1e6);
+    stable = stable & (abs(state(6)) < 1e6);
     % rotational velocities
-    stable = stable & (abs(state(10)) < 10000);
-    stable = stable & (abs(state(11)) < 10000);
-    stable = stable & (abs(state(12)) < 10000);
+    stable = stable & (abs(state(10)) < 1e6);
+    stable = stable & (abs(state(11)) < 1e6);
+    stable = stable & (abs(state(12)) < 1e6);
+    % Uz and discrete derivatives
+    stable = stable & (abs(state(19)) < 1e6);
+    stable = stable & (abs(state(20)) < 1e6);
+    stable = stable & (abs(state(21)) < 1e6);
+    stable = stable & (abs(state(22)) < 1e6);
+    stable = stable & (abs(state(23)) < 1e6);
 end

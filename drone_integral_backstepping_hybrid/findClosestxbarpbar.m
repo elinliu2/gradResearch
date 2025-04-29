@@ -7,14 +7,19 @@ SC.t_final = 5;
 
 [drone, x0, ref] = initializeDrone();
 xk = x0;
+xk_prev = 0;
+
 lambdak = 1/2;
 
 n = drone.numStates;
 p = drone.numParams-drone.numStates;
 stable = true;
-while stable
+u = 1/2;
+while sum(abs(xk - xk_prev), "all") > 1e-2
     [time, stateProgression, drone, stable] = trajectory(drone, SC, xk, false, ref);
-    
+    disp("xk:")
+    disp(string(transpose(xk)))
+    pause(0.01)
     if stable
         trajSens = droneTrajectorySensitivitiesHybrid.calculateTrajectorySensitivitiesParams(drone, SC, stateProgression, ref);
         secondTrajSensParam = droneTrajectorySensitivitiesHybrid.calculateSecondOrderTrajectorySensitivitiesParams(drone, SC, stateProgression, trajSens, ref);
@@ -27,9 +32,13 @@ while stable
              DG*[eye(n); zeros(p+n, n)]     0];
     
         kp1 = A\[x0; DG*[xk; zeros(p+n, 1)] - G];
+        xk_prev = xk;
         xk = kp1(1:23);
-        disp("xk: " + string(xk))
         lambdak = kp1(24);
+        u = 1/2;
+    else 
+        xk = xk_prev + u * (xk-xk_prev);
+        u = u/2;
     end
 end
 
