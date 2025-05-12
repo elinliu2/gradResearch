@@ -10,10 +10,11 @@ SC.t_final = 5;
 
 [drone, initialState, ref] = initializeDrone();
 [time, stateProgression, drone, stable] = trajectory(drone, SC, initialState, false, ref);
+
 % testTrajectorySensitivities(drone, SC, initialState, stateProgression, ref);
 % splotting.trajectoryPlot3d(time, stateProgression(:, 1), stateProgression(:, 2), stateProgression(:, 3), 1, "State Progression");
 
-xbar = findClosestxbar(drone, SC, initialState, ref);
-
+zbar = findClosestzbar(drone, SC, initialState, ref);
+z = findOptimalqLinear(drone, SC, initialState, ref, zbar);
 
 
