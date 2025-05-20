@@ -39,14 +39,14 @@ function [z,p] = findOptimalq(drone, SC, z0, ref, zbar)
                 zdist2 = norm(abs(z2(1:n) - z0));
 
                 if (zdist1 > maxDist)
-                    zk = z1(1:n);
                     zk_prev = zk;
+                    zk = z1(1:n);
                     pk = vp + t(1) * w(24:41, i);
                     drone = assignP(drone, pk);
                     maxDist = zdist1;
                 elseif (zdist2 > maxDist)
-                    zk = z2(1:n);
                     zk_prev = zk;
+                    zk = z2(1:n);
                     pk = vp + t(2) * w(24:41, i);
                     drone = assignP(drone, pk);
                     maxDist = zdist2;

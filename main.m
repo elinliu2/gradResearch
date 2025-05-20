@@ -15,6 +15,6 @@ SC.t_final = 5;
 % splotting.trajectoryPlot3d(time, stateProgression(:, 1), stateProgression(:, 2), stateProgression(:, 3), 1, "State Progression");
 
 zbar = findClosestzbar(drone, SC, initialState, ref);
-z = findOptimalqLinear(drone, SC, initialState, ref, zbar);
+z = findOptimalqGeometric(drone, SC, initialState, ref, zbar);
 
 
