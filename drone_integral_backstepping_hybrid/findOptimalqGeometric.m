@@ -29,7 +29,7 @@ function [z, p] = findOptimalqGeometric(drone, SC, z0, ref, zbar)
             zk = zk_prev + u * (zk - zk_prev);
             pk = pk_prev + u * (pk - pk_prev);
             drone = assignP(drone, pk);
-            u = u/2;
+            u = u/10;
         end  
             
     end

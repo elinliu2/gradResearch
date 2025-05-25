@@ -111,8 +111,12 @@ classdef droneModelIBHybrid
                 state_prev = stateProgression(i-1, :);
                 count = 0;
                 while abs(norm(F(state_prev, state_guess, model, SC, ref))) > tol & count < 5000
-                    state_guess(1:19) = state_guess(1:19) - transpose(DF(state_guess, model, SC, ref)\transpose(F(state_prev, state_guess, model, SC, ref)));
-                    count = count + 1;
+                    if det(DF(state_guess, model, SC, ref)) ~= 0
+                        state_guess(1:19) = state_guess(1:19) - transpose(DF(state_guess, model, SC, ref)\transpose(F(state_prev, state_guess, model, SC, ref)));
+                        count = count + 1;
+                    else 
+                        stable = 0;
+                    end
                 end
                 stable = stable & (count < 5000) & WithinLimits(state_guess);
                 stateProgression(i, 1:19) = state_guess(1:19);
@@ -122,6 +126,8 @@ classdef droneModelIBHybrid
                 stateProgression(i, 23) = 1/SC.T * (stateProgression(i, 21) - state_prev(21));
                 i = i + 1;
             end
+
+            stable = stable & CheckConvergence(stateProgression(length(t_span), :), ref);
 
             % Plot
             if (shouldPlot)
@@ -349,6 +355,13 @@ function [] = PlotDrone(stateProgression)
         drawnow
         pause(0);
     end
+end
+
+function converging = CheckConvergence(state, ref)
+    tol = 5e-1;
+    converging = abs(state(1) - ref.x) < tol;
+    converging = converging & abs(state(2) - ref.y) < tol;
+    converging = converging & abs(state(3) - ref.z) < tol;
 end
 
 function stable = WithinLimits(state)

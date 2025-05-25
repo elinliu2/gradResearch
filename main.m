@@ -2,7 +2,7 @@ addpath(genpath('.'))
 
 % Sim Constants
 SC.T = 1e-3;
-SC.t_final = 5;
+SC.t_final = 10;
 
 % Model
 % pendulum = PendulumModel(0.2, 0.2);
