@@ -8,10 +8,8 @@ function zbar = findClosestzbar(drone, SC, z0, ref)
     u = 1/2;
     while sum(abs(zk - zk_prev), "all") > 1e-2
         [~, stateProgression, drone, stable] = trajectory(drone, SC, zk, false, ref);
-        % disp("zk:")
-        % disp(string(transpose(zk)))
-        % pause(0.01)
         if stable
+        
             [G, DG] = calcGDG(drone, SC, stateProgression, ref);
 
             A = [eye(n)                       transpose(DG*[eye(n); zeros(p, n)]); 

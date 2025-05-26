@@ -18,18 +18,19 @@ function [z, p] = findOptimalqGeometric(drone, SC, z0, ref, zbar)
             qdir = findqdir(qhat, qk);
             alpha = findAlpha(p0, pk, qdir, epsilon);
             zk_prev = zk;
-            zk = zk + alpha * qdir(1:23);
-            
             pk_prev = pk;
             pk = pk + alpha * qdir(24:41);
+
             drone = assignP(drone, pk);
+            zk = findClosestzbar(drone, SC, z0, ref);
+
             u = 1/2;
         else
             disp("unstable")
             zk = zk_prev + u * (zk - zk_prev);
             pk = pk_prev + u * (pk - pk_prev);
             drone = assignP(drone, pk);
-            u = u/10;
+            u = u/2;
         end  
             
     end

@@ -41,7 +41,6 @@ classdef droneTrajectorySensitivitiesHybrid
             n = model.numStates;
             m = model.numParams;
             secondTrajSens =  zeros(n, n, n+m, size(stateProgression, 1));
-            
             for i = 2:size(stateProgression, 1)
                 d2fdx2 = derivativesDroneIBHybrid.d2fdx2(model, stateProgression(i-1, :), ref);
                 d2fdx2_plus = derivativesDroneIBHybrid.d2fdx2(model, stateProgression(i, :), ref);
@@ -115,6 +114,7 @@ classdef droneTrajectorySensitivitiesHybrid
                 secondTrajSens(1:numX, :, :, i) = d2xdz0dq_plus;
                 secondTrajSens(numX+1: numX+2, :, :, i) = d2y12dz0dq_plus;
                 secondTrajSens(numX+3: n, :, :, i) = d2y34dz0dq_plus;
+                
             end
         end
     end
