@@ -92,7 +92,7 @@ classdef droneModelIBHybrid
             obj.disturbanceSignal = @DroneControllers.dummyD;
         end
 
-        function [t_span, stateProgression, model, stable] = trajectory(model, SC, state, shouldPlot, ref)
+        function [t_span, stateProgression, model, stable] = trajectory(model, SC, state, shouldPlot, ref, dist)
             % Initialization
             t_span = 0:SC.T:SC.t_final; % amount of time we will simulate for; fixed step sizes
             tol = 1e-12; 
@@ -110,9 +110,9 @@ classdef droneModelIBHybrid
 
                 state_prev = stateProgression(i-1, :);
                 count = 0;
-                while abs(norm(F(state_prev, state_guess, model, SC, ref))) > tol & count < 5000
+                while abs(norm(F(state_prev, state_guess, model, SC, ref, dist, i))) > tol & count < 5000
                     if det(DF(state_guess, model, SC, ref)) ~= 0
-                        state_guess(1:19) = state_guess(1:19) - transpose(DF(state_guess, model, SC, ref)\transpose(F(state_prev, state_guess, model, SC, ref)));
+                        state_guess(1:19) = state_guess(1:19) - transpose(DF(state_guess, model, SC, ref)\transpose(F(state_prev, state_guess, model, SC, ref, dist, i)));
                         count = count + 1;
                     else 
                         stable = 0;
@@ -138,8 +138,8 @@ classdef droneModelIBHybrid
     end
 end
 
-function F = F(state_prev, state_guess, model, SC, ref)
-    F = state_prev(1:model.numX) - state_guess(1:model.numX) + SC.T/2*(f(state_prev, model, ref) + f(state_guess, model, ref));
+function F = F(state_prev, state_guess, model, SC, ref, dist, index)
+    F = state_prev(1:model.numX) - state_guess(1:model.numX) + SC.T/2*(f(state_prev, model, ref, dist, index-1) + f(state_guess, model, ref, dist, index));
 end
 
 function DF = DF(state_guess, model, SC, ref)
@@ -148,7 +148,7 @@ function DF = DF(state_guess, model, SC, ref)
     DF = DF + SC.T/2*dfdx_plus;
 end
         
-function f = f(state, model, ref)
+function f = f(state, model, ref, dist, index)
 
     x1 = state(1);
     x2 = state(2);
@@ -169,18 +169,17 @@ function f = f(state, model, ref)
     f1 = x4; 
     f2 = x5;
     f3 = x6;
-    
-    f4 = 4*U_z/model.m*(sin(x7)*cos(x8)*cos(x9) + sin(x8)*sin(x9));
-    f5 = 4*U_z/model.m*(sin(x7)*cos(x8)*sin(x9) - sin(x8)*cos(x9));
-    f6 = 4*U_z/model.m*(cos(x7)*cos(x8)) - model.g;
+    f4 = 4*U_z/model.m*(sin(x7)*cos(x8)*cos(x9) + sin(x8)*sin(x9)) + dist.Fx(index);
+    f5 = 4*U_z/model.m*(sin(x7)*cos(x8)*sin(x9) - sin(x8)*cos(x9)) + dist.Fy(index);
+    f6 = 4*U_z/model.m*(cos(x7)*cos(x8)) - model.g + dist.Fz(index);
     
     f7 = x10; 
     f8 = x11;
     f9 = x12;
     
-    f10 = 1/(model.Jtheta) * model.l * (2*U_theta); 
-    f11 = 1/(model.Jphi) * model.l * (2*U_phi);
-    f12 = 1/(model.Jpsi) * model.K_psi * (4*U_psi);
+    f10 = 1/(model.Jtheta) * model.l * (2*U_theta) + dist.Tx(index); 
+    f11 = 1/(model.Jphi) * model.l * (2*U_phi) + dist.Ty(index);
+    f12 = 1/(model.Jpsi) * model.K_psi * (4*U_psi) + dist.Tz(index);
     
     f13 = theta_ref - x7;
     f14 = phi_ref - x8;
