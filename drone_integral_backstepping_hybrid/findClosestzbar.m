@@ -1,4 +1,4 @@
-function zbar = findClosestzbar(drone, SC, z0, ref)
+function zbar = findClosestzbar(drone, SC, z0, ref, dist)
     zk = z0;
     zk_prev = 0;
     
@@ -6,8 +6,9 @@ function zbar = findClosestzbar(drone, SC, z0, ref)
     p = drone.numParams;
 
     u = 1/2;
+    
     while sum(abs(zk - zk_prev), "all") > 1e-2
-        [~, stateProgression, drone, stable] = trajectory(drone, SC, zk, false, ref);
+        [~, stateProgression, drone, stable] = trajectory(drone, SC, zk, false, ref, dist);
         if stable
         
             [G, DG] = calcGDG(drone, SC, stateProgression, ref);

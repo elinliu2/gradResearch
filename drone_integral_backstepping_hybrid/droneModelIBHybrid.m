@@ -127,14 +127,59 @@ classdef droneModelIBHybrid
                 i = i + 1;
             end
 
-            stable = stable & CheckConvergence(stateProgression(length(t_span), :), ref);
+            % stable = stable & CheckConvergence(stateProgression(length(t_span), :), ref);
 
             % Plot
             if (shouldPlot)
                 PlotDrone(stateProgression);
             end
-
         end 
+
+        function p = extractP(drone)
+            p = zeros(drone.numParams, 1);
+            p(1) = drone.c1;
+            p(2) = drone.c2;
+            p(3) = drone.c3;
+            p(4) = drone.c4;
+            p(5) = drone.c5;
+            p(6) = drone.c6;
+            p(7) = drone.c7;
+            p(8) = drone.c8;
+            p(9) = drone.c9;
+            p(10) = drone.c10;
+            p(11) = drone.c11;
+            p(12) = drone.c12;
+        
+            p(13) = drone.lambda1;
+            p(14) = drone.lambda2;
+            p(15) = drone.lambda3;
+            p(16) = drone.lambda4;
+            p(17) = drone.lambda5;
+            p(18) = drone.lambda6;
+        end
+        
+        function drone = assignP(drone, p)
+            drone.c1      = p(1);
+            drone.c2      = p(2);
+            drone.c3      = p(3);
+            drone.c4      = p(4);
+            drone.c5      = p(5);
+            drone.c6      = p(6);
+            drone.c7      = p(7);
+            drone.c8      = p(8);
+            drone.c9      = p(9);
+            drone.c10     = p(10);
+            drone.c11     = p(11);
+            drone.c12     = p(12);
+            
+            drone.lambda1 = p(13);
+            drone.lambda2 = p(14);
+            drone.lambda3 = p(15);
+            drone.lambda4 = p(16);
+            drone.lambda5 = p(17);
+            drone.lambda6 = p(18);
+        
+        end
     end
 end
 

@@ -1,4 +1,4 @@
-function [z, p] = findOptimalqGeometric(drone, SC, z0, ref, zbar)
+function [z, p] = findOptimalqGeometric(drone, SC, z0, ref, dist, zbar)
     zk = zbar;
     zk_prev = z0;
     
@@ -8,7 +8,7 @@ function [z, p] = findOptimalqGeometric(drone, SC, z0, ref, zbar)
     epsilon = 1e-1;
     stable = true;
     while sum(abs(zk - zk_prev), "all") > 1e-2 || ~stable
-        [~, stateProgression, drone, stable] = trajectory(drone, SC, zk, false, ref);
+        [~, stateProgression, drone, stable] = trajectory(drone, SC, zk, false, ref, dist);
         if stable
             disp("stable")
             [~, DG] = calcGDG(drone, SC, stateProgression, ref);
@@ -22,7 +22,7 @@ function [z, p] = findOptimalqGeometric(drone, SC, z0, ref, zbar)
             pk = pk + alpha * qdir(24:41);
 
             drone = assignP(drone, pk);
-            zk = findClosestzbar(drone, SC, z0, ref);
+            zk = findClosestzbar(drone, SC, z0, ref, dist);
 
             u = 1/2;
         else
@@ -51,50 +51,4 @@ end
 
 function [qhat] = findProjection(DG, q0, qk)
     qhat =  qk + dot(DG', q0)/norm(DG)^2 .* DG';
-end
-
-function p = extractP(drone)
-    p = zeros(drone.numParams, 1);
-    p(1) = drone.c1;
-    p(2) = drone.c2;
-    p(3) = drone.c3;
-    p(4) = drone.c4;
-    p(5) = drone.c5;
-    p(6) = drone.c6;
-    p(7) = drone.c7;
-    p(8) = drone.c8;
-    p(9) = drone.c9;
-    p(10) = drone.c10;
-    p(11) = drone.c11;
-    p(12) = drone.c12;
-
-    p(13) = drone.lambda1;
-    p(14) = drone.lambda2;
-    p(15) = drone.lambda3;
-    p(16) = drone.lambda4;
-    p(17) = drone.lambda5;
-    p(18) = drone.lambda6;
-end
-
-function drone = assignP(drone, p)
-    drone.c1      = p(1);
-    drone.c2      = p(2);
-    drone.c3      = p(3);
-    drone.c4      = p(4);
-    drone.c5      = p(5);
-    drone.c6      = p(6);
-    drone.c7      = p(7);
-    drone.c8      = p(8);
-    drone.c9      = p(9);
-    drone.c10     = p(10);
-    drone.c11     = p(11);
-    drone.c12     = p(12);
-    
-    drone.lambda1 = p(13);
-    drone.lambda2 = p(14);
-    drone.lambda3 = p(15);
-    drone.lambda4 = p(16);
-    drone.lambda5 = p(17);
-    drone.lambda6 = p(18);
-
 end
