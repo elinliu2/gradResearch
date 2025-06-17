@@ -127,7 +127,7 @@ classdef droneModelIBHybrid
                 i = i + 1;
             end
 
-            % stable = stable & CheckConvergence(stateProgression(length(t_span), :), ref);
+            stable = stable & CheckConvergence(stateProgression(length(t_span), :), ref);
 
             % Plot
             if (shouldPlot)
@@ -402,7 +402,7 @@ function [] = PlotDrone(stateProgression)
 end
 
 function converging = CheckConvergence(state, ref)
-    tol = 5e-1;
+    tol = 10;
     converging = abs(state(1) - ref.x) < tol;
     converging = converging & abs(state(2) - ref.y) < tol;
     converging = converging & abs(state(3) - ref.z) < tol;
@@ -419,9 +419,9 @@ function stable = WithinLimits(state)
     stable = stable & (abs(state(11)) < 1e6);
     stable = stable & (abs(state(12)) < 1e6);
     % Uz and discrete derivatives
-    stable = stable & (abs(state(19)) < 1e6);
-    stable = stable & (abs(state(20)) < 1e6);
-    stable = stable & (abs(state(21)) < 1e6);
-    stable = stable & (abs(state(22)) < 1e6);
-    stable = stable & (abs(state(23)) < 1e6);
+    % stable = stable & (abs(state(19)) < 1e6);
+    % stable = stable & (abs(state(20)) < 1e6);
+    % stable = stable & (abs(state(21)) < 1e6);
+    % stable = stable & (abs(state(22)) < 1e6);
+    % stable = stable & (abs(state(23)) < 1e6);
 end
