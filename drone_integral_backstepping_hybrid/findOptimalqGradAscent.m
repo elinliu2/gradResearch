@@ -10,18 +10,20 @@ function [z,p] = findOptimalqGradAscent(drone, SC, z0, ref, dist, zbar)
 
     n = drone.numStates;
     p = drone.numParams;
-
+    count = 0;
     while sum(abs(zk - zk_prev), "all") > 1e-2 || ~stable
+        count = count + 1;
         [~, stateProgression, drone, stable] = trajectory(drone, SC, zk, false, ref, dist);
         if stable
-            disp("stable")
-            [~, DG] = calcGDG(drone, SC, stateProgression, ref);
+            DG = droneTrajectorySensitivitiesHybrid.calculate_dG(drone, SC, stateProgression, ref);
             A = [eye(n) (DG*[eye(n); zeros(p, n)])'; DG*[eye(n); zeros(p, n)] 0;];
    
             dzdp = [eye(n) zeros(n, 1)]*(A\[zeros(n, p); -DG*[zeros(n, p); eye(p)]]);
             
             pk_prev = pk;
-            d = p0 - pk;
+            d = p0 - pk; 
+
+            zk = [eye(n) zeros(n, 1)]*(A\[z0; DG*[zk_prev;pk_prev]-DG*[zeros(n, p); eye(p)]*pk]);
             pdir = ((zk- z0)' * dzdp / norm((zk- z0)' * dzdp))';
             alpha = d'*pdir + sqrt((d'*pdir)^2 - d'*d + epsilon^2);
             pk = pk + alpha * pdir;
@@ -33,11 +35,12 @@ function [z,p] = findOptimalqGradAscent(drone, SC, z0, ref, dist, zbar)
 
             u = 1/2;
         else
-            disp("unstable")
             zk = zk_prev + u * (zk-zk_prev);
             u = u/2;
         end   
     end
     z = zk;
     p = pk;
+    disp("number of iterations: ")
+    disp(count)
 end

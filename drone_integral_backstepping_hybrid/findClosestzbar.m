@@ -6,8 +6,9 @@ function zbar = findClosestzbar(drone, SC, z0, ref, dist)
     p = drone.numParams;
 
     u = 1/2;
-    
+    count = 0;
     while sum(abs(zk - zk_prev), "all") > 1e-2
+        count = count + 1;
         [~, stateProgression, drone, stable] = trajectory(drone, SC, zk, false, ref, dist);
         if stable
         
@@ -26,5 +27,7 @@ function zbar = findClosestzbar(drone, SC, z0, ref, dist)
         end
     end
 
+    disp("number of iterations: ")
+    disp(count)
     zbar = zk;
 end
