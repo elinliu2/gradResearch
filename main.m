@@ -1,7 +1,7 @@
 addpath(genpath('.'))
 
 % Sim Constants
-SC.T = 1e-3;
+SC.T = 2e-3;
 SC.t_final = 10;
 
 % Model
