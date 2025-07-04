@@ -17,7 +17,8 @@ function [z,p] = findOptimalqGradAscent(drone, SC, z0, ref, dist, zbar)
         if stable
             DG = droneTrajectorySensitivitiesHybrid.calculate_dG(drone, SC, stateProgression, ref);
             A = [eye(n) (DG*[eye(n); zeros(p, n)])'; DG*[eye(n); zeros(p, n)] 0;];
-   
+            vz = DG*[eye(n); zeros(p, n)];
+            invA = 1/(vz*vz')*[vz*vz'*eye(n)-vz'*vz vz'; vz -1];
             dzdp = [eye(n) zeros(n, 1)]*(A\[zeros(n, p); -DG*[zeros(n, p); eye(p)]]);
             
             pk_prev = pk;

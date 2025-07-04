@@ -92,42 +92,32 @@ classdef droneModelIBHybrid
             obj.disturbanceSignal = @DroneControllers.dummyD;
         end
 
-        function [t_span, stateProgression, model, stable] = trajectory(model, SC, state, shouldPlot, ref, dist)
+        function [time, stateProgression, model, stable] = trajectory(model, SC, state, shouldPlot, ref, dist)
             % Initialization
             t_span = 0:SC.T:SC.t_final; % amount of time we will simulate for; fixed step sizes
-            tol = 1e-12; 
-            stateProgression = zeros(length(t_span), model.numStates);
-            stateProgression(1, :) = state;
+            tol = 1e-3; 
+            stateProgression = zeros(model.numStates, length(t_span));
+            stateProgression(:, 1) = state;
+            time = zeros(length(t_span), 1);
             stable = WithinLimits(state);
             % Drone Simulation
             i = 2;
-            while(stable & (i <= length(t_span)))
-                state_guess = zeros(1, model.numStates);
-                x3 = 100; % Drone starts 100 m in the air
-                state_guess(3) = x3; 
-                state_guess(19) = U_z(model, state_guess, ref);
-                state_guess(20:23) = stateProgression(i-1, 20:23);
-
-                state_prev = stateProgression(i-1, :);
-                count = 0;
-                while abs(norm(F(state_prev, state_guess, model, SC, ref, dist, i))) > tol & count < 5000
-                    if det(DF(state_guess, model, SC, ref)) ~= 0
-                        state_guess(1:19) = state_guess(1:19) - transpose(DF(state_guess, model, SC, ref)\transpose(F(state_prev, state_guess, model, SC, ref, dist, i)));
-                        count = count + 1;
-                    else 
-                        stable = 0;
-                    end
+            while(stable && (time(i-1) < SC.t_final))
+                state_prev = stateProgression(:, i-1);
+                [state, ~] = singleStateIteration(model, ref, dist, state_prev, SC.T, i);
+                [state1, ~] = singleStateIteration(model, ref, dist, state_prev, SC.T/2, i);
+                [state2, stable] = singleStateIteration(model, ref, dist, state1, SC.T/2, i);
+                stateProgression(:, i) = state2;
+                time(i) = time(i-1)+SC.T;
+                if(max(abs(state - state2)) < tol)
+                    SC.T = SC.T*2;
+                else
+                    SC.T = SC.T/2;
                 end
-                stable = stable & (count < 5000) & WithinLimits(state_guess);
-                stateProgression(i, 1:19) = state_guess(1:19);
-                stateProgression(i, 20) = 1/SC.T * (theta_ref(model, state_guess, ref) - theta_ref(model, state_prev, ref));
-                stateProgression(i, 21) = 1/SC.T * (phi_ref(model, state_guess, ref) - phi_ref(model, state_prev, ref));
-                stateProgression(i, 22) = 1/SC.T * (stateProgression(i, 20) - state_prev(20));
-                stateProgression(i, 23) = 1/SC.T * (stateProgression(i, 21) - state_prev(21));
                 i = i + 1;
             end
 
-            stable = stable & CheckConvergence(stateProgression(length(t_span), :), ref);
+            stable = stable & CheckConvergence(stateProgression(:, length(t_span)), ref);
 
             % Plot
             if (shouldPlot)
@@ -178,19 +168,43 @@ classdef droneModelIBHybrid
             drone.lambda4 = p(16);
             drone.lambda5 = p(17);
             drone.lambda6 = p(18);
-        
         end
     end
 end
 
-function F = F(state_prev, state_guess, model, SC, ref, dist, index)
-    F = state_prev(1:model.numX) - state_guess(1:model.numX) + SC.T/2*(f(state_prev, model, ref, dist, index-1) + f(state_guess, model, ref, dist, index));
+function [state, stable] = singleStateIteration(model, ref, dist, state_prev, T, i)
+    tol = 1e-12; 
+    state_guess = zeros(model.numStates, 1);
+    x3 = 100; % Drone starts 100 m in the air
+    state_guess(3) = x3; 
+    state_guess(19) = U_z(model, state_guess, ref);
+    state_guess(20:23) = state_prev(20:23);
+    count = 0;
+    stable = WithinLimits(state_prev);
+    while abs(norm(F(state_prev, state_guess, model, T, ref, dist, i))) > tol & count < 5000
+        if det(DF(state_guess, model, T, ref)) ~= 0
+            state_guess(1:19) = state_guess(1:19) - DF(state_guess, model, T, ref)\F(state_prev, state_guess, model, T, ref, dist, i);
+            count = count + 1;
+        else 
+            stable = 0;
+        end
+    end
+    stable = stable & (count < 5000) & WithinLimits(state_guess);
+    state(1:19, :) = state_guess(1:19);
+    state(20, :) = 1/T * (theta_ref(model, state_guess, ref) - theta_ref(model, state_prev, ref));
+    state(21, :) = 1/T * (phi_ref(model, state_guess, ref) - phi_ref(model, state_prev, ref));
+    state(22, :) = 1/T * (state(20) - state_prev(20));
+    state(23, :) = 1/T * (state(21) - state_prev(21));
 end
 
-function DF = DF(state_guess, model, SC, ref)
+function F = F(state_prev, state_guess, model, T, ref, dist, index)
+    F = state_prev(1:model.numX) - state_guess(1:model.numX) + T/2*(f(state_prev, model, ref, dist, index-1) + f(state_guess, model, ref, dist, index));
+end
+
+function DF = DF(state_guess, model, T, ref)
     DF = -eye(model.numX);
     dfdx_plus = derivativesDroneIBHybrid.dfdx(model, state_guess, ref);
-    DF = DF + SC.T/2*dfdx_plus;
+    DF = DF + T/2*dfdx_plus;
 end
         
 function f = f(state, model, ref, dist, index)
@@ -235,7 +249,7 @@ function f = f(state, model, ref, dist, index)
 
     f19 = U_zdot;
 
-    f = [f1 f2 f3 f4 f5 f6 f7 f8 f9 f10 f11 f12 f13 f14 f15 f16 f17 f18 f19];
+    f = [f1; f2; f3; f4; f5; f6; f7; f8; f9; f10; f11; f12; f13; f14; f15; f16; f17; f18; f19];
 end  
 
 function U_z = U_z(model, state, ref)
