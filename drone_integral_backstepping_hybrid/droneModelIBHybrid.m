@@ -254,7 +254,6 @@ function U_z = U_z(model, state, ref)
     e7 = ref.z - x3;
     e8 = c7*e7 + ref.z_dot + lambda4*x16 - x6;
     U_z = m/(cos(x7)*cos(x8)*4)*(g + (1-c7^2+lambda4)*e7 + (c7+c8)*e8 - c7*lambda4*x16);
-    
 end 
 
 function theta_ref = theta_ref(model, state, ref)

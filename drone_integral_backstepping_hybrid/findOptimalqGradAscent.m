@@ -16,22 +16,17 @@ function [z,p] = findOptimalqGradAscent(drone, SC, z0, ref, dist, zbar)
         [~, stateProgression, drone, stable] = trajectory(drone, SC, zk, false, ref, dist);
         if stable
             DG = droneTrajectorySensitivitiesHybrid.calculate_dG(drone, SC, stateProgression, ref);
-            A = [eye(n) (DG*[eye(n); zeros(p, n)])'; DG*[eye(n); zeros(p, n)] 0;];
-   
-            dzdp = [eye(n) zeros(n, 1)]*(A\[zeros(n, p); -DG*[zeros(n, p); eye(p)]]);
-            
-            pk_prev = pk;
-            d = p0 - pk; 
-
-            zk = [eye(n) zeros(n, 1)]*(A\[z0; DG*[zk_prev;pk_prev]-DG*[zeros(n, p); eye(p)]*pk]);
-            pdir = ((zk- z0)' * dzdp / norm((zk- z0)' * dzdp))';
-            alpha = d'*pdir + sqrt((d'*pdir)^2 - d'*d + epsilon^2);
-            pk = pk + alpha * pdir;
-            
-            drone = assignP(drone, pk);
-
+            vz = DG*[eye(n);zeros(p, n)];
+            vp = DG*[zeros(n, p); eye(p)];
             zk_prev = zk; 
-            zk = [eye(n) zeros(n, 1)]*(A\[z0; DG*[zk_prev;pk_prev]-DG*[zeros(n, p); eye(p)]*pk]);
+            pk_prev = pk;
+            
+            zk = z0 + transpose(vz)/(vz*transpose(vz))*(-vz*z0+DG*[zk_prev;pk_prev]-vp*pk);
+            d = pk - p0;
+            alpha = (-d'*vp' + sqrt( (d'*vp')^2 - (d'*d - epsilon^2)*(vp*vp') ))/(vp*vp')*(vz*vz')/(vz*(z0-zk));
+            pk = pk + alpha*(vp'*vz)/(vz*vz')*(z0-zk);
+            drone = assignP(drone, pk);
+            zk = z0 + transpose(vz)/(vz*transpose(vz))*(-vz*z0+DG*[zk_prev;pk_prev]-vp*pk);
 
             u = 1/2;
         else

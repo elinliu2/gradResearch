@@ -1,7 +1,7 @@
 addpath(genpath('.'))
 
 % Sim Constants
-SC.T = 2e-3;
+SC.T = 1e-3;
 SC.t_final = 10;
 
 % Model
@@ -16,10 +16,10 @@ zbar = findClosestzbar(drone, SC, initialState, ref, dist);
 toc;
 tic;
 disp("find optimal p")
-[z, p] = findOptimalqGradAscent(drone, SC, initialState, ref, dist, zbar);
+[z, p] = findOptimalqTrustRegion(drone, SC, initialState, ref, dist, zbar);
 drone = assignP(drone, p);
 toc;
-% dist = distToRoA(drone, SC, initialState, zbar, ref, dist);
+distance = distToRoA(drone, SC, initialState, zbar, ref, dist);
 
 dist.Fx(1000:2000) = -6*ones(1, 1001);
 dist.Fy(1000:2000) = -6*ones(1, 1001);
