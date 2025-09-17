@@ -101,7 +101,7 @@ classdef droneModelIBHybrid
             stable = WithinLimits(state);
             % Drone Simulation
             i = 2;
-            while(stable & (i <= length(t_span)))
+            while(stable && (i <= length(t_span)))
                 state_guess = zeros(1, model.numStates);
                 x3 = 100; % Drone starts 100 m in the air
                 state_guess(3) = x3; 
@@ -127,7 +127,12 @@ classdef droneModelIBHybrid
                 i = i + 1;
             end
 
-            stable = stable & CheckConvergence(stateProgression(length(t_span), :), ref);
+            final = stateProgression(i-1, :);
+            prev = stateProgression(i-2, :);
+            prevprev = stateProgression(i-3, :);
+
+            stable = stable & CheckConvergence(final, prev, prevprev, ref);
+
 
             % Plot
             if (shouldPlot)
@@ -400,11 +405,26 @@ function [] = PlotDrone(stateProgression)
     end
 end
 
-function converging = CheckConvergence(state, ref)
-    tol = 10;
-    converging = abs(state(1) - ref.x) < tol;
-    converging = converging & abs(state(2) - ref.y) < tol;
-    converging = converging & abs(state(3) - ref.z) < tol;
+function converging = CheckConvergence(final, prev, prevprev, ref)
+
+    finalTol = 10;
+    convergingTol = 1e-3;
+    speedTol = 1e-2;
+
+    converging = abs(final(1) - ref.x) < finalTol;
+    converging = converging & abs(final(2) - ref.y) < finalTol;
+    converging = converging & abs(final(3) - ref.z) < finalTol;
+
+    converging = converging & abs(final(4)) < speedTol;
+    converging = converging & abs(final(5)) < speedTol;
+    converging = converging & abs(final(6)) < speedTol;
+
+    converging = converging & abs(final(1) - prev(1)) < convergingTol;
+    converging = converging & abs(final(2) - prev(2)) < convergingTol;
+    converging = converging & abs(final(3) - prev(3)) < convergingTol;
+    converging = converging & abs(final(1) - prev(1)) < abs(prev(1)-prevprev(1));
+    converging = converging & abs(final(2) - prev(2)) < abs(prev(2)-prevprev(2));
+    converging = converging & abs(final(3) - prev(3)) < abs(prev(3)-prevprev(3));
 end
 
 function stable = WithinLimits(state)
@@ -418,9 +438,9 @@ function stable = WithinLimits(state)
     stable = stable & (abs(state(11)) < 1e6);
     stable = stable & (abs(state(12)) < 1e6);
     % Uz and discrete derivatives
-    % stable = stable & (abs(state(19)) < 1e6);
-    % stable = stable & (abs(state(20)) < 1e6);
-    % stable = stable & (abs(state(21)) < 1e6);
-    % stable = stable & (abs(state(22)) < 1e6);
-    % stable = stable & (abs(state(23)) < 1e6);
+    stable = stable & (abs(state(19)) < 1e6);
+    stable = stable & (abs(state(20)) < 1e6);
+    stable = stable & (abs(state(21)) < 1e6);
+    stable = stable & (abs(state(22)) < 1e6);
+    stable = stable & (abs(state(23)) < 1e6);
 end

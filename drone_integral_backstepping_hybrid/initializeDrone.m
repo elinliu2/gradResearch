@@ -1,4 +1,4 @@
-function [drone, initialState, ref, dist] = initializeDrone(SC)
+function [drone, x0, ref, dist] = initializeDrone(SC)
     c1 = 10.5;
     c2 = 2;
     c3 = 10;
@@ -50,19 +50,15 @@ function [drone, initialState, ref, dist] = initializeDrone(SC)
     dist.Ty = zeros(1, floor(SC.t_final/SC.T) + 1);
     dist.Tz = zeros(1, floor(SC.t_final/SC.T) + 1);
     
-    initialState = zeros(drone.numStates, 1);
-    for i = 1:12
-        initialState(i) = 0;
-    end
-    x3 = 100; % Drone starts 100 m in the air
-    initialState(3) = x3; 
-    x6 = initialState(6);
-    x7 = initialState(7);
-    x8 = initialState(8);
-    x16 = initialState(16);
-    
-    e7 = ref.z - x3;
-    e8 = c7*e7 + ref.z_dot + lambda4*x16 - x6;
-    U_z = m/(cos(x7)*cos(x8)*4)*(g + (1-c7^2+lambda4)*e7 + (c7+c8)*e8 - c7*lambda4*x16);
-    initialState(19) = U_z;
+    % x0 = zeros(drone.numStates, 1);
+    % for i = 1:12
+    %     x0(i) = 0;
+    % end
+    % x3 = 100; % Drone starts 100 m in the air
+    % x0(3) = x3; 
+    % e7 = ref.z - x0(3);
+    % e8 = c7*e7 + ref.z_dot + lambda4*x0(16) - x0(6);
+    % U_z = m/(cos(x0(7))*cos(x0(8))*4)*(g + (1-c7^2+lambda4)*e7 + (c7+c8)*e8 - c7*lambda4*x0(16));
+    % x0(19) = U_z;
+    x0 = load("z0.mat").z0';
 end

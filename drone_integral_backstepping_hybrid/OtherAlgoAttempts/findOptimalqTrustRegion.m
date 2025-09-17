@@ -11,7 +11,7 @@ function [z,p] = findOptimalqTrustRegion(drone, SC, z0, ref, dist, zbar)
     n = drone.numStates;
     p = drone.numParams;
     count = 0;
-    while sum(abs(zk - zk_prev), "all") > 1e-2 || ~stable
+    while sum(abs(zk - zk_prev), "all") > 1e-3 || ~stable
         count = count + 1;
         [~, stateProgression, drone, stable] = trajectory(drone, SC, zk, false, ref, dist);
         if stable
@@ -29,7 +29,9 @@ function [z,p] = findOptimalqTrustRegion(drone, SC, z0, ref, dist, zbar)
             zk = z0 + transpose(vz)/(vz*transpose(vz))*(-vz*z0+DG*[zk_prev;pk_prev]-vp*pk);
             u = 1/2;
         else
-            zk = findClosestzbar(drone, SC, z0, ref, dist);
+            pk = pk_prev + u*(pk-pk_prev);
+            drone = assignP(drone, pk);
+            zk = z0 + transpose(vz)/(vz*transpose(vz))*(-vz*z0+DG*[zk_prev;pk_prev]-vp*pk);
             u = u/2;
         end   
     end

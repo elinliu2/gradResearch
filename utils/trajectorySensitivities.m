@@ -82,7 +82,7 @@ classdef trajectorySensitivities
 
             for j = 1:model.numStates + model.numParams
                 for i = 1:model.numStates
-                   sum(j) = sum(j) + transpose(sign(trajSens(:, i,tp))) * secondTrajSensParam(:,i,j,tp);
+                   sum(j) = sum(j) + transpose(sign(trajSens(:, i,tp))) * secondTrajSensParam(:,i,j, tp);
                 end
             end
 
