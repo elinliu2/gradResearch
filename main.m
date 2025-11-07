@@ -3,7 +3,7 @@ addpath(genpath('.'))
 
 % Sim Constants
 SC.T = 1e-3;
-SC.t_final = 3.5;
+SC.t_final = 20;
 
 % Model
 % pendulum = PendulumModel(0.2, 0.2);
@@ -19,7 +19,7 @@ SC.t_final = 3.5;
 % tic;
 % disp("find optimal p")
 % [z, p, p_iteration, dist_zbar] = findOptimalqGradAscent(drone, SC, z0, ref, dist, zbar);
-drone = assignP(drone, p);
+% drone = assignP(drone, p);
 % toc;
 
 % t = 10000;
@@ -27,16 +27,16 @@ drone = assignP(drone, p);
 % dist.Fy(1:1+t) = 20*ones(1, 1+t);
 % dist.Fz(1:1+t) = -20*ones(1, 1+t);
 
-t = 1;
-dist.Fx(1:1+t) = -6*ones(1, 1+t);
-dist.Fy(1:1+t) = 6*ones(1, 1+t);
+% t = 1;
+% dist.Fx(1:1+t) = -6*ones(1, 1+t);
+% dist.Fy(1:1+t) = 6*ones(1, 1+t);
 
 [time, stateProgression, drone, stable] = trajectory(drone, SC, z0, false, ref, dist);
 % testTrajectorySensitivities(drone, SC, z0, stateProgression, ref, dist);
 % trajSens = droneTrajectorySensitivitiesHybrid.calculateTrajectorySensitivitiesParams(drone, SC, stateProgression, ref);
 % secondTrajSensParam = droneTrajectorySensitivitiesHybrid.calculateSecondOrderTrajectorySensitivitiesParams(drone, SC, stateProgression, trajSens, ref);
 % G = norms.infimumOfReciprocalOfOneNorm(trajSens);
-splotting.trajectoryPlot3d(time, stateProgression(:, 1), stateProgression(:, 2), stateProgression(:, 3), 1, "Optimal Parameters with Disturbance State Progression");
+splotting.trajectoryPlot3d(time, stateProgression(:, 1), stateProgression(:, 2), stateProgression(:, 3), 1, "Initial Parameters with No Disturbance State Progression");
 % splotting.trajectoryVideo(time, stateProgression);
 
 % figure(2)
