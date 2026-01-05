@@ -46,48 +46,216 @@ classdef splotting
         function trajectoryPlot3d(time, x, y, z, figNum, plotTitle)
             figure(figNum);
             hold off
-            % scatter3(x, y, z, 10, time,'filled');
-            plot3(x, y, z, 'k--', 'LineWidth', 0.5);
-            hold on
-
-            % Drone arm length
-            L = 0.1;
-
-            xf = x(length(time), 1);
-            yf = y(length(time), 1);
-            zf = z(length(time), 1);
-        
-            % Define arm endpoints (before rotation)
-            arms = [ xf+L  yf    zf;
-                     xf-L  yf    zf;
-                     xf    yf+L  zf;
-                     xf    yf-L  zf];
-        
-            % Rotation matrices
-            Rx = @(a)[1 0 0; 0 cosd(a) -sind(a); 0 sind(a) cosd(a)];
-            Ry = @(a)[cosd(a) 0 sind(a); 0 1 0; -sind(a) 0 cosd(a)];
-            Rz = @(a)[cosd(a) -sind(a) 0; sind(a) cosd(a) 0; 0 0 1];
-        
-            % Combined rotation
-            R = Rz(0) * Ry(0) * Rx(0);
-        
-            % Apply rotation
-            arms_rot = (R * arms')';
-        
-            % Plot drone
-            plot3([arms_rot(1,1) arms_rot(2,1)], [arms_rot(1,2) arms_rot(2,2)], [arms_rot(1,3) arms_rot(2,3)], 'k-', 'LineWidth', 3);
-            plot3([arms_rot(3,1) arms_rot(4,1)], [arms_rot(3,2) arms_rot(4,2)], [arms_rot(3,3) arms_rot(4,3)], 'k-', 'LineWidth', 3);
-        
-            % Center and rotors
-            plot3(xf, yf, zf, 'ko','MarkerFaceColor','k');
-            for i=1:4
-                plot3(arms_rot(i,1), arms_rot(i,2), arms_rot(i,3), 'ko','MarkerFaceColor','k','MarkerSize',7.5);
-            end
+            scatter3(x, y, z, 10, time,'filled');
+            % plot3(x, y, z, 'k--', 'LineWidth', 0.5);
+            % hold on
+            % 
+            % % Drone arm length
+            % L = 0.1;
+            % 
+            % xf = x(length(time), 1);
+            % yf = y(length(time), 1);
+            % zf = z(length(time), 1);
+            % 
+            % % Define arm endpoints (before rotation)
+            % arms = [ xf+L  yf    zf;
+            %          xf-L  yf    zf;
+            %          xf    yf+L  zf;
+            %          xf    yf-L  zf];
+            % 
+            % % Rotation matrices
+            % Rx = @(a)[1 0 0; 0 cosd(a) -sind(a); 0 sind(a) cosd(a)];
+            % Ry = @(a)[cosd(a) 0 sind(a); 0 1 0; -sind(a) 0 cosd(a)];
+            % Rz = @(a)[cosd(a) -sind(a) 0; sind(a) cosd(a) 0; 0 0 1];
+            % 
+            % % Combined rotation
+            % R = Rz(0) * Ry(0) * Rx(0);
+            % 
+            % % Apply rotation
+            % arms_rot = (R * arms')';
+            % 
+            % % Plot drone
+            % plot3([arms_rot(1,1) arms_rot(2,1)], [arms_rot(1,2) arms_rot(2,2)], [arms_rot(1,3) arms_rot(2,3)], 'k-', 'LineWidth', 3);
+            % plot3([arms_rot(3,1) arms_rot(4,1)], [arms_rot(3,2) arms_rot(4,2)], [arms_rot(3,3) arms_rot(4,3)], 'k-', 'LineWidth', 3);
+            % 
+            % % Center and rotors
+            % plot3(xf, yf, zf, 'ko','MarkerFaceColor','k');
+            % for i=1:4
+            %     plot3(arms_rot(i,1), arms_rot(i,2), arms_rot(i,3), 'ko','MarkerFaceColor','k','MarkerSize',7.5);
+            % end
         
             title(plotTitle);
             xlabel("x [m]");
             ylabel("y [m]");
             zlabel("z [m]");
+        end
+
+        function trajectoryPlots()
+            stateNoDist = load("stateInitialParams.mat").stateProgression;
+            stateDistInitial = load("stateDistInitialParams.mat").stateProgression;
+            stateDistNew = load("stateDistNewParams.mat").stateProgression;
+
+            states = zeros(3, 300001, 23);
+            states(1, :, :) = stateNoDist; 
+            states(2, :, :) = stateDistInitial; 
+            states(3, :, :) = stateDistNew; 
+            hold off;
+            plot3(states(1, 1, 1), states(1, 1, 2), states(1, 1, 3), 'o', ...
+              'MarkerSize', 10, ...
+              'MarkerFaceColor', 'g', ...
+              'MarkerEdgeColor', 'k', ...
+              'LineWidth', 0.5);
+            hold on;
+            for plot_index = 1:3
+                x = states(plot_index, :, 1);
+                y = states(plot_index, :, 2);
+                z = states(plot_index, :, 3);
+
+                if plot_index == 1 
+                    plot3(x, y, z, 'r:', 'LineWidth', 1.5);
+                    hold on;
+                elseif plot_index == 2
+                    plot3(x(1:334), y(1:334), z(1:334), 'k-', 'LineWidth', 1.0);
+                else 
+                    plot3(x, y, z, 'b--', 'LineWidth', 1.5);
+                end
+            
+            end
+
+            plot3(1, 1, 100, 'p', ...
+              'MarkerSize', 15, ...
+              'MarkerFaceColor', 'y', ...
+              'MarkerEdgeColor', 'k', ...
+              'LineWidth', 0.5);
+        
+            title("Drone Trajectory");
+            xlabel("x [m]");
+            xlim([-0.1 1.6]);
+            ylabel("y [m]");
+            ylim([-0.1 1.55]);
+            zlabel("z [m]");
+            zlim([97.4 100.5]);
+            grid on;
+
+            for plot_index = 1:3
+                x = states(plot_index, :, 1);
+                y = states(plot_index, :, 2);
+                z = states(plot_index, :, 3);
+                dx = diff(x);
+                dy = diff(y);
+                dz = diff(z);
+
+                dirs = [dx(:), dy(:), dz(:)];
+                dirs = dirs ./ vecnorm(dirs,2,2);
+
+                L = 0.15;
+                R = 0.25 * L;                                 % radius
+                
+                [CX, CY, CZ] = cylinder([R 0], 20);
+                CZ = CZ * L;
+
+                if plot_index == 1
+                    % idx = 2000;
+                    % for k = idx
+                    %     p = [x(k+1), y(k+1), z(k+1)];
+                    %     v = dirs(k,:);
+                    % 
+                    %     Rm = vrrotvec2mat(vrrotvec([0 0 1], v));
+                    %     P  = Rm * [CX(:)'; CY(:)'; CZ(:)'];
+                    % 
+                    %     surf( reshape(P(1,:),size(CX)) + p(1), ...
+                    %           reshape(P(2,:),size(CY)) + p(2), ...
+                    %           reshape(P(3,:),size(CZ)) + p(3), ...
+                    %           'FaceColor','r', ...
+                    %           'EdgeColor','none');
+                    % end
+                elseif plot_index == 2
+                    idx = [60, 90];
+                    for k = idx
+                        p = [x(k+1), y(k+1), z(k+1)];
+                        v = dirs(k,:);
+                    
+                        Rm = vrrotvec2mat(vrrotvec([0 0 1], v));
+                        P  = Rm * [CX(:)'; CY(:)'; CZ(:)'];
+                    
+                        surf( reshape(P(1,:),size(CX)) + p(1), ...
+                              reshape(P(2,:),size(CY)) + p(2), ...
+                              reshape(P(3,:),size(CZ)) + p(3), ...
+                              'FaceColor','k', ...
+                              'EdgeColor','none');
+                    end
+                else 
+                    % idx = 500;
+                    % for k = idx
+                    %     p = [x(k+1), y(k+1), z(k+1)];
+                    %     v = dirs(k,:);
+                    % 
+                    %     Rm = vrrotvec2mat(vrrotvec([0 0 1], v));
+                    %     P  = Rm * [CX(:)'; CY(:)'; CZ(:)'];
+                    % 
+                    %     surf( reshape(P(1,:),size(CX)) + p(1), ...
+                    %           reshape(P(2,:),size(CY)) + p(2), ...
+                    %           reshape(P(3,:),size(CZ)) + p(3), ...
+                    %           'FaceColor','b', ...
+                    %           'EdgeColor','none');
+                    % end
+                end
+            end
+
+            for plot_index = 1:3
+                 % Drone arm length
+                L = 0.1;
+                if plot_index ==1 
+                    xf = 0.27;
+                    yf = 0.4045;
+                    zf = 99.9923;
+                elseif plot_index == 2 
+                    xf = 1.17;
+                    yf = 1.5;
+                    zf = 97.5;
+                else 
+                    xf = 0.667;
+                    yf = 0.74;
+                    zf = 100.034;
+                end
+                % Define arm endpoints (before rotation)
+                arms_body = [ L   0   0;
+                             -L   0   0;
+                              0   L   0;
+                              0  -L   0];
+
+                Rx = @(a)[1 0 0;
+                          0 cosd(a) -sind(a);
+                          0 sind(a)  cosd(a)];
+                
+                Ry = @(a)[ cosd(a) 0 sind(a);
+                           0       1 0;
+                          -sind(a) 0 cosd(a)];
+                
+                Rz = @(a)[cosd(a) -sind(a) 0;
+                          sind(a)  cosd(a) 0;
+                          0        0       1];
+
+                R = Rz(0) * Ry(80) * Rx(60);
+                
+                arms_rot   = (R * arms_body')';
+                arms_world = arms_rot + [xf yf zf];
+            
+                % arms
+                plot3(arms_world([1 2],1),arms_world([1 2],2),arms_world([1 2],3),'k-','LineWidth',3)
+                plot3(arms_world([3 4],1),arms_world([3 4],2),arms_world([3 4],3),'k-','LineWidth',3)
+            
+                % center (hollow)
+                plot3(xf,yf,zf,'ko','MarkerSize',6,'LineWidth',1.5)
+
+                for i=1:4
+                    plot3(arms_world(i,1), arms_world(i,2), arms_world(i,3), 'ko', 'MarkerSize',10);
+                end
+            end
+
+            
+
+            legend("Initial Condition", "Initial Parameters No Disturbance", "Initial Parameters With Disturbance", "Locally Optimal Parameters With Disturbance", "Goal Point")
         end
 
         function plotDroneXYZ(time, stateProgression, figNum)

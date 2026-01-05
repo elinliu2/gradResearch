@@ -110,7 +110,7 @@ classdef droneModelIBHybrid
 
                 state_prev = stateProgression(i-1, :);
                 count = 0;
-                while abs(norm(F(state_prev, state_guess, model, SC, ref, dist, i))) > tol % & count < 10000
+                while abs(norm(F(state_prev, state_guess, model, SC, ref, dist, i))) > tol  & count < 1000000
                     if det(DF(state_guess, model, SC, ref)) ~= 0
                         state_guess(1:19) = state_guess(1:19) - transpose(DF(state_guess, model, SC, ref)\transpose(F(state_prev, state_guess, model, SC, ref, dist, i)));
                         count = count + 1;
@@ -118,7 +118,7 @@ classdef droneModelIBHybrid
                         stable = 0;
                     end
                 end
-                % stable = stable & (count < 10000) & WithinLimits(state_guess);
+                stable = stable & count < 1000000 ; % & WithinLimits(state_guess);
                 stateProgression(i, 1:19) = state_guess(1:19);
                 stateProgression(i, 20) = 1/SC.T * (theta_ref(model, state_guess, ref) - theta_ref(model, state_prev, ref));
                 stateProgression(i, 21) = 1/SC.T * (phi_ref(model, state_guess, ref) - phi_ref(model, state_prev, ref));
@@ -219,13 +219,14 @@ function f = f(state, model, ref, dist, index)
     f1 = x4; 
     f2 = x5;
     f3 = x6;
-    % f4 = 4*(U_z + dist.Fx(index))/model.m*(sin(x7)*cos(x8)*cos(x9) + sin(x8)*sin(x9)) ;
-    % f5 = 4*(U_z + dist.Fy(index))/model.m*(sin(x7)*cos(x8)*sin(x9) - sin(x8)*cos(x9));
-    % f6 = 4*(U_z + dist.Fz(index))/model.m*(cos(x7)*cos(x8)) - model.g;
+    
+    f4 = 4*(U_z + dist.Fx(index))/model.m*(sin(x7)*cos(x8)*cos(x9) + sin(x8)*sin(x9)) ;
+    f5 = 4*(U_z + dist.Fy(index))/model.m*(sin(x7)*cos(x8)*sin(x9) - sin(x8)*cos(x9));
+    f6 = 4*(U_z + dist.Fz(index))/model.m*(cos(x7)*cos(x8)) - model.g;
 
-    f4 = 4*(U_z)/model.m*(sin(x7)*cos(x8)*cos(x9) + sin(x8)*sin(x9)) + dist.Fx(index);
-    f5 = 4*(U_z)/model.m*(sin(x7)*cos(x8)*sin(x9) - sin(x8)*cos(x9)) + dist.Fy(index);
-    f6 = 4*(U_z)/model.m*(cos(x7)*cos(x8)) - model.g + dist.Fz(index);
+    % f4 = 4*(U_z)/model.m*(sin(x7)*cos(x8)*cos(x9) + sin(x8)*sin(x9)) + dist.Fx(index);
+    % f5 = 4*(U_z)/model.m*(sin(x7)*cos(x8)*sin(x9) - sin(x8)*cos(x9)) + dist.Fy(index);
+    % f6 = 4*(U_z)/model.m*(cos(x7)*cos(x8)) - model.g + dist.Fz(index);
     
     f7 = x10; 
     f8 = x11;
@@ -411,24 +412,29 @@ end
 
 function converging = CheckConvergence(final, prev, prevprev, ref)
 
-    finalTol = 10;
+    finalTol = 1e-1;
     convergingTol = 1e-3;
-    speedTol = 1e-2;
+    speedTol = 5e-2;
+    numericalTol = 1e-13;
 
-    converging = abs(final(1) - ref.x) < finalTol;
-    converging = converging & abs(final(2) - ref.y) < finalTol;
-    converging = converging & abs(final(3) - ref.z) < finalTol;
+    converging = abs(final(1) - ref.x) <= finalTol;
+    converging = converging & abs(final(2) - ref.y) <= finalTol;
+    converging = converging & abs(final(3) - ref.z) <= finalTol;
 
-    converging = converging & abs(final(4)) < speedTol;
-    converging = converging & abs(final(5)) < speedTol;
-    converging = converging & abs(final(6)) < speedTol;
+    % converging = converging & abs(final(1) - ref.x) <= abs(prev(1) - ref.x) + numericalTol;
+    % converging = converging & abs(final(2) - ref.y) <= abs(prev(2) - ref.y) + numericalTol;
+    % converging = converging & abs(final(3) - ref.z) <= abs(prev(3) - ref.z) + numericalTol;
 
-    converging = converging & abs(final(1) - prev(1)) < convergingTol;
-    converging = converging & abs(final(2) - prev(2)) < convergingTol;
-    converging = converging & abs(final(3) - prev(3)) < convergingTol;
-    converging = converging & abs(final(1) - prev(1)) < abs(prev(1)-prevprev(1));
-    converging = converging & abs(final(2) - prev(2)) < abs(prev(2)-prevprev(2));
-    converging = converging & abs(final(3) - prev(3)) < abs(prev(3)-prevprev(3));
+    converging = converging & abs(final(4)) <= speedTol;
+    converging = converging & abs(final(5)) <= speedTol;
+    converging = converging & abs(final(6)) <= speedTol;
+
+    converging = converging & abs(final(1) - prev(1)) <= convergingTol;
+    converging = converging & abs(final(2) - prev(2)) <= convergingTol;
+    converging = converging & abs(final(3) - prev(3)) <= convergingTol;
+    converging = converging & abs(final(1) - prev(1)) <= abs(prev(1)-prevprev(1))  + numericalTol;
+    converging = converging & abs(final(2) - prev(2)) <= abs(prev(2)-prevprev(2))  + numericalTol;
+    converging = converging & abs(final(3) - prev(3)) <= abs(prev(3)-prevprev(3))  + numericalTol;
 end
 
 function stable = WithinLimits(state)

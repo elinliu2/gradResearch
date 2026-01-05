@@ -1,9 +1,9 @@
 addpath(genpath('.'))
-% warning('off', 'all')
+warning('off', 'all')
 
 % Sim Constants
 SC.T = 1e-3;
-SC.t_final = 20;
+SC.t_final = 300;
 
 % Model
 % pendulum = PendulumModel(0.2, 0.2);
@@ -11,21 +11,25 @@ SC.t_final = 20;
 
 [drone, z0, ref, dist] = initializeDrone(SC);
 
-% tic;
-% disp("find closest zbar")
-% zbar = findClosestzbar(drone, SC, z0, ref, dist, z0);
-% toc;
-% 
-% tic;
-% disp("find optimal p")
-% [z, p, p_iteration, dist_zbar] = findOptimalqGradAscent(drone, SC, z0, ref, dist, zbar);
-% drone = assignP(drone, p);
-% toc;
+tic;
+disp("find closest zbar")
+zbar = findClosestzbar(drone, SC, z0, ref, dist, z0);
+toc;
 
-% t = 10000;
-% dist.Fx(1:1+t) = 20*ones(1, 1+t);
-% dist.Fy(1:1+t) = 20*ones(1, 1+t);
-% dist.Fz(1:1+t) = -20*ones(1, 1+t);
+tic;
+disp("find optimal p")
+[z, p, p_iteration, dist_zbar] = findOptimalqGradAscent(drone, SC, z0, ref, dist, zbar);
+drone = assignP(drone, p);
+toc;
+
+t = 1;
+dist.Fx(1:1+t) = -6*ones(1, 1+t);
+dist.Fy(1:1+t) = 6*ones(1, 1+t);
+
+% t = 6;
+% dist.Fx(1:1+t) = -12*ones(1, 1+t);
+% dist.Fy(1:1+t) = 12*ones(1, 1+t);
+% dist.Fz(1:1+t) = -12*ones(1, 1+t);
 
 % t = 1;
 % dist.Fx(1:1+t) = -6*ones(1, 1+t);
@@ -50,10 +54,10 @@ splotting.trajectoryPlot3d(time, stateProgression(:, 1), stateProgression(:, 2),
 % 
 % end
 % 
-% figure(3)
-% plot(dist_zbar(1, 1:34))
-% title('Distance to closest point, $z$, on RoA boundary from $z_0$','interpreter','latex')
-% xlabel('iteration','interpreter','latex')
-% ylabel('$\frac{1}{2}\|z-z_0\|^2$','interpreter','latex')
+figure(3)
+plot(dist_zbar(1, :), 'k', 'LineWidth', 1.5)
+title('Distance to closest point, $z$, on RoA boundary from $z_0$','interpreter','latex')
+xlabel('iteration','interpreter','latex')
+ylabel('$\frac{1}{2}\|z-z_0\|^2$','interpreter','latex')
 
 

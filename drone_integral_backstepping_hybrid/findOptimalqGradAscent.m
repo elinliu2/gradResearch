@@ -12,9 +12,15 @@ function [z,p, p_iteration, dist_zbar] = findOptimalqGradAscent(drone, SC, z0, r
     count = 0;
     p_iteration = zeros(p, 100);
     dist_zbar = zeros(1, 100);
-    while (sum(abs(pk - pk_prev), "all") > 1e-5)
+    u = 0.5;
+    P = eye(n);
+    P(22, 22) = 10;
+    P(23, 23) = 10;
+    Pinv = inv(P);
+    vp = 1;
+    while sum(abs(pk-pk_prev), 'all') > 1e-15
         count = count + 1;
-        [~, stateProgression, drone, ~] = trajectory(drone, SC, zk, false, ref, dist);
+        [~, stateProgression, drone, stable] = trajectory(drone, SC, zk, false, ref, dist);
         
         [G, DG] = calcGDG(drone, SC, stateProgression, ref);
         vz = transpose(DG*[eye(n); zeros(p, n)]);
@@ -22,25 +28,31 @@ function [z,p, p_iteration, dist_zbar] = findOptimalqGradAscent(drone, SC, z0, r
         zk_prev = zk; 
         pk_prev = pk;
         
-        pk = pk_prev + alpha*(vp*vz')/(vz'*vz)*(z0-zk);
+        pk = pk_prev + alpha*(vz'*(z0-zk_prev) + G)/(vz'*Pinv*vz)*vp;
         drone = assignP(drone, pk);
-        zk = z0 + (1 + alpha*(vp')*vp/(vz'*vz))*(vz*vz')/(vz'*vz)*(zk-z0) - vz/(vz'*vz)*G;
+        zk = (Pinv*vz*vz')/(vz'*Pinv*vz)*(zk_prev-z0) + (Pinv*vz*vp')/(vz'*Pinv*vz)*(pk_prev - pk) + z0 - (Pinv*vz)/(vz'*Pinv*vz)*G;
         p_iteration(:, count) = pk;
-        u = 1/2;
-
+        
         [~, ~, drone, stable] = trajectory(drone, SC, zk, false, ref, dist);
-        while ~stable
+        countbk = 0;
+        while ~stable && sum(abs(pk-pk_prev), 'all') > 1e-15
             pk = pk_prev + u*(pk-pk_prev);
             drone = assignP(drone, pk);
             zk = zk_prev + u*(zk-zk_prev);
-            u = u/2;
             [~, ~, drone, stable] = trajectory(drone, SC, zk, false, ref, dist);
+            countbk = countbk + 1;
         end 
+        if countbk > 5 
+            u = u^countbk;
+        end
 
         zbar = findClosestzbar(drone, SC, z0, ref, dist, zk_prev);
-        dist_zbar(:, count) = 1/2*norm(zbar-z0)^2;    
+        dist_zbar(:, count) = (zbar-z0)'*P*(zbar-z0);    
         p_iteration(:, count) = pk;
+        disp("outer count")
         disp(count)
+        disp("backstepping count")
+        disp(countbk)
     end
     z = zk_prev;
     p = pk_prev;
