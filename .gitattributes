@@ -1,1 +1,2 @@
 drone_integral_backstepping_syms/derivatives_drone_IB_syms.m filter=lfs diff=lfs merge=lfs -text
+*.mat filter=lfs diff=lfs merge=lfs -text
