@@ -124,15 +124,15 @@ classdef droneModelIBHybrid
                 index = index + 1;
                 time = time + SC.T;
                 
-                [stableDouble, nextStateDouble] = simulateTimestep(state_prev, SC.T*2, time, model, ref, dist);
+                % [stableDouble, nextStateDouble] = simulateTimestep(state_prev, SC.T*2, time, model, ref, dist);
 
-                if (norm(nextState2(1:19) - nextStateDouble(1:19), inf) < 1e-7 && stableDouble)
-                    SC.T = SC.T*2;   
-                elseif (norm(nextState2(1:19) - nextStateDouble(1:19), inf) > 1e-4 || ~stable1 || ~stable2)
-                    if SC.T > 1e-3
-                        SC.T = SC.T/2;
-                    end 
-                end  
+                % if (norm(nextState2(1:19) - nextStateDouble(1:19), inf) < 1e-7 && stableDouble)
+                %     SC.T = SC.T*2;   
+                % elseif (norm(nextState2(1:19) - nextStateDouble(1:19), inf) > 1e-4 || ~stable1 || ~stable2)
+                %     if SC.T > 1e-3
+                %         SC.T = SC.T/2;
+                %     end 
+                % end  
 
                 stable = stable1 && stable2;
                 
@@ -150,7 +150,7 @@ classdef droneModelIBHybrid
                 PlotDrone(stateProgression);
             end
 
-            index = index -1;
+            index = index-1;
         end 
 
         function p = extractP(drone)
@@ -447,7 +447,7 @@ function converging = CheckConvergence(final, prev, prevprev, ref)
     finalTol = 1e-1;
     convergingTol = 1e-3;
     speedTol = 5e-2;
-    numericalTol = 1e-13;
+    numericalTol = 1e-8;
 
     converging = abs(final(1) - ref.x) <= finalTol;
     converging = converging & abs(final(2) - ref.y) <= finalTol;

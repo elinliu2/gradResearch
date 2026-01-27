@@ -40,11 +40,11 @@ SC.t_final = 100;
 % dist.Fy(1:1+t) = 6*ones(1, 1+t);
 tic;
 [time, stateProgression, drone, stable, SC, index] = trajectory(drone, SC, z0, false, ref, dist);
-toc;
 % testTrajectorySensitivities(drone, SC, z0, stateProgression, ref, dist);
-trajSens = droneTrajectorySensitivitiesHybrid.calculateTrajectorySensitivitiesParams(drone, SC, stateProgression, ref);
+trajSens = droneTrajectorySensitivitiesHybrid.calculateTrajectorySensitivitiesParams(drone, stateProgression, ref, time, index);
 % secondTrajSensParam = droneTrajectorySensitivitiesHybrid.calculateSecondOrderTrajectorySensitivitiesParams(drone, SC, stateProgression, trajSens, ref);
-% G = norms.infimumOfReciprocalOfOneNorm(trajSens);
+G = norms.infimumOfReciprocalOfOneNorm(trajSens);
+toc;
 splotting.trajectoryPlot3d(time(1:index), stateProgression(1:index, 1), stateProgression(1:index, 2), stateProgression(1:index, 3), 1, "Initial Parameters with No Disturbance State Progression");
 % splotting.trajectoryVideo(time, stateProgression);
 
