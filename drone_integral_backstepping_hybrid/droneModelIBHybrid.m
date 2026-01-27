@@ -92,45 +92,56 @@ classdef droneModelIBHybrid
             obj.disturbanceSignal = @DroneControllers.dummyD;
         end
 
-        function [t_span, stateProgression, model, stable] = trajectory(model, SC, state, shouldPlot, ref, dist)
+        function [t_span, stateProgression, model, stable, SC, index] = trajectory(model, SC, state, shouldPlot, ref, dist)
             % Initialization
-            t_span = 0:SC.T:SC.t_final; % amount of time we will simulate for; fixed step sizes
-            tol = 1e-12; 
-            stateProgression = zeros(length(t_span), model.numStates);
+            stateProgression = zeros(SC.t_final/SC.T, model.numStates);
+            t_span = zeros(1, SC.t_final/SC.T);
             stateProgression(1, :) = state;
             stable = WithinLimits(state);
             % Drone Simulation
-            i = 2;
-            while(stable && (i <= length(t_span)))
-                state_guess = zeros(1, model.numStates);
-                x3 = 100; % Drone starts 100 m in the air
-                state_guess(3) = x3; 
-                state_guess(19) = U_z(model, state_guess, ref);
-                state_guess(20:23) = stateProgression(i-1, 20:23);
+            index = 2;
+            time = SC.T;
+            while(stable && time <= SC.t_final)
+                state_prev = stateProgression(index-1, :);
+                [stable1, nextState1] = simulateTimestep(state_prev, SC.T, time, model, ref, dist);
+                stateProgression(index, 1:19) = nextState1(1:19);
+                stateProgression(index, 20) = 1/SC.T * (theta_ref(model, nextState1, ref) - theta_ref(model, state_prev, ref));
+                stateProgression(index, 21) = 1/SC.T * (phi_ref(model, nextState1, ref) - phi_ref(model, state_prev, ref));
+                stateProgression(index, 22) = 1/SC.T * (stateProgression(index, 20) - state_prev(20));
+                stateProgression(index, 23) = 1/SC.T * (stateProgression(index, 21) - state_prev(21));
+                t_span(index) = time;
+                index = index + 1;
+                time = time + SC.T;
+                
+                state_prev = stateProgression(index-1, :);
+                [stable2, nextState2] = simulateTimestep(state_prev, SC.T, time, model, ref, dist);
+                stateProgression(index, 1:19) = nextState2(1:19);
+                stateProgression(index, 20) = 1/SC.T * (theta_ref(model, nextState2, ref) - theta_ref(model, nextState1, ref));
+                stateProgression(index, 21) = 1/SC.T * (phi_ref(model, nextState2, ref) - phi_ref(model, nextState1, ref));
+                stateProgression(index, 22) = 1/SC.T * (stateProgression(index, 20) - state_prev(20));
+                stateProgression(index, 23) = 1/SC.T * (stateProgression(index, 21) - state_prev(21));
+                t_span(index) = time;
+                index = index + 1;
+                time = time + SC.T;
+                
+                [stableDouble, nextStateDouble] = simulateTimestep(state_prev, SC.T*2, time, model, ref, dist);
 
-                state_prev = stateProgression(i-1, :);
-                count = 0;
-                while abs(norm(F(state_prev, state_guess, model, SC, ref, dist, i))) > tol  & count < 20
-                    if det(DF(state_guess, model, SC, ref)) ~= 0
-                        state_guess(1:19) = state_guess(1:19) - transpose(DF(state_guess, model, SC, ref)\transpose(F(state_prev, state_guess, model, SC, ref, dist, i)));
-                        count = count + 1;
-                    else 
-                        stable = 0;
-                    end
-                end
-                stable = stable & count < 20 ; % & WithinLimits(state_guess);
-                stateProgression(i, 1:19) = state_guess(1:19);
-                stateProgression(i, 20) = 1/SC.T * (theta_ref(model, state_guess, ref) - theta_ref(model, state_prev, ref));
-                stateProgression(i, 21) = 1/SC.T * (phi_ref(model, state_guess, ref) - phi_ref(model, state_prev, ref));
-                stateProgression(i, 22) = 1/SC.T * (stateProgression(i, 20) - state_prev(20));
-                stateProgression(i, 23) = 1/SC.T * (stateProgression(i, 21) - state_prev(21));
-                i = i + 1;
+                if (norm(nextState2(1:19) - nextStateDouble(1:19), inf) < 1e-7 && stableDouble)
+                    SC.T = SC.T*2;   
+                elseif (norm(nextState2(1:19) - nextStateDouble(1:19), inf) > 1e-4 || ~stable1 || ~stable2)
+                    if SC.T > 1e-3
+                        SC.T = SC.T/2;
+                    end 
+                end  
+
+                stable = stable1 && stable2;
+                
             end
 
             if stable
-                final = stateProgression(i-1, :);
-                prev = stateProgression(i-2, :);
-                prevprev = stateProgression(i-3, :);
+                final = stateProgression(index-1, :);
+                prev = stateProgression(index-2, :);
+                prevprev = stateProgression(index-3, :);
                 stable = stable & CheckConvergence(final, prev, prevprev, ref);
             end
 
@@ -138,6 +149,8 @@ classdef droneModelIBHybrid
             if (shouldPlot)
                 PlotDrone(stateProgression);
             end
+
+            index = index -1;
         end 
 
         function p = extractP(drone)
@@ -183,22 +196,41 @@ classdef droneModelIBHybrid
             drone.lambda4 = p(16);
             drone.lambda5 = p(17);
             drone.lambda6 = p(18);
-        
         end
     end
 end
 
-function F = F(state_prev, state_guess, model, SC, ref, dist, index)
-    F = state_prev(1:model.numX) - state_guess(1:model.numX) + SC.T/2*(f(state_prev, model, ref, dist, index-1) + f(state_guess, model, ref, dist, index));
+function [stable, state_guess] = simulateTimestep(state_prev, timestep, time, model, ref, dist)
+    state_guess = zeros(1, model.numStates);
+    x3 = 100; % Drone starts 100 m in the air
+    state_guess(3) = x3; 
+    state_guess(19) = U_z(model, state_guess, ref);
+    state_guess(20:23) = state_prev(20:23);
+    count = 0;
+    tol = 1e-12; 
+    stable = 1;
+    while abs(norm(F(state_prev, state_guess, model, timestep, ref, dist, time))) > tol  & count < 20
+        if det(DF(state_guess, model, timestep, ref)) ~= 0
+            state_guess(1:19) = state_guess(1:19) - transpose(DF(state_guess, model, timestep, ref)\transpose(F(state_prev, state_guess, model, timestep, ref, dist, time)));
+            count = count + 1;
+        else 
+            stable = 0;
+        end
+    end
+    stable = stable & count < 20 ; % & WithinLimits(state_guess);
 end
 
-function DF = DF(state_guess, model, SC, ref)
+function F = F(state_prev, state_guess, model, timestep, ref, dist, time)
+    F = state_prev(1:model.numX) - state_guess(1:model.numX) + timestep/2*(f(state_prev, model, ref, dist, time-timestep) + f(state_guess, model, ref, dist, time));
+end
+
+function DF = DF(state_guess, model, timestep, ref)
     DF = -eye(model.numX);
     dfdx_plus = derivativesDroneIBHybrid.dfdx(model, state_guess, ref);
-    DF = DF + SC.T/2*dfdx_plus;
+    DF = DF + timestep/2*dfdx_plus;
 end
         
-function f = f(state, model, ref, dist, index)
+function f = f(state, model, ref, dist, time)
 
     x1 = state(1);
     x2 = state(2);
@@ -220,9 +252,9 @@ function f = f(state, model, ref, dist, index)
     f2 = x5;
     f3 = x6;
     
-    f4 = 4*(U_z + dist.Fx(index))/model.m*(sin(x7)*cos(x8)*cos(x9) + sin(x8)*sin(x9)) ;
-    f5 = 4*(U_z + dist.Fy(index))/model.m*(sin(x7)*cos(x8)*sin(x9) - sin(x8)*cos(x9));
-    f6 = 4*(U_z + dist.Fz(index))/model.m*(cos(x7)*cos(x8)) - model.g;
+    f4 = 4*(U_z + dist.Fx(time))/model.m*(sin(x7)*cos(x8)*cos(x9) + sin(x8)*sin(x9)) ;
+    f5 = 4*(U_z + dist.Fy(time))/model.m*(sin(x7)*cos(x8)*sin(x9) - sin(x8)*cos(x9));
+    f6 = 4*(U_z + dist.Fz(time))/model.m*(cos(x7)*cos(x8)) - model.g;
 
     % f4 = 4*(U_z)/model.m*(sin(x7)*cos(x8)*cos(x9) + sin(x8)*sin(x9)) + dist.Fx(index);
     % f5 = 4*(U_z)/model.m*(sin(x7)*cos(x8)*sin(x9) - sin(x8)*cos(x9)) + dist.Fy(index);
@@ -232,9 +264,9 @@ function f = f(state, model, ref, dist, index)
     f8 = x11;
     f9 = x12;
     
-    f10 = 1/(model.Jtheta) * model.l * (2*U_theta) + dist.Tx(index); 
-    f11 = 1/(model.Jphi) * model.l * (2*U_phi) + dist.Ty(index);
-    f12 = 1/(model.Jpsi) * model.K_psi * (4*U_psi) + dist.Tz(index);
+    f10 = 1/(model.Jtheta) * model.l * (2*U_theta) + dist.Tx(time); 
+    f11 = 1/(model.Jphi) * model.l * (2*U_phi) + dist.Ty(time);
+    f12 = 1/(model.Jpsi) * model.K_psi * (4*U_psi) + dist.Tz(time);
     
     f13 = theta_ref - x7;
     f14 = phi_ref - x8;

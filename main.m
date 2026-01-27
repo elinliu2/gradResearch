@@ -16,19 +16,19 @@ SC.t_final = 100;
 % zbar = findClosestzbar(drone, SC, z0, ref, dist, z0);
 % toc;
 
-zbar = load("zbar.mat").zbar;
-ptest = load("ptest_zbar.mat").p;
-drone = assignP(drone, ptest);
+% zbar = load("zbar.mat").zbar;
+% ptest = load("ptest_zbar.mat").p;
+% drone = assignP(drone, ptest);
 
 % tic;
 % disp("find optimal p")
 % [z, p, p_iteration, dist_zbar, G_iteration] = findOptimalqGradAscent(drone, SC, z0, ref, dist, zbar);
 % drone = assignP(drone, p);
 % toc;
-
-t = 150;
-dist.Fx(1:1+t) = 10*ones(1, 1+t);
-dist.Fy(1:1+t) = -10*ones(1, 1+t);
+% 
+% t = 150;
+% dist.Fx(1:1+t) = 10*ones(1, 1+t);
+% dist.Fy(1:1+t) = -10*ones(1, 1+t);
 
 % t = 6;
 % dist.Fx(1:1+t) = -12*ones(1, 1+t);
@@ -38,13 +38,14 @@ dist.Fy(1:1+t) = -10*ones(1, 1+t);
 % t = 1;
 % dist.Fx(1:1+t) = -6*ones(1, 1+t);
 % dist.Fy(1:1+t) = 6*ones(1, 1+t);
-
-[time, stateProgression, drone, stable] = trajectory(drone, SC, z0, false, ref, dist);
+tic;
+[time, stateProgression, drone, stable, SC, index] = trajectory(drone, SC, z0, false, ref, dist);
+toc;
 % testTrajectorySensitivities(drone, SC, z0, stateProgression, ref, dist);
 trajSens = droneTrajectorySensitivitiesHybrid.calculateTrajectorySensitivitiesParams(drone, SC, stateProgression, ref);
 % secondTrajSensParam = droneTrajectorySensitivitiesHybrid.calculateSecondOrderTrajectorySensitivitiesParams(drone, SC, stateProgression, trajSens, ref);
-G = norms.infimumOfReciprocalOfOneNorm(trajSens);
-splotting.trajectoryPlot3d(time, stateProgression(:, 1), stateProgression(:, 2), stateProgression(:, 3), 1, "Initial Parameters with No Disturbance State Progression");
+% G = norms.infimumOfReciprocalOfOneNorm(trajSens);
+splotting.trajectoryPlot3d(time(1:index), stateProgression(1:index, 1), stateProgression(1:index, 2), stateProgression(1:index, 3), 1, "Initial Parameters with No Disturbance State Progression");
 % splotting.trajectoryVideo(time, stateProgression);
 
 % figure(2)

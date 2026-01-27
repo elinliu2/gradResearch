@@ -62,13 +62,13 @@ function [drone, x0, ref, dist] = initializeDrone(SC)
     ref.psi_dddot = 0;
     ref.psi_ddddot = 0;
 
-    dist.Fx = zeros(1, floor(SC.t_final/SC.T) + 1);
-    dist.Fy = zeros(1, floor(SC.t_final/SC.T) + 1);
-    dist.Fz = zeros(1, floor(SC.t_final/SC.T) + 1);
+    dist.Fx = @(~) 0;
+    dist.Fy = @(~) 0;
+    dist.Fz = @(~) 0;
     
-    dist.Tx = zeros(1, floor(SC.t_final/SC.T) + 1);
-    dist.Ty = zeros(1, floor(SC.t_final/SC.T) + 1);
-    dist.Tz = zeros(1, floor(SC.t_final/SC.T) + 1);
+    dist.Tx = @(~) 0;
+    dist.Ty = @(~) 0;
+    dist.Tz = @(~) 0;
     
     x0 = zeros(drone.numStates, 1);
     for i = 1:12
