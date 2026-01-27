@@ -36,12 +36,13 @@ classdef droneTrajectorySensitivitiesHybrid
             end
         end
     
-        function secondTrajSens = calculateSecondOrderTrajectorySensitivitiesParams(model, SC, stateProgression, trajSens, ref)
+        function secondTrajSens = calculateSecondOrderTrajectorySensitivitiesParams(model, stateProgression, trajSens, ref, time, index)
             numX = model.numX;
             n = model.numStates;
             m = model.numParams;
-            secondTrajSens =  zeros(n, n, n+m, size(stateProgression, 1));
-            for i = 2:size(stateProgression, 1)
+            secondTrajSens =  zeros(n, n, n+m, index);
+            for i = 2:index
+                T = time(i) - time(i-1);
                 d2fdx2 = derivativesDroneIBHybrid.d2fdx2(model, stateProgression(i-1, :), ref);
                 d2fdx2_plus = derivativesDroneIBHybrid.d2fdx2(model, stateProgression(i, :), ref);
                 
@@ -86,8 +87,8 @@ classdef droneTrajectorySensitivitiesHybrid
                 j1 = conts({d2fdydq, dydz0}, {[2 1]}, []);
                 k1 = conts({dfdy, d2ydz0dq}, {[2 1]}, []);
 
-                l1 = d2xdz0dq + SC.T/2*(a1+b1+c1 + d1+e1+f1+g1 + 2*(h1+i1+j1+k1));
-                m1 = inv(eye(numX) - SC.T/2*dfdx_plus);
+                l1 = d2xdz0dq + T/2*(a1+b1+c1 + d1+e1+f1+g1 + 2*(h1+i1+j1+k1));
+                m1 = inv(eye(numX) - T/2*dfdx_plus);
 
                 d2xdz0dq_plus = conts({m1, l1}, {[2 1]}, []);
 
@@ -108,8 +109,8 @@ classdef droneTrajectorySensitivitiesHybrid
                 e2 = conts({d2gdxdq, dxdz0}, {[2 1]}, []);
                 f2 = conts({dgdx, d2xdz0dq}, {[2 1]}, []);
                 
-                d2y12dz0dq_plus = 1/SC.T*(a2 + b2 + c2 - d2 - e2 - f2);
-                d2y34dz0dq_plus = 1/SC.T*(d2y12dz0dq_plus - d2y12dz0dq);
+                d2y12dz0dq_plus = 1/T*(a2 + b2 + c2 - d2 - e2 - f2);
+                d2y34dz0dq_plus = 1/T*(d2y12dz0dq_plus - d2y12dz0dq);
 
                 secondTrajSens(1:numX, :, :, i) = d2xdz0dq_plus;
                 secondTrajSens(numX+1: numX+2, :, :, i) = d2y12dz0dq_plus;

@@ -124,15 +124,15 @@ classdef droneModelIBHybrid
                 index = index + 1;
                 time = time + SC.T;
                 
-                % [stableDouble, nextStateDouble] = simulateTimestep(state_prev, SC.T*2, time, model, ref, dist);
+                [stableDouble, nextStateDouble] = simulateTimestep(state_prev, SC.T*2, time, model, ref, dist);
 
-                % if (norm(nextState2(1:19) - nextStateDouble(1:19), inf) < 1e-7 && stableDouble)
-                %     SC.T = SC.T*2;   
-                % elseif (norm(nextState2(1:19) - nextStateDouble(1:19), inf) > 1e-4 || ~stable1 || ~stable2)
-                %     if SC.T > 1e-3
-                %         SC.T = SC.T/2;
-                %     end 
-                % end  
+                if (norm(nextState2(1:19) - nextStateDouble(1:19), inf) < 1e-7 && stableDouble)
+                    SC.T = SC.T*2;   
+                elseif (norm(nextState2(1:19) - nextStateDouble(1:19), inf) > 1e-4 || ~stable1 || ~stable2)
+                    if SC.T > 1e-3
+                        SC.T = SC.T/2;
+                    end 
+                end  
 
                 stable = stable1 && stable2;
                 
