@@ -14,9 +14,9 @@ function zbar = findClosestzbar(drone, SC, z0, ref, dist, zbar_guess)
     epsilon = 1e-8;
     while sum(abs(zk - zk_prev), "all") > 1e-8 || count == 0
         count = count + 1;
-        [~, stateProgression, drone, stable] = trajectory(drone, SC, zk, false, ref, dist);
+        [time, stateProgression, drone, stable, index] = trajectory(drone, SC, zk, false, ref, dist);
         if stable
-            [G, DG] = calcGDG(drone, SC, stateProgression, ref);
+            [G, DG] = calcGDG(drone, stateProgression, ref, time, index);
             vz = transpose(DG*[eye(n); zeros(p, n)]);
             zk_prev = zk;
             zk = z0 + (Pinv*vz*vz')/(vz'*Pinv*vz)*(zk - z0) - Pinv*vz/(vz'*Pinv*vz)*(G-epsilon);

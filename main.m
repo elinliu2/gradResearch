@@ -3,7 +3,7 @@ warning('off', 'all')
 
 % Sim Constants
 SC.T = 1e-3;
-SC.t_final = 100;
+SC.t_final = 300;
 
 % Model
 % pendulum = PendulumModel(0.2, 0.2);
@@ -16,35 +16,23 @@ SC.t_final = 100;
 % zbar = findClosestzbar(drone, SC, z0, ref, dist, z0);
 % toc;
 
-% zbar = load("zbar.mat").zbar;
+zbar = load("zbar.mat").zbar;
 % ptest = load("ptest_zbar.mat").p;
 % drone = assignP(drone, ptest);
 
-% tic;
-% disp("find optimal p")
-% [z, p, p_iteration, dist_zbar, G_iteration] = findOptimalqGradAscent(drone, SC, z0, ref, dist, zbar);
-% drone = assignP(drone, p);
-% toc;
-% 
-% t = 150;
-% dist.Fx(1:1+t) = 10*ones(1, 1+t);
-% dist.Fy(1:1+t) = -10*ones(1, 1+t);
 
-% t = 6;
-% dist.Fx(1:1+t) = -12*ones(1, 1+t);
-% dist.Fy(1:1+t) = 12*ones(1, 1+t);
-% dist.Fz(1:1+t) = -12*ones(1, 1+t);
+disp("find optimal p")
+[z, p, p_iteration, dist_zbar, G_iteration] = findOptimalqGradAscent(drone, SC, z0, ref, dist, zbar);
+drone = assignP(drone, p);
 
-% t = 1;
-% dist.Fx(1:1+t) = -6*ones(1, 1+t);
-% dist.Fy(1:1+t) = 6*ones(1, 1+t);
-tic;
-[time, stateProgression, drone, stable, SC, index] = trajectory(drone, SC, z0, false, ref, dist);
+dist.Fx = @windDistX;
+dist.Fy = @windDistY;
+
+[time, stateProgression, drone, stable, index] = trajectory(drone, SC, z0, false, ref, dist);
 % testTrajectorySensitivities(drone, SC, z0, stateProgression, ref, dist);
 trajSens = droneTrajectorySensitivitiesHybrid.calculateTrajectorySensitivitiesParams(drone, stateProgression, ref, time, index);
 secondTrajSensParam = droneTrajectorySensitivitiesHybrid.calculateSecondOrderTrajectorySensitivitiesParams(drone, stateProgression, trajSens, ref, time, index);
 G = norms.infimumOfReciprocalOfOneNorm(trajSens);
-toc;
 splotting.trajectoryPlot3d(time(1:index), stateProgression(1:index, 1), stateProgression(1:index, 2), stateProgression(1:index, 3), 1, "Initial Parameters with No Disturbance State Progression");
 % splotting.trajectoryVideo(time, stateProgression);
 
@@ -64,5 +52,21 @@ splotting.trajectoryPlot3d(time(1:index), stateProgression(1:index, 1), statePro
 % title('Distance to closest point, $z$, on RoA boundary from $z_0$','interpreter','latex')
 % xlabel('iteration','interpreter','latex')
 % ylabel('$\frac{1}{2}\|z-z_0\|^2$','interpreter','latex')
+
+function dist = windDistX(t)
+    if (t <= 0.15)
+        dist = 10;
+    else
+        dist = 0;
+    end
+end
+
+function dist = windDistY(t)
+    if (t <= 0.15)
+        dist = -10;
+    else
+        dist = 0;
+    end
+end
 
 

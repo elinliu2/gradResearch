@@ -92,7 +92,7 @@ classdef droneModelIBHybrid
             obj.disturbanceSignal = @DroneControllers.dummyD;
         end
 
-        function [t_span, stateProgression, model, stable, SC, index] = trajectory(model, SC, state, shouldPlot, ref, dist)
+        function [t_span, stateProgression, model, stable, index] = trajectory(model, SC, state, shouldPlot, ref, dist)
             % Initialization
             stateProgression = zeros(SC.t_final/SC.T, model.numStates);
             t_span = zeros(1, SC.t_final/SC.T);
@@ -464,9 +464,9 @@ function converging = CheckConvergence(final, prev, prevprev, ref)
     converging = converging & abs(final(1) - prev(1)) <= convergingTol;
     converging = converging & abs(final(2) - prev(2)) <= convergingTol;
     converging = converging & abs(final(3) - prev(3)) <= convergingTol;
-    converging = converging & abs(final(1) - prev(1)) <= abs(prev(1)-prevprev(1))  + numericalTol;
-    converging = converging & abs(final(2) - prev(2)) <= abs(prev(2)-prevprev(2))  + numericalTol;
-    converging = converging & abs(final(3) - prev(3)) <= abs(prev(3)-prevprev(3))  + numericalTol;
+    % converging = converging & abs(final(1) - prev(1)) <= abs(prev(1)-prevprev(1))  + numericalTol;
+    % converging = converging & abs(final(2) - prev(2)) <= abs(prev(2)-prevprev(2))  + numericalTol;
+    % converging = converging & abs(final(3) - prev(3)) <= abs(prev(3)-prevprev(3))  + numericalTol;
 end
 
 function stable = WithinLimits(state)
