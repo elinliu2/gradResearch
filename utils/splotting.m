@@ -366,9 +366,9 @@ classdef splotting
               'MarkerEdgeColor', 'k', ...
               'LineWidth', 0.5);
             hold on;
-            x = stateDistNew(:, 1);
-            y = stateDistNew(:, 2);
-            z = stateDistNew(:, 3);
+            x = stateDistNew(1:31187, 1);
+            y = stateDistNew(1:31187, 2);
+            z = stateDistNew(1:31187, 3);
             plot3(x, y, z, 'k-', 'LineWidth', 1.5);
 
             plot3(1, 1, 100, 'p', ...
@@ -421,9 +421,9 @@ classdef splotting
             end
                
             % drone
-            xf = 0.8378;
-            yf = 0.7748;
-            zf = 99.9446;
+            xf = 0.827393;
+            yf = 0.830238;
+            zf = 99.9425;
             L = 0.1;
             % Define arm endpoints (before rotation)
             arms_body = [ L   0   0;
@@ -443,7 +443,7 @@ classdef splotting
                       sind(a)  cosd(a) 0;
                       0        0       1];
 
-            R = Rz(0) * Ry(10) * Rx(10);
+            R = Rz(0) * Ry(-30) * Rx(-30);
 
             arms_rot   = (R * arms_body')';
             arms_world = arms_rot + [xf yf zf];
@@ -482,41 +482,6 @@ classdef splotting
         end
 
         function trajectoryVideo(time, stateProgression)
-            figure('Units','normalized','OuterPosition',[0 0 1 1]);
-            % Load STL file
-            fv = stlread('./drone.stl'); 
-            scale = 0.02;
-
-            % Apply scaling
-            scaledPoints = fv.Points * scale;
-        
-            % === Create transform handle ===
-            t = hgtransform;
-        
-            % === Attach STL patch to the transform ===
-            h_drone = patch('Faces', fv.ConnectivityList, ...
-                'Vertices', scaledPoints, ...
-                'FaceColor',[0.3 0.3 0.8], ...
-                'EdgeColor','none', ...
-                'Parent', t);
-        
-            % === Lighting & figure settings ===
-            view(3)               % force 3D perspective view
-            grid on;
-            camlight; lighting gouraud;
-            title("Drone Sim");
-            xlabel("x");
-            ylabel("y");
-            zlabel("z");
-        
-            % === Fixed reference marker ===
-            hold on;
-        
-            % === Axis limits so both target + drone are visible ===
-            xlim([min(stateProgression(:,1))-0.5, max(stateProgression(:,1))+0.5]);
-            ylim([min(stateProgression(:,2))-0.5, max(stateProgression(:,2))+0.5]);
-            zlim([min([stateProgression(:,3); 100])-1, max([stateProgression(:,3); 100])+1]);
- 
             % === Annotation for time ===
             h_annot = annotation('textbox',[.9 .5 .1 .2], ...
                                  'String',0, ...
@@ -526,8 +491,36 @@ classdef splotting
             writerObj.FrameRate=60;
             open(writerObj);
 
-            for i = 1 :16:length(time)
+            
+
+            for i = 1 :3:length(time)
                 t_now = time(i);
+                % Goal Point
+                plot3(1, 1, 100, 'p', ...
+                  'MarkerSize', 10, ...
+                  'MarkerFaceColor', 'y', ...
+                  'MarkerEdgeColor', 'k', ...
+                  'LineWidth', 0.5);
+                hold on;
+
+                % === Axis limits so both target + drone are visible ===
+                % xlim([min(stateProgression(:,1))-0.5, max(stateProgression(:,1))+0.5]);
+                % ylim([min(stateProgression(:,2))-0.5, max(stateProgression(:,2))+0.5]);
+                % zlim([min([stateProgression(:,3); 100])-1, max([stateProgression(:,3); 100])+1]);
+
+                xlim([-500, 0]);
+                ylim([-500, 0]);
+                zlim([0, 1000]);
+     
+                % === Lighting & figure settings ===
+                view([1 1 1])               % force 3D perspective view
+                grid on;
+                camlight; lighting gouraud;
+                title("Drone Sim");
+                xlabel("x");
+                ylabel("y");
+                zlabel("z");
+
                 plot3(stateProgression(1:i,1), stateProgression(1:i,2), stateProgression(1:i,3), 'k--', 'LineWidth', 0.5);
 
                 % --- Translation (move drone along trajectory)
@@ -539,15 +532,40 @@ classdef splotting
                 pitch = stateProgression(i,8);
                 roll  = stateProgression(i,9);
         
-                % --- Build transformation matrix ---
-                M = makehgtform('translate',[tx ty tz], ...
-                                'zrotate',yaw, ...
-                                'yrotate',pitch, ...
-                                'xrotate',roll);
-        
-                % --- Apply to hgtransform ---
-                t.Matrix = M;
-        
+                L = 10;
+                % Define arm endpoints (before rotation)
+                arms_body = [ L   0   0;
+                             -L   0   0;
+                              0   L   0;
+                              0  -L   0];
+    
+                Rx = @(a)[1 0 0;
+                          0 cosd(a) -sind(a);
+                          0 sind(a)  cosd(a)];
+    
+                Ry = @(a)[ cosd(a) 0 sind(a);
+                           0       1 0;
+                          -sind(a) 0 cosd(a)];
+    
+                Rz = @(a)[cosd(a) -sind(a) 0;
+                          sind(a)  cosd(a) 0;
+                          0        0       1];
+    
+                R = Rz(roll) * Ry(pitch) * Rx(yaw);
+    
+                arms_rot   = (R * arms_body')';
+                arms_world = arms_rot + [tx ty tz];
+    
+                % arms
+                plot3(arms_world([1 2],1),arms_world([1 2],2),arms_world([1 2],3),'k-','LineWidth',3)
+                plot3(arms_world([3 4],1),arms_world([3 4],2),arms_world([3 4],3),'k-','LineWidth',3)
+    
+                % center (hollow)
+                plot3(tz,ty,tz,'ko','MarkerSize',6,'LineWidth',1.5)
+    
+                for arm=1:4
+                    plot3(arms_world(arm,1), arms_world(arm,2), arms_world(arm,3), 'ko', 'MarkerSize',10);
+                end
                 % --- Update time annotation ---
                 set(h_annot,'String',sprintf('t=%.2f s',t_now));
                 
@@ -559,6 +577,7 @@ classdef splotting
                 drawnow;
                 frame = getframe(gcf);
                 writeVideo(writerObj, frame);
+                hold off;
             end
             
             close(writerObj);

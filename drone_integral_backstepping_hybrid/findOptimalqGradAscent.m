@@ -8,7 +8,7 @@ function [z,p, p_iteration, dist_zbar, G_iteration] = findOptimalqGradAscent(dro
 
     n = drone.numStates;
     p = drone.numParams;
-    alpha = 2;
+    alpha = 0.5;
     count = 0;
     p_iteration = zeros(p, 7);
     dist_zbar = zeros(1, 7);
@@ -16,7 +16,7 @@ function [z,p, p_iteration, dist_zbar, G_iteration] = findOptimalqGradAscent(dro
     u = 0.5;
     P = eye(n);
     Pinv = inv(P);
-    epsilon = 1e-8;
+    epsilon = 1e-9;
     while sum(abs(pk-pk_prev), 'all') > 1e-8
         count = count + 1;
         [time, stateProgression, drone, ~, index] = trajectory(drone, SC, zk, false, ref, dist);
@@ -31,13 +31,13 @@ function [z,p, p_iteration, dist_zbar, G_iteration] = findOptimalqGradAscent(dro
         zk = (Pinv*vz*vz')/(vz'*Pinv*vz)*(zk_prev-z0) + (Pinv*vz*vp')/(vz'*Pinv*vz)*(pk_prev - pk) + z0 - (Pinv*vz)/(vz'*Pinv*vz)*(G-epsilon);
         p_iteration(:, count) = pk;
         
-        [~, stateProgression, drone, stable, ~] = trajectory(drone, SC, zk, false, ref, dist);
+        [~, ~, drone, stable, ~] = trajectory(drone, SC, zk, false, ref, dist);
         countbk = 0;
         while ~stable && sum(abs(pk-pk_prev), 'all') > 1e-8
             pk = pk_prev + u*(pk-pk_prev);
             drone = assignP(drone, pk);
             zk = zk_prev + u*(zk-zk_prev);
-            [~, stateProgression, drone, stable] = trajectory(drone, SC, zk, false, ref, dist);
+            [~, ~, drone, stable] = trajectory(drone, SC, zk, false, ref, dist);
             countbk = countbk + 1;
         end 
         if countbk > 1 

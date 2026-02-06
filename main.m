@@ -3,7 +3,7 @@ warning('off', 'all')
 
 % Sim Constants
 SC.T = 1e-3;
-SC.t_final = 300;
+SC.t_final = 100;
 
 % Model
 % pendulum = PendulumModel(0.2, 0.2);
@@ -11,28 +11,28 @@ SC.t_final = 300;
 
 [drone, z0, ref, dist] = initializeDrone(SC);
 
-% tic;
-% disp("find closest zbar")
-% zbar = findClosestzbar(drone, SC, z0, ref, dist, z0);
-% toc;
+tic;
+disp("find closest zbar")
+zbar = findClosestzbar(drone, SC, z0, ref, dist, z0);
+toc;
 
-zbar = load("zbar.mat").zbar;
-% ptest = load("ptest_zbar.mat").p;
+% zbar = load("zbar_epsilon_1e_12.mat").zbar;
+% ptest = load("ptest_vartiming_updatedG.mat").p;
 % drone = assignP(drone, ptest);
 
-
+tic;
 disp("find optimal p")
 [z, p, p_iteration, dist_zbar, G_iteration] = findOptimalqGradAscent(drone, SC, z0, ref, dist, zbar);
 drone = assignP(drone, p);
+toc;
 
 dist.Fx = @windDistX;
 dist.Fy = @windDistY;
 
+SC.t_final = 15;
+
 [time, stateProgression, drone, stable, index] = trajectory(drone, SC, z0, false, ref, dist);
-% testTrajectorySensitivities(drone, SC, z0, stateProgression, ref, dist);
-trajSens = droneTrajectorySensitivitiesHybrid.calculateTrajectorySensitivitiesParams(drone, stateProgression, ref, time, index);
-secondTrajSensParam = droneTrajectorySensitivitiesHybrid.calculateSecondOrderTrajectorySensitivitiesParams(drone, stateProgression, trajSens, ref, time, index);
-G = norms.infimumOfReciprocalOfOneNorm(trajSens);
+[G, DG] = calcGDG(drone, stateProgression, ref, time, index);
 splotting.trajectoryPlot3d(time(1:index), stateProgression(1:index, 1), stateProgression(1:index, 2), stateProgression(1:index, 3), 1, "Initial Parameters with No Disturbance State Progression");
 % splotting.trajectoryVideo(time, stateProgression);
 

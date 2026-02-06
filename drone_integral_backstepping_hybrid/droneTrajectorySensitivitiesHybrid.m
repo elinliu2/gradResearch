@@ -1,5 +1,34 @@
 classdef droneTrajectorySensitivitiesHybrid
     methods(Static)
+        function trajSens = calculateTrajectorySensitivities(model, stateProgression, ref, time, index)
+            numX = model.numX;
+            n = model.numStates;
+            trajSens = zeros(n, n, index);
+            trajSens(1:n, 1:n, 1) = eye(n);
+            for i = 2:index
+                T = time(i) - time(i-1);
+                dfdx = derivativesDroneIBHybrid.dfdx(model, stateProgression(i-1, :), ref);
+                dfdx_plus = derivativesDroneIBHybrid.dfdx(model, stateProgression(i, :), ref);
+                dfdy = derivativesDroneIBHybrid.dfdy(model, stateProgression(i-1, :), ref);
+
+                dxdzo = trajSens(1:numX, :, i-1);
+                dydzo = trajSens(numX+1:n, :, i-1);
+                dy12dzo = dydzo(1:2, :);
+                
+                dxdzo_plus = inv(eye(numX) - T/2*dfdx_plus)*(dxdzo + T/2*(dfdx*dxdzo + 2*dfdy*dydzo));
+
+                dgdx = derivativesDroneIBHybrid.dgdx(model, stateProgression(i-1, :), ref);
+                dgdx_plus = derivativesDroneIBHybrid.dgdx(model, stateProgression(i, :), ref);
+
+                dy12dz_plus = 1/T*(dgdx_plus*dxdzo_plus - dgdx*dxdzo);
+                dy34dz_plus = 1/T*(dy12dz_plus-dy12dzo);
+                
+                trajSens(1:numX, :, i) =  dxdzo_plus;
+                trajSens(numX+1:numX+2, :, i) =  dy12dz_plus;
+                trajSens(numX+3:n, :, i) =  dy34dz_plus;
+            end
+        end
+
         function trajSens = calculateTrajectorySensitivitiesParams(model, stateProgression, ref, time, index)
             numX = model.numX;
             n = model.numStates;
@@ -19,7 +48,7 @@ classdef droneTrajectorySensitivitiesHybrid
                 dydq = trajSens(numX+1:n, :, i-1);
                 dy12dq = dydq(1:2, :);
                 
-                dxdq_plus = (eye(numX) - T/2*dfdx_plus)\(dxdq + T/2*(dfdq_plus + dfdx*dxdq + dfdq + 2*dfdy*dydq));
+                dxdq_plus = inv(eye(numX) - T/2*dfdx_plus)*(dxdq + T/2*(dfdq_plus + dfdx*dxdq + dfdq + 2*dfdy*dydq));
 
                 dgdx = derivativesDroneIBHybrid.dgdx(model, stateProgression(i-1, :), ref);
                 dgdx_plus = derivativesDroneIBHybrid.dgdx(model, stateProgression(i, :), ref);
